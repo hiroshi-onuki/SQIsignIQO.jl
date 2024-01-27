@@ -1,22 +1,24 @@
 # double of P. Alorithm 4 in DMPR2023
 function dbl(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}) where T <: RingElem
+    lam1, lam2, lam3, lamd1, lamd2, lamd3 = precomputation!(tnull)
     x, y, z, w = Hadamard(square(P))
     x2 = x^2
-    y2 = tnull.lamds[1]*y^2
-    z2 = tnull.lamds[2]*z^2
-    w2 = tnull.lamds[3]*w^2
+    y2 = lamd1*y^2
+    z2 = lamd2*z^2
+    w2 = lamd3*w^2
     xd, yd, zd, wd = Hadamard(x2, y2, z2, w2)
-    return ThetaPtLv2(xd, tnull.lams[1]*yd, tnull.lams[2]*zd, tnull.lams[3]*wd)
+    return ThetaPtLv2(xd, lam1*yd, lam2*zd, lam3*wd)
 end
 
 # differential addition of P and Q. Algorithm 3 in DMPR2023
 function diff_add(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}, Q::ThetaPtLv2{T}, PmQ::ThetaPtLv2{T}) where T <: RingElem
+    _, _, _, lamd1, lamd2, lamd3 = precomputation!(tnull)
     xP, yP, zP, wP = Hadamard(square(P))
     xQ, yQ, zQ, wQ = Hadamard(square(Q))
     xPQ = xP*xQ
-    yPQ = tnull.lamds[1]*yP*yQ
-    zPQ = tnull.lamds[2]*zP*zQ
-    wPQ = tnull.lamds[3]*wP*wQ
+    yPQ = lamd1*yP*yQ
+    zPQ = lamd2*zP*zQ
+    wPQ = lamd3*wP*wQ
     xPQ, yPQ, zPQ, wPQ = Hadamard(xPQ, yPQ, zPQ, wPQ)
     xyPmQ = PmQ[1]*PmQ[2]
     zwPmQ = PmQ[3]*PmQ[4]

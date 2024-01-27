@@ -7,21 +7,28 @@ struct ThetaPtLv2{T <: RingElem} <: ThetaLv2{T}
     d::T
 end
 
-struct ThetaNullLv2{T <: RingElem} <: ThetaLv2{T}
+mutable struct ThetaNullLv2{T <: RingElem} <: ThetaLv2{T}
     a::T
     b::T
     c::T
     d::T
-    lams::Vector{T}
-    lamds::Vector{T}
+    precomputed::Bool
+    precomputation::Vector{T}
 end
 
 function ThetaNullLv2(a::T, b::T, c::T, d::T) where T <: RingElem
-    ad, bd, cd, dd = Hadamard(a^2, b^2, c^2, d^2)
-    inv_b, inv_c, inv_d, inv_bd, inv_cd, inv_dd = batched_inversion([b, c, d, bd, cd, dd])
-    lams = [a*inv_b, a*inv_c, a*inv_d]
-    lamds = [ad*inv_bd, ad*inv_cd, ad*inv_dd]
-    return ThetaNullLv2(a, b, c, d, lams, lamds)
+    return ThetaNullLv2(a, b, c, d, false, T[])
+end
+
+function precomputation!(tnull::ThetaNullLv2{T}) where T <: RingElem
+    if !tnull.precomputed
+        a, b, c, d = tnull.a, tnull.b, tnull.c, tnull.d
+        ad, bd, cd, dd = Hadamard(a^2, b^2, c^2, d^2)
+        inv_b, inv_c, inv_d, inv_bd, inv_cd, inv_dd = batched_inversion([b, c, d, bd, cd, dd])
+        tnull.precomputed = true
+        tnull.precomputation = [a*inv_b, a*inv_c, a*inv_d, ad*inv_bd, ad*inv_cd, ad*inv_dd]
+    end
+    return tnull.precomputation
 end
 
 function ThetaPtLv2(v::Vector{T}) where T <: RingElem
