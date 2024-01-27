@@ -20,6 +20,10 @@ function ThetaNullLv2(a::T, b::T, c::T, d::T) where T <: RingElem
     return ThetaNullLv2(a, b, c, d, false, T[])
 end
 
+function ThetaNullLv2(v::Vector{T}) where T <: RingElem
+    return ThetaNullLv2(v[1], v[2], v[3], v[4])
+end
+
 function precomputation!(tnull::ThetaNullLv2{T}) where T <: RingElem
     if !tnull.precomputed
         a, b, c, d = tnull.a, tnull.b, tnull.c, tnull.d

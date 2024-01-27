@@ -75,7 +75,7 @@ function xDBLADD(P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T
 end
 
 # return [m]P
-function Ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+function ladder(m::ZZRingElem, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     if P.X == 0
         m % 2 == 0 ? (return InfPoint(T)) : return P
     end
@@ -84,7 +84,7 @@ function Ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m == 2 && return xDBL(P, a24)
 
     t = m >> 1
-    b = BigInt(1)
+    b = ZZ(1)
     while t != 1
         t >>= 1
         b <<= 1 
@@ -103,9 +103,9 @@ function Ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
 end
 
 # return P + [m]Q
-function Ladder3pt(m::Integer, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+function ladder3pt(m::ZZRingElem, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m < 0 && error("m in Ladder3pt must be nonnegative")
-    IsInfinity(QmP) && error("Q == P is not allowed")
+    is_infinity(QmP) && error("Q == P is not allowed")
 
     P0 = Q;
     P1 = P;
