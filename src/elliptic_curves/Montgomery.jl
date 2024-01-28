@@ -76,9 +76,6 @@ end
 
 # return [m]P
 function ladder(m::ZZRingElem, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
-    if P.X == 0
-        m % 2 == 0 ? (return InfPoint(T)) : return P
-    end
     m == 0 && return InfPoint(T)
     m == 1 && return P
     m == 2 && return xDBL(P, a24)

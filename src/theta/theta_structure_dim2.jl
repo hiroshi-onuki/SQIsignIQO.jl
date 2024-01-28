@@ -49,7 +49,7 @@ function Base.getindex(Theta::ThetaLv2{T}, i::Integer) where T <: RingElem
     elseif i == 4
         return Theta.d
     else
-        throw(BoundError(Theta, i))
+        throw(BoundsError(Theta, i))
     end
 end
 
@@ -63,7 +63,7 @@ function Base.setindex!(Theta::ThetaLv2{T}, val::T, i::Integer) where T <: RingE
     elseif i == 4
         Theta.d = val
     else
-        throw(BoundError(Theta, i))
+        throw(BoundsError(Theta, i))
     end
 end
 
