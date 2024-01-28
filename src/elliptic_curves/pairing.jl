@@ -35,8 +35,9 @@ end
 # Weil pairing e_{2^e}(P, Q)
 function Weil_pairing_2power(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T <: RingElem
     fPQ1, fPQ2 = Miller_function(A, P, Q, e)
+    if fPQ1 == 0 || fPQ2 == 0
+        return parent(A)(1)
+    end
     fQP1, fQP2 = Miller_function(A, Q, P, e)
-    println(P.X/P.Z, " ", Q.X/Q.Z)
-    println(fPQ1, " ", fPQ2, " ", fQP1, " ", fQP2)
     return (fPQ1*fQP2) / (fPQ2*fQP1)
 end
