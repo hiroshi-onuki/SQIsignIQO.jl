@@ -1,5 +1,6 @@
 using Nemo
-import KaniSQIsign: Weil_pairing_2power, random_point_order_2power, Point
+import KaniSQIsign: Weil_pairing_2power, random_point, random_point_order_2power,
+    Proj1, Point, odd_isogeny, is_infinity, ladder, Montgomery_coeff
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = characteristic(parent(A))
@@ -25,6 +26,18 @@ R, T = polynomial_ring(GF(p), "T")
 Fp2, i = FiniteField(T^2 + 1, "i")
 
 A1 = Fp2(0)
-A2 = Fp2(6)
-
-P1, Q1 = basis_2power_torsion(A1, e)
+a24 = Proj1(A1 + 2, Fp2(4))
+K = random_point(A1)
+K = ladder(div(p+1, 3), K, a24)
+while is_infinity(K)
+    global K = random_point(A1)
+    global K = ladder(div(p+1, 3), K, a24)
+end
+P1, Q1 = basis_2power_torsion(A1, 2)
+xP1 = Proj1(P1.X, P1.Z)
+xQ1 = Proj1(Q1.X, Q1.Z)
+a24_2, (xP2, xQ2) = odd_isogeny(a24, K, 3, [xP1, xQ1])
+A2 = Montgomery_coeff(a24_2)
+P2 = Point(A2, xP2)
+Q2 = Point(A2, xQ2)
+@assert Weil_pairing_2power(A1, P1, Q1, 2) * Weil_pairing_2power(A2, P2, Q2, 2) == 1 || Weil_pairing_2power(A1, P1, Q1, 2) == Weil_pairing_2power(A2, P2, Q2, 2)

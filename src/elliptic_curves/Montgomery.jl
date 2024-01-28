@@ -312,3 +312,35 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) whe
 
     return a24, Qs
 end
+
+# isogeny of odd degree d
+function odd_isogeny(a24::Proj1{T}, ker::Proj1{T}, d::Integer, Qs::Vector{Proj1{T}}) where T <: RingElem
+    F = parent(a24.X)
+    s = div(d, 2)
+    K = ker
+    s >= 2 && (R = xDBL(ker, a24))
+    A = 1
+    C = 1
+    imQs = [[F(1), F(1)] for _ in Qs]
+    for i in 1:s 
+        tp = K.X + K.Z
+        tm = K.X - K.Z
+        A *= tp
+        C *= tm
+        for i in 1:length(Qs)
+            mp = (Qs[i].X - Qs[i].Z) * tp
+            pm = (Qs[i].X + Qs[i].Z) * tm
+            imQs[i][1] *= mp + pm
+            imQs[i][2] *= mp - pm
+        end
+        if i < s
+            K, R = R, xADD(R, ker, K)
+        end
+    end
+    A = A^8
+    C = C^8
+    A *= a24.X^d
+    C *= (a24.X - a24.Z)^d
+    retQs = Proj1{T}[Proj1(Qs[i].X*imQs[i][1]^2, Qs[i].Z*imQs[i][2]^2) for i in 1:length(Qs)]
+    return Proj1(A, A - C), retQs
+end
