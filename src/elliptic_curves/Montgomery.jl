@@ -7,6 +7,20 @@ function random_point(A::T) where T <: RingElem
     end
 end
 
+# random point on a Montgomery curve with order 2^e
+function random_point_order_2power(A::T, curve_order::ZZRingElem, e::Integer) where T <: RingElem
+    F = parent(A)
+    a24 = Proj1(A + 2, F(4))
+    n = div(curve_order, ZZ(2)^e)
+    while true
+        P = random_point(A)
+        P = ladder(n, P, a24)
+        if !is_infinity(xDBLe(P, a24, e-1))
+            return P
+        end
+    end
+end
+
 # return [2]P on Mont_A with a24 = (A + 2)/4.
 function xDBL(P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     t0 = P.X - P.Z
