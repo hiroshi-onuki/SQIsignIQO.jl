@@ -88,6 +88,23 @@ function xDBLADD(P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T
     return Proj1(tPX, tPZ), Proj1(PpQX, PpQZ);
 end
 
+# return x(P + Q) or x(P - Q)
+function x_add_sub(P::Proj1{T}, Q::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+    A = a24.X + a24.X
+    A -= a24.Z
+    A += A
+    C = a24.Z
+    X1X2 = P.X * Q.X
+    Z1Z2 = P.Z * Q.Z
+    X1Z2 = P.X * Q.Z
+    Z1X2 = P.Z * Q.X
+    a = (X1Z2 - Z1X2)^2 * C
+    b = (X1X2 + Z1Z2) * (X1Z2 + Z1X2) * C + (A + A) * X1X2 * Z1Z2
+    c = (X1X2 - Z1Z2)^2 * C
+    d1, d2 = square_root(b^2 - a*c)
+    return Proj1(b*d2 + d1, a*d2)
+end
+
 # return [m]P
 function ladder(m::ZZRingElem, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m == 0 && return InfPoint(T)
