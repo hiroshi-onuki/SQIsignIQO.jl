@@ -179,8 +179,8 @@ function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, 
 
         # temporary!
         P1, P2 = P.P1, P.P2
-        PT1 = ladder(ZZ(5), P1, a24_1)
-        PT2 = ladder(ZZ(5), P2, a24_2)
+        PT1 = ladder(ZZ(9), P1, a24_1)
+        PT2 = ladder(ZZ(9), P2, a24_2)
         PT = CouplePoint(PT1, PT2)
 
         Ptheta = base_change_couple_point(P, M)
