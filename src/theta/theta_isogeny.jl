@@ -1,6 +1,11 @@
 
 function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2::ThetaPtLv2{T},
         image_points::Vector{ThetaPtLv2{T}}, hadamard::Bool) where T <: RingElem
+
+    Tmp1 = double_iter(domain, T1, 3)
+    Tmp2 = double_iter(domain, T2, 3)
+    @assert Tmp1 == domain && Tmp2 == domain
+
     F = parent(domain.a)
     xA, xB, _, _ = Hadamard(square(T1))
     zA, tB, zC, tD = Hadamard(square(T2))
@@ -24,6 +29,7 @@ function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2
     # images of points
     ret = Vector{ThetaPtLv2{T}}(undef, length(image_points))
     for i in 1:length(image_points)
+        @assert double_iter(domain, image_points[i], 4) == domain
         x, y, z, t = Hadamard(square(image_points[i]))
         y *= B_inv
         z *= C_inv
@@ -39,6 +45,11 @@ end
 
 function two_two_isogeny_8torsion_to_product(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2::ThetaPtLv2{T},
         image_points::Vector{ThetaPtLv2{T}}) where T <: RingElem
+
+    Tmp1 = double_iter(domain, T1, 3)
+    Tmp2 = double_iter(domain, T2, 3)
+    @assert Tmp1 == domain && Tmp2 == domain
+
     F = parent(domain.a)
     xA, xB, _, _ = Hadamard(square(Hadamard(T1)))
     zA, tB, zC, tD = Hadamard(square(Hadamard(T2)))

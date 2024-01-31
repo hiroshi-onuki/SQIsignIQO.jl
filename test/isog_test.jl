@@ -44,6 +44,11 @@ xQ2 = ladder(ZZ(M), xQ2, a24_2)
 Q2 = Point(A2, xQ2)
 @assert Weil_pairing_2power(A1, P1, Q1, e + 2) == Weil_pairing_2power(A2, P2, Q2, e + 2) || Weil_pairing_2power(A1, P1, Q1, e + 2)*Weil_pairing_2power(A2, P2, Q2, e + 2) == 1
 
+xP1 = Proj1(9869*i)
+xP2 = Proj1(13690*i + 4536)
+xQ1 = Proj1(15061*i + 18352)
+xQ2 = Proj1(3576*i + 5041)
+a24_2 = Proj1(17409*i+4362 + 2, Fp2(4))
 P1P2 = CouplePoint(xP1, xP2)
 Q1Q2 = CouplePoint(xQ1, xQ2)
 codomain, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, CouplePoint{FqFieldElem}[], e)
