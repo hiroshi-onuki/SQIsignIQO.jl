@@ -77,7 +77,7 @@ function get_base_matrix(a24_1::Proj1{T}, a24_2::Proj1{T}, T1::CouplePoint{T}, T
     return [a, b, c, d, a1, b1, c1, d1, a2, b2, c2, d2, a3, b3, c3, d3]
 end
 
-function apply_base_chagne(P::ThetaPtLv2{T}, M::Vector{T}) where T <: RingElem
+function apply_base_chagne(P::ThetaPtLv2{T}, M::Vector) where T <: RingElem
     x, y, z, t = P.a, P.b, P.c, P.d
     a = M[1] * x + M[2] * y + M[3] * z + M[4] * t
     b = M[5] * x + M[6] * y + M[7] * z + M[8] * t
@@ -86,7 +86,7 @@ function apply_base_chagne(P::ThetaPtLv2{T}, M::Vector{T}) where T <: RingElem
     return ThetaPtLv2(a, b, c, d)
 end
 
-function apply_base_chagne(P::ThetaNullLv2{T}, M::Vector{T}) where T <: RingElem
+function apply_base_chagne(P::ThetaNullLv2{T}, M::Vector) where T <: RingElem
     x, y, z, t = P.a, P.b, P.c, P.d
     a = M[1] * x + M[2] * y + M[3] * z + M[4] * t
     b = M[5] * x + M[6] * y + M[7] * z + M[8] * t

@@ -79,5 +79,5 @@ function splitting_isomorphism(tnull::ThetaNullLv2{T}, image_points::Vector{Thet
     for i in 1:length(image_points)
         ret[i] = apply_base_chagne(image_points[i], M)
     end
-    return ThetaNullLv2(tnull), ret
+    return tnull, ret
 end
