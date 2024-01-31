@@ -5,6 +5,8 @@ function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2
     Tmp1 = double_iter(domain, T1, 3)
     Tmp2 = double_iter(domain, T2, 3)
     @assert Tmp1 == domain && Tmp2 == domain
+    println(T1)
+    println(T2)
 
     F = parent(domain.a)
     xA, xB, _, _ = Hadamard(square(T1))
@@ -92,6 +94,7 @@ function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::Cou
     domain, image_points = gluing_isogeny(a24_1, a24_2, P1P2_8, Q1Q2_8, image_points)
 
     for k in 1:n-1
+        println(domain)
         Tp1 = double_iter(domain, image_points[end - 1], n - k - 1)
         Tp2 = double_iter(domain, image_points[end], n - k - 1)
 
