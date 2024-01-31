@@ -20,6 +20,10 @@ function ThetaNullLv2(a::T, b::T, c::T, d::T) where T <: RingElem
     return ThetaNullLv2(a, b, c, d, false, T[])
 end
 
+function ThetaNullLv2(th::ThetaPtLv2{T}) where T <: RingElem
+    return ThetaNullLv2(th.a, th.b, th.c, th.d)
+end
+
 function ThetaNullLv2(v::Vector{T}) where T <: RingElem
     return ThetaNullLv2(v[1], v[2], v[3], v[4])
 end
@@ -77,6 +81,10 @@ end
 
 function square(th::ThetaLv2{T}) where T <: RingElem
     return [th[i]^2 for i in 1:4]
+end
+
+function square(v::Vector{T}) where T <: RingElem
+    return [v[i]^2 for i in 1:4]
 end
 
 function Base.:(==)(th1::ThetaLv2{T}, th2::ThetaLv2{T}) where T <: RingElem

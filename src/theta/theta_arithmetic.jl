@@ -1,5 +1,5 @@
 # double of P. Alorithm 4 in DMPR2023
-function dbl(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}) where T <: RingElem
+function double(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}) where T <: RingElem
     lam1, lam2, lam3, lamd1, lamd2, lamd3 = precomputation!(tnull)
     x, y, z, w = Hadamard(square(P))
     x2 = x^2
@@ -29,11 +29,19 @@ function diff_add(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}, Q::ThetaPtLv2{T}, Pm
     return ThetaPtLv2(x, y, z, w)
 end
 
+# return [2^e]P by double
+function double_iter(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}, e::Integer) where T <: RingElem
+    for _ in 1:e
+        P = double(tnull, P)
+    end
+    return P
+end
+
 # return [m]P by Montgomey ladder
 function ladder(tnull::ThetaNullLv2{T}, m::ZZRingElem, P::ThetaPtLv2{T}) where T <: RingElem
     m == 0 && return ThetaPtLv2([tnull[i] for i in 1:4])
     m == 1 && return P
-    m == 2 && return dbl(tnull, P)
+    m == 2 && return double(tnull, P)
 
     t = m >> 1
     b = ZZ(1)
@@ -42,12 +50,12 @@ function ladder(tnull::ThetaNullLv2{T}, m::ZZRingElem, P::ThetaPtLv2{T}) where T
         b <<= 1 
     end
 
-    P0, P1 = P, dbl(tnull, P)
+    P0, P1 = P, double(tnull, P)
     while b != 0
         if m & b == 0
-            P0, P1 = dbl(tnull, P0), diff_add(tnull, P0, P1, P)
+            P0, P1 = double(tnull, P0), diff_add(tnull, P0, P1, P)
         else
-            P1, P0 = dbl(tnull, P1), diff_add(tnull, P0, P1, P)
+            P1, P0 = double(tnull, P1), diff_add(tnull, P0, P1, P)
         end
         b >>= 1
     end

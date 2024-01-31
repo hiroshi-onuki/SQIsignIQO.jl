@@ -1,7 +1,7 @@
 using Nemo
 import KaniSQIsign: Proj1, random_point, xDBL,
     Montgomery_to_theta, Montgomery_point_to_theta,
-    product_theta_null, product_theta_pt, ladder, dbl
+    product_theta_null, product_theta_pt, ladder, double
 
 p = ZZ(103)
 R, T = polynomial_ring(GF(p), "T")
@@ -25,4 +25,4 @@ P = product_theta_pt(tP1, tP2)
 Q = product_theta_pt(tQ1, tQ2)
 
 @test ladder(tnull, p + 1, P) == tnull
-@test Q == dbl(tnull, P)
+@test Q == double(tnull, P)

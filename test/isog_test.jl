@@ -1,7 +1,7 @@
 using Nemo
 import KaniSQIsign: Weil_pairing_2power, random_point, random_point_order_2power,
     Proj1, Point, odd_isogeny, is_infinity, ladder, Montgomery_coeff,
-    xDBLe, CouplePoint, gluing_isogeny
+    xDBLe, CouplePoint, gluing_isogeny, product_isogeny_no_strategy
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = characteristic(parent(A))
@@ -44,14 +44,7 @@ xQ2 = ladder(ZZ(M), xQ2, a24_2)
 Q2 = Point(A2, xQ2)
 @assert Weil_pairing_2power(A1, P1, Q1, e + 2) == Weil_pairing_2power(A2, P2, Q2, e + 2) || Weil_pairing_2power(A1, P1, Q1, e + 2)*Weil_pairing_2power(A2, P2, Q2, e + 2) == 1
 
-x2P1 = xDBLe(xP1, a24_1, e-1)
-x2Q1 = xDBLe(xQ1, a24_1, e-1)
-x2P2 = xDBLe(xP2, a24_2, e-1)
-x2Q2 = xDBLe(xQ2, a24_2, e-1)
-P1P2 = CouplePoint(x2P1, x2P2)
-Q1Q2 = CouplePoint(x2Q1, x2Q2)
-codomain, images = gluing_isogeny(a24_1, a24_2, P1P2, Q1Q2, [CouplePoint(xP1, xP2), CouplePoint(xQ1, xQ2)])
+P1P2 = CouplePoint(xP1, xP2)
+Q1Q2 = CouplePoint(xQ1, xQ2)
+codomain, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, CouplePoint{FqFieldElem}[], e)
 
-for im in images
-    println(ladder(codomain, ZZ(2)^(e+1), im) == codomain)
-end

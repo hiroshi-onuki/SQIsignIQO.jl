@@ -9,3 +9,10 @@ function double(P::CouplePoint{T}, a24_1::Proj1{T}, a24_2::Proj1{T}) where T <: 
     P2 = xDBL(P2, a24_2)
     return CouplePoint(P1, P2)
 end
+
+function double_iter(P::CouplePoint{T}, a24_1::Proj1{T}, a24_2::Proj1{T}, e::Integer) where T <: RingElem
+    for _ in 1:e
+        P = double(P, a24_1, a24_2)
+    end
+    return P
+end

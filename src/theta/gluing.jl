@@ -86,6 +86,15 @@ function apply_base_chagne(P::ThetaPtLv2{T}, M::Vector{T}) where T <: RingElem
     return ThetaPtLv2(a, b, c, d)
 end
 
+function apply_base_chagne(P::ThetaNullLv2{T}, M::Vector{T}) where T <: RingElem
+    x, y, z, t = P.a, P.b, P.c, P.d
+    a = M[1] * x + M[2] * y + M[3] * z + M[4] * t
+    b = M[5] * x + M[6] * y + M[7] * z + M[8] * t
+    c = M[9] * x + M[10] * y + M[11] * z + M[12] * t
+    d = M[13] * x + M[14] * y + M[15] * z + M[16] * t
+    return ThetaNullLv2(a, b, c, d)
+end
+
 function base_change_couple_point(P::CouplePoint{T}, M::Vector{T}) where T <: RingElem
     P1, P2 = P.P1, P.P2
     X1, Z1 = P1.X, P1.Z
