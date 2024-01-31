@@ -191,13 +191,10 @@ function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, 
         # require two squre roots
         PT1 = x_add_sub(P1, T1_4.P1, a24_1)
         PT2 = x_add_sub(P2, T1_4.P2, a24_2)
-        println("PT1 ", affine(PT1))
-        println("PT2 ", affine(PT2))
-        PT1 = xADD(P1, T2_4.P1, PT1)
-        PT2 = xADD(P2, T2_4.P2, PT2)
-        println("PT1 ", affine(PT1))
-        println("PT2 ", affine(PT2))
-        
+
+        if i == 2
+            PT2 = xADD(P2, T1_4.P2, PT2)
+        end
 
         PT = CouplePoint(PT1, PT2)
 

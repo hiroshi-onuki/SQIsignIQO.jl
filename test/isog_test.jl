@@ -52,4 +52,4 @@ a24_2 = Proj1(17409*i+4362 + 2, Fp2(4))
 P1P2 = CouplePoint(xP1, xP2)
 Q1Q2 = CouplePoint(xQ1, xQ2)
 codomain, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, CouplePoint{FqFieldElem}[], e)
-
+println(codomain)
