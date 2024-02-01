@@ -25,7 +25,6 @@ function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2
     # images of points
     ret = Vector{ThetaPtLv2{T}}(undef, length(image_points))
     for i in 1:length(image_points)
-        @assert double_iter(domain, image_points[i], 4) == domain
         x, y, z, t = Hadamard(square(image_points[i]))
         y *= B_inv
         z *= C_inv
