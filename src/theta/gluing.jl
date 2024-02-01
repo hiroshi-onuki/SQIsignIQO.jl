@@ -172,7 +172,8 @@ end
 
 # the gluing (2, 2)-isogeny with kernel <(P1, P2), (Q1, Q2)>
 function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T},
-        image_points::Vector{CouplePoint{T}}) where T <: RingElem
+        P1P2shift::CouplePoint{T}, Q1Q2shift::CouplePoint{T},
+        image_points::Vector{CouplePoint{T}}, n::Integer) where T <: RingElem
     T1_4 = double(P1P2, a24_1, a24_2)
     T2_4 = double(Q1Q2, a24_1, a24_2)
     M = get_base_matrix(a24_1, a24_2, T1_4, T2_4)
@@ -188,15 +189,17 @@ function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, 
 
         P1, P2 = P.P1, P.P2
 
-        # require two squre roots
-        PT1 = x_add_sub(P1, T1_4.P1, a24_1)
-        PT2 = x_add_sub(P2, T1_4.P2, a24_2)
-
-        if i == 2
-            PT2 = xADD(P2, T1_4.P2, PT2)
+        # the last two points are the images of generators of the kernel
+        if i == length(image_points) - 1
+            PT = P1P2shift
+        elseif i == length(image_points)
+            PT = Q1Q2shift
+        else
+            # require two squre roots
+            PT1 = x_add_sub(P1, T1_4.P1, a24_1)
+            PT2 = x_add_sub(P2, T1_4.P2, a24_2)
+            PT = CouplePoint(PT1, PT2)
         end
-
-        PT = CouplePoint(PT1, PT2)
 
         Ptheta = base_change_couple_point(P, M)
         PTtheta = base_change_couple_point(PT, M)

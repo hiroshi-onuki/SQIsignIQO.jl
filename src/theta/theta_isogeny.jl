@@ -2,10 +2,6 @@
 function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2::ThetaPtLv2{T},
         image_points::Vector{ThetaPtLv2{T}}, hadamard::Bool) where T <: RingElem
 
-    Tmp1 = double_iter(domain, T1, 3)
-    Tmp2 = double_iter(domain, T2, 3)
-    @assert Tmp1 == domain && Tmp2 == domain
-
     F = parent(domain.a)
     xA, xB, _, _ = Hadamard(square(T1))
     zA, tB, zC, tD = Hadamard(square(T2))
@@ -46,10 +42,6 @@ end
 function two_two_isogeny_8torsion_to_product(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2::ThetaPtLv2{T},
         image_points::Vector{ThetaPtLv2{T}}) where T <: RingElem
 
-    Tmp1 = double_iter(domain, T1, 3)
-    Tmp2 = double_iter(domain, T2, 3)
-    @assert Tmp1 == domain && Tmp2 == domain
-
     F = parent(domain.a)
     xA, xB, _, _ = Hadamard(square(Hadamard(T1)))
     zA, tB, zC, tD = Hadamard(square(Hadamard(T2)))
@@ -81,6 +73,7 @@ end
 
 # (2^n, 2^n)-isogeny with kernel <4*T1, 4*T2>
 function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T},
+    P1P2shift::CouplePoint{T}, Q1Q2shift::CouplePoint{T},
     image_points::Vector{CouplePoint{T}}, n::Integer) where T <: RingElem
 
     push!(image_points, P1P2)
@@ -89,7 +82,7 @@ function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::Cou
     P1P2_8 = double_iter(P1P2, a24_1, a24_2, n-1)
     Q1Q2_8 = double_iter(Q1Q2, a24_1, a24_2, n-1)
 
-    domain, image_points = gluing_isogeny(a24_1, a24_2, P1P2_8, Q1Q2_8, image_points)
+    domain, image_points = gluing_isogeny(a24_1, a24_2, P1P2_8, Q1Q2_8, P1P2shift, Q1Q2shift, image_points)
 
     for k in 1:n-1
         Tp1 = double_iter(domain, image_points[end - 1], n - k - 1)
