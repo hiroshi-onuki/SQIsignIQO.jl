@@ -21,6 +21,14 @@ function Point(A::T, XZ::Proj1{T}) where T <: RingElem
     return Point(X, Y, Z)
 end
 
+function Base.:(==)(P::Point{T}, Q::Point{T}) where T <: RingElem
+    return P.X*Q.Z == P.Z*Q.X && P.Y*Q.Z == P.Z*Q.Y
+end
+
+function infinity_full_point(F::T) where T <: Ring
+    return Point(F(0), F(1), F(0))
+end
+
 function double(P::Point{T}, A::Proj1{T}) where T <: RingElem
     X, Y, Z = P.X, P.Y, P.Z
     XY = X * Y
@@ -57,7 +65,7 @@ function add(P::Point{T}, Q::Point{T}, A::Proj1{T}) where T <: RingElem
             return double(P, A)
         else
             F = parent(A.X)
-            return Point(F(0), F(1), F(0))
+            return infinity_full_point(F)
         end
     end
     U = X2Z1 - X1Z2
@@ -70,4 +78,28 @@ function add(P::Point{T}, Q::Point{T}, A::Proj1{T}) where T <: RingElem
     Y3 = V * (X1Z2 * U2 * A.Z - X3) - Y1Z2 * U3 * A.Z
     Z3 = U3 * W
     return Point(X3 * U, Y3, Z3)
+end
+
+function mult(m::ZZRingElem, P::Point{T}, A::Proj1{T}) where T <: RingElem
+    F = parent(A.X)
+    m == 0 && return infinity_full_point(F)
+    m == 1 && return P
+    m == 2 && return double(P, A)
+
+    t = m >> 1
+    b = ZZ(1)
+    while t != 1
+        t >>= 1
+        b <<= 1 
+    end
+
+    R = P
+    while b != 0
+        R = double(R, A)
+        if m & b != 0
+            R = add(R, P, A)
+        end
+        b >>= 1
+    end
+    return R
 end
