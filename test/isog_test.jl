@@ -21,7 +21,7 @@ end
 
 p = ZZ(21733158535462224051193457152486610816840494993914547553836971106544815964159)
 R, T = polynomial_ring(GF(p), "T")
-Fp2, i = FiniteField(T^2 + 1, "i")
+Fp2, i = finite_field(T^2 + 1, "i")
 n = 126
 
 A1 = Fp2(0)
