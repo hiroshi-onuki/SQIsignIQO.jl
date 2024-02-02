@@ -171,15 +171,15 @@ function gluing_image(P::ThetaPtLv2{T}, PT::ThetaPtLv2{T}, a_inv::T, b_inv::T, z
 end
 
 # the gluing (2, 2)-isogeny with kernel <(P1, P2), (Q1, Q2)>
-function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T},
-        P1P2shift::CouplePoint{T}, Q1Q2shift::CouplePoint{T},
+function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
+        T1_8::CouplePoint{T}, T2_8::CouplePoint{T}, P1Q1P2Q2::CouplePoint{T},
         image_points::Vector{CouplePoint{T}}, n::Integer) where T <: RingElem
-    T1_4 = double(P1P2, a24_1, a24_2)
-    T2_4 = double(Q1Q2, a24_1, a24_2)
+    T1_4 = double(T1_8, a24_1, a24_2)
+    T2_4 = double(T2_8, a24_1, a24_2)
     M = get_base_matrix(a24_1, a24_2, T1_4, T2_4)
 
-    T1 = base_change_couple_point(P1P2, M)
-    T2 = base_change_couple_point(Q1Q2, M)
+    T1 = base_change_couple_point(T1_8, M)
+    T2 = base_change_couple_point(T2_8, M)
 
     codomain, a_inv, b_inv, zero_idx = gluing_codomain(T1, T2)
 
@@ -191,16 +191,21 @@ function gluing_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T}, P1P2::CouplePoint{T}, 
 
         # the last two points are the images of generators of the kernel
         if i == length(image_points) - 1
-            PT = P1P2shift
+            # P1 = 2^n*T1_4.P1, P2 = 2^n*T2_4.P2
+            PT1 = ladder(ZZ(2)^n + 1, P1, a24_1)
+            PT2 = ladder(ZZ(2)^n + 1, P2, a24_2)
         elseif i == length(image_points)
-            PT = Q1Q2shift
+            # P1 + T1_4.P1 = P1 + 2^n * image_points[end-1].P1,
+            # P2 + T1_4.P2 = P2 + 2^n * image_points[end-1].P2
+            P1Q1, P2Q2 = P1Q1P2Q2.P1, P1Q1P2Q2.P2
+            PT1 = ladder3pt(ZZ(2)^n, P1, image_points[end-1].P1, P1Q1, a24_1)
+            PT2 = ladder3pt(ZZ(2)^n, P2, image_points[end-1].P2, P2Q2, a24_2)
         else
             # require two squre roots
             PT1 = x_add_sub(P1, T1_4.P1, a24_1)
             PT2 = x_add_sub(P2, T1_4.P2, a24_2)
-            PT = CouplePoint(PT1, PT2)
         end
-
+        PT = CouplePoint(PT1, PT2)
         Ptheta = base_change_couple_point(P, M)
         PTtheta = base_change_couple_point(PT, M)
         

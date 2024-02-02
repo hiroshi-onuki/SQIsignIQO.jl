@@ -138,7 +138,7 @@ function ladder3pt(m::ZZRingElem, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::
     P0 = Q;
     P1 = P;
     P2 = QmP;
-    t = m
+    t = BigInt(m)
     while (t != 0)
         if (t & 1 == 1)
             P0, P1 = xDBLADD(P0, P1, P2, a24);
