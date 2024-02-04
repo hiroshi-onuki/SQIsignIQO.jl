@@ -1,7 +1,7 @@
 using Nemo
 import KaniSQIsign: Weil_pairing_2power, random_point, random_point_order_2power,
     Proj1, Point, odd_isogeny, is_infinity, ladder, Montgomery_coeff,
-    xDBLe, CouplePoint, gluing_isogeny, product_isogeny_no_strategy
+    xDBLe, CouplePoint, gluing_isogeny, product_isogeny_no_strategy, product_isogeny
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = characteristic(parent(A))
@@ -43,3 +43,8 @@ P1Q1P2Q2 = CouplePoint(xP1Q1, xP2Q2)
 codomain, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, P1Q1P2Q2, CouplePoint{FqFieldElem}[], n)
 println(codomain)
 @time product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, P1Q1P2Q2, CouplePoint{FqFieldElem}[], n)
+
+strategy= Int[125, 36, 34, 21, 13, 8, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 8, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 13, 8, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 13, 8, 5, 3, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 5, 3, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1]
+codomain, images = product_isogeny(a24_1, a24_2, P1P2, Q1Q2, P1Q1P2Q2, CouplePoint{FqFieldElem}[], n, strategy)
+println(codomain)
+@time product_isogeny(a24_1, a24_2, P1P2, Q1Q2, P1Q1P2Q2, CouplePoint{FqFieldElem}[], n, strategy)

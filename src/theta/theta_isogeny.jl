@@ -13,7 +13,7 @@ function two_two_isogeny_8torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, T2
     C = zC * zA_inv
     D = tD * tB_inv * B
 
-    _, _, _, BBinv, CCinv, DDinv = domain.precomputation
+    _, _, _, BBinv, CCinv, DDinv = precomputation!(domain)
     B_inv = BBinv * B
     C_inv = CCinv * C
     D_inv = DDinv * D
@@ -69,7 +69,6 @@ function two_two_isogeny_8torsion_to_product(domain::ThetaNullLv2{T}, T1::ThetaP
     return ThetaNullLv2(A, B, C, D), ret
 end
 
-
 # (2^n, 2^n)-isogeny with kernel <4*P1P2, 4*P2Q2>. P1Q1P2Q2 = (x(P1 + Q1), x(P2 + Q2))
 function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
     P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T}, P1Q1P2Q2::CouplePoint{T},
@@ -93,6 +92,70 @@ function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
             domain, image_points = two_two_isogeny_8torsion_to_product(domain, Tp1, Tp2, image_points)
         else
             domain, image_points = two_two_isogeny_8torsion(domain, Tp1, Tp2, image_points, true)
+        end
+    end
+
+    domain, image_points = splitting_isomorphism(domain, image_points)
+
+    return domain, image_points
+end
+
+function product_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
+    P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T}, P1Q1P2Q2::CouplePoint{T},
+    image_points::Vector{CouplePoint{T}}, n::Integer, strategy::Vector{Int}) where T <: RingElem
+
+    push!(image_points, P1P2)
+    push!(image_points, Q1Q2)
+
+    strategy_idx = 1
+    level = Int[0]
+    prev = 0
+
+    ker1 = P1P2
+    ker2 = Q1Q2
+    while prev != n - 1
+        push!(level, strategy[strategy_idx])
+
+        ker1 = double_iter(ker1, a24_1, a24_2, strategy[strategy_idx])
+        ker2 = double_iter(ker2, a24_1, a24_2, strategy[strategy_idx])
+        push!(image_points, ker1)
+        push!(image_points, ker2)
+
+        prev += strategy[strategy_idx]
+        strategy_idx += 1
+    end
+    pop!(image_points)
+    pop!(image_points)
+    pop!(level)
+
+    domain, image_points = gluing_isogeny(a24_1, a24_2, ker1, ker2, P1Q1P2Q2, image_points, n)
+
+    for k in 1:n-1
+        prev = sum(level)
+        ker1 = image_points[end - 1]
+        ker2 = image_points[end]
+
+        while prev != (n - 1 - k)
+            push!(level, strategy[strategy_idx])
+
+            ker1 = double_iter(domain, ker1, strategy[strategy_idx])
+            ker2 = double_iter(domain, ker2, strategy[strategy_idx])
+            push!(image_points, ker1)
+            push!(image_points, ker2)
+
+            prev += strategy[strategy_idx]
+            strategy_idx += 1
+        end
+        pop!(image_points)
+        pop!(image_points)
+        pop!(level)
+
+        if k == n - 2
+            domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, false)
+        elseif k == n - 1
+            domain, image_points = two_two_isogeny_8torsion_to_product(domain, ker1, ker2, image_points)
+        else
+            domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, true)
         end
     end
 
