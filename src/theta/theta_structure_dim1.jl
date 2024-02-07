@@ -21,10 +21,6 @@ function Montgomery_to_theta(A::T) where T <: RingElem
     return ThetaLv1(sqrt((a + 1)*(a - 1)), a - 1)
 end
 
-function Montgomery_point_to_theta(tnull::ThetaLv1{T}, P::Proj1{T}) where T <: RingElem
-    return ThetaLv1(tnull[1]*(P.X - P.Z), tnull[2]*(P.X + P.Z))
-end
-
 # theta null to Montgomery coefficient
 function theta_to_Montgomery(tnull::ThetaLv1{T}) where T <: RingElem
     a, b = tnull.a, tnull.b
@@ -32,4 +28,18 @@ function theta_to_Montgomery(tnull::ThetaLv1{T}) where T <: RingElem
     T1, T2 = a2 + b2, a2 - b2
     A = -(T1^2 + T2^2) / (T1*T2)
     return A
+end
+
+# Montgomery x-coordinate to theta point
+function Montgomery_point_to_theta(tnull::ThetaLv1{T}, P::Proj1{T}) where T <: RingElem
+    return ThetaLv1(tnull[1]*(P.X - P.Z), tnull[2]*(P.X + P.Z))
+end
+
+# theta point to Montgomery x-coordinate
+function theta_point_to_Montgomery(tnull::ThetaLv1{T}, P::ThetaLv1{T}) where T <: RingElem
+    a, b = tnull.a, tnull.b
+    U, V = P.a, P.b
+    aV = a*V
+    bU = b*U
+    return Proj1(aV + bU, aV - bU)
 end

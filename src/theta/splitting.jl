@@ -81,3 +81,25 @@ function splitting_isomorphism(tnull::ThetaNullLv2{T}, image_points::Vector{Thet
     end
     return tnull, ret
 end
+
+function split_theta_point(P::ThetaLv2)
+    a, b, d = P.a, P.b, P.d
+    return [ThetaLv1(a, b), ThetaLv1(b, d)]
+end
+
+# theta null corresponding to a diagonal period matrix to Montgomery curves
+function split_to_product(tnull::ThetaNullLv2{T}, image_points::Vector{ThetaPtLv2{T}}) where T <: RingElem
+    O1, O2 = split_theta_point(tnull)
+    E1 = theta_to_Montgomery(O1)
+    E2 = theta_to_Montgomery(O2)
+
+    images = Vector{CouplePoint{T}}(undef, length(image_points))
+    for i in 1:length(image_points)
+        P1, P2 = split_theta_point(image_points[i])
+        xP1 = theta_point_to_Montgomery(O1, P1)
+        xP2 = theta_point_to_Montgomery(O2, P2)
+        images[i] = CouplePoint(xP1, xP2)
+    end
+
+    return [E1, E2], images
+end

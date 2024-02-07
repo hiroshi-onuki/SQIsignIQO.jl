@@ -96,8 +96,7 @@ function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
     end
 
     domain, image_points = splitting_isomorphism(domain, image_points)
-
-    return domain, image_points
+    return split_to_product(domain, image_points)
 end
 
 function product_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
@@ -160,6 +159,5 @@ function product_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
     end
 
     domain, image_points = splitting_isomorphism(domain, image_points)
-
-    return domain, image_points
+    return split_to_product(domain, image_points)
 end
