@@ -14,5 +14,6 @@ include("theta/gluing.jl")
 include("theta/theta_arithmetic.jl")
 include("theta/splitting.jl")
 include("theta/theta_isogeny.jl")
+include("quoternion/order.jl")
 
 end # module KaniSQIsign

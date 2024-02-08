@@ -56,7 +56,7 @@ while is_infinity(ladder(ZZ(3), S2, a24_2)) || is_infinity(ladder(ZZ(5), S2, a24
 end
 T2 = random_point(A2)
 T2 = ladder(div(p + 1, 3 * 5), T2, a24_2)
-while is_infinity(ladder(ZZ(3), T2, a24_2)) || is_infinity(ladder(ZZ(5), T2, a24_2)) || T2 in [ladder(ZZ(i), S2, a24_2) for i in 1:15]
+while is_infinity(ladder(ZZ(3), T2, a24_2)) || is_infinity(ladder(ZZ(5), T2, a24_2)) || ladder(ZZ(5), T2, a24_2) == ladder(ZZ(5), S2, a24_2) || ladder(ZZ(3), T2, a24_2) == ladder(ZZ(3), S2, a24_2) || ladder(ZZ(3), T2, a24_2) == ladder(ZZ(6), S2, a24_2)
     global T2 = random_point(A2)
     global T2 = ladder(div(p + 1, 3 * 5), T2, a24_2)
 end
