@@ -108,27 +108,22 @@ if jInvariant_A(Es[1]) == jInvariant_A(A1)
 else
     idx = 2
 end
-println(Es[idx])
 @assert jInvariant_A(Es[idx]) == jInvariant_A(A1)
 a24_1d = A_to_a24(Es[idx])
-println([images[1][idx], images[2][idx]])
 Kd, Kdd = isomorphism_Montgomery(a24_1d, a24_1, [images[1][idx], images[2][idx]])
 if is_infinity(Kd)
     # the order of Kdd is 15
     T = ladder(ZZ(3), Kdd, a24_1)
     a24_2d, T = odd_isogeny(a24_1, T, 5, [Kdd])
     a24_2d, _ = odd_isogeny(a24_2d, T[1], 3, Proj1{typeof(i)}[])
-    println(1)
 elseif is_infinity(ladder(ZZ(3), Kd, a24_1))
     # the order of Kd is 3, so the order of Kdd is 5 or 15
     a24_2d, T = odd_isogeny(a24_1, Kd, 3, [Kdd])
     a24_2d, _ = odd_isogeny(a24_2d, T[1], 5, Proj1{typeof(i)}[])
-    println(2)
 else
     # the order of [3]Kd is 5, so the order of Kdd is 3 or 15
     T = ladder(ZZ(3), Kd, a24_1)
     a24_2d, T = odd_isogeny(a24_1, T, 5, [Kdd])
     a24_2d, _ = odd_isogeny(a24_2d, T[1], 3, Proj1{typeof(i)}[])
-    println(3)
 end
 @assert jInvariant_a24(a24_2d) == jInvariant_a24(a24_2)

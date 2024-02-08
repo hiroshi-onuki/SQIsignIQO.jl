@@ -5,7 +5,7 @@ import KaniSQIsign: Proj1, random_point, xDBL,
 
 p = ZZ(103)
 R, T = polynomial_ring(GF(p), "T")
-Fp2, i = FiniteField(T^2 + 1, "i")
+Fp2, i = finite_field(T^2 + 1, "i")
 A1 = Fp2(0)
 A2 = Fp2(6)
 t1 = Montgomery_to_theta(A1)

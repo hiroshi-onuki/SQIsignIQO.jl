@@ -3,7 +3,7 @@ import KaniSQIsign: Proj1, random_point, ladder, x_add_sub
 
 p = ZZ(21503)
 R, T = polynomial_ring(GF(p), "T")
-Fp2, i = FiniteField(T^2 + 1, "i")
+Fp2, i = finite_field(T^2 + 1, "i")
 
 A = Fp2(6)
 a24 = Proj1(A + 2, Fp2(4))
