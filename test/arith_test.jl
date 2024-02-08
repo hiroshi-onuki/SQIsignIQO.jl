@@ -3,7 +3,7 @@ import KaniSQIsign: Proj1, random_point, xDBL,
     Montgomery_to_theta, Montgomery_point_to_theta,
     product_theta_null, product_theta_pt, ladder, double
 
-p = ZZ(103)
+p = BigInt(103)
 R, T = polynomial_ring(GF(p), "T")
 Fp2, i = finite_field(T^2 + 1, "i")
 A1 = Fp2(0)

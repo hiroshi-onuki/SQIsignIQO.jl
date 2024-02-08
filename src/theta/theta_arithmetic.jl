@@ -38,13 +38,13 @@ function double_iter(tnull::ThetaNullLv2{T}, P::ThetaPtLv2{T}, e::Integer) where
 end
 
 # return [m]P by Montgomey ladder
-function ladder(tnull::ThetaNullLv2{T}, m::ZZRingElem, P::ThetaPtLv2{T}) where T <: RingElem
+function ladder(tnull::ThetaNullLv2{T}, m::Integer, P::ThetaPtLv2{T}) where T <: RingElem
     m == 0 && return ThetaPtLv2([tnull[i] for i in 1:4])
     m == 1 && return P
     m == 2 && return double(tnull, P)
 
     t = m >> 1
-    b = ZZ(1)
+    b = BigInt(1)
     while t != 1
         t >>= 1
         b <<= 1 

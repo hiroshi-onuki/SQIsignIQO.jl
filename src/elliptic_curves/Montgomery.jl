@@ -8,10 +8,10 @@ function random_point(A::T) where T <: RingElem
 end
 
 # random point on a Montgomery curve with order 2^e
-function random_point_order_2power(A::T, curve_order::ZZRingElem, e::Integer) where T <: RingElem
+function random_point_order_2power(A::T, curve_order::Integer, e::Integer) where T <: RingElem
     F = parent(A)
     a24 = Proj1(A + 2, F(4))
-    n = div(curve_order, ZZ(2)^e)
+    n = div(curve_order, BigInt(2)^e)
     while true
         P = random_point(A)
         P = ladder(n, P, a24)
@@ -106,13 +106,13 @@ function x_add_sub(P::Proj1{T}, Q::Proj1{T}, a24::Proj1{T}) where T <: RingElem
 end
 
 # return [m]P
-function ladder(m::ZZRingElem, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+function ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m == 0 && return InfPoint(T)
     m == 1 && return P
     m == 2 && return xDBL(P, a24)
 
     t = m >> 1
-    b = ZZ(1)
+    b = BigInt(1)
     while t != 1
         t >>= 1
         b <<= 1 
@@ -131,7 +131,7 @@ function ladder(m::ZZRingElem, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
 end
 
 # return P + [m]Q
-function ladder3pt(m::ZZRingElem, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+function ladder3pt(m::Integer, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m < 0 && error("m in Ladder3pt must be nonnegative")
     is_infinity(QmP) && error("Q == P is not allowed")
 

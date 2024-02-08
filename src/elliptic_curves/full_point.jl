@@ -84,14 +84,14 @@ function add(P::Point{T}, Q::Point{T}, A::Proj1{T}) where T <: RingElem
     return Point(X3 * U, Y3, Z3)
 end
 
-function mult(m::ZZRingElem, P::Point{T}, A::Proj1{T}) where T <: RingElem
+function mult(m::Integer, P::Point{T}, A::Proj1{T}) where T <: RingElem
     F = parent(A.X)
     m == 0 && return infinity_full_point(F)
     m == 1 && return P
     m == 2 && return double(P, A)
 
     t = m >> 1
-    b = ZZ(1)
+    b = BigInt(1)
     while t != 1
         t >>= 1
         b <<= 1 

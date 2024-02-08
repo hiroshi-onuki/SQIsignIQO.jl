@@ -2,7 +2,7 @@ using Nemo
 import KaniSQIsign: Proj1, Point, add, double, mult, infinity_full_point, random_point, affine
 
 
-p = ZZ(21503)
+p = BigInt(21503)
 R, T = polynomial_ring(GF(p), "T")
 Fp2, i = finite_field(T^2 + 1, "i")
 
