@@ -29,10 +29,6 @@ function Point(A::T, XZ::Proj1{T}) where T <: RingElem
     return Point(X, Y, Z)
 end
 
-function Base.:(==)(P::Point{T}, Q::Point{T}) where T <: RingElem
-    return P.X*Q.Z == P.Z*Q.X && P.Y*Q.Z == P.Z*Q.Y
-end
-
 function infinity_full_point(F::T) where T <: Ring
     return Point(F(0), F(1), F(0))
 end
