@@ -1,15 +1,15 @@
 # element in the maximal order <1, i, (i + j)/2, (1 + ij)/2> in B_{p, infinity}
 # represented by the coefficients of the above basis
 struct QOrderElem
-    a::ZZRingElem
-    b::ZZRingElem
-    c::ZZRingElem
-    d::ZZRingElem
-    p::ZZRingElem
-    nj::ZZRingElem
+    a::BigInt
+    b::BigInt
+    c::BigInt
+    d::BigInt
+    p::BigInt
+    nj::BigInt
 end
 
-function QOrderElem(a::ZZRingElem, b::ZZRingElem, c::ZZRingElem, d::ZZRingElem, p::ZZRingElem)
+function QOrderElem(a::Integer, b::Integer, c::Integer, d::Integer, p::Integer)
     return QOrderElem(a, b, c, d, p, div(p + 1, 4))
 end
 
