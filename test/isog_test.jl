@@ -2,8 +2,8 @@ using Nemo
 import KaniSQIsign: random_point, random_point_order_2power,
     Proj1, odd_isogeny, is_infinity, ladder, x_add_sub,
     Point, Weil_pairing_2power, Montgomery_coeff, add, mult,
-    CouplePoint, product_isogeny_no_strategy, jInvariant_A,
-    infinity_point
+    CouplePoint, product_isogeny_no_strategy, jInvariant_A, jInvariant_a24,
+    infinity_point, A_to_a24, isomorphism_Montgomery
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = characteristic(parent(A))
@@ -95,12 +95,40 @@ Q2full = mult(ZZ(4), Q2full, Proj1(A2))
 # check Weil pairing
 @assert Weil_pairing_2power(A1, P1full, Q1full, n) * Weil_pairing_2power(A2, P2full, Q2full, n) == 1
 
+# compute (2, 2)-isogenies
 P1P2 = CouplePoint(P1, P2)
 Q1Q2 = CouplePoint(Q1, Q2)
 PQ1PQ2 = CouplePoint(PQ1, PQ2)
 O1S2 = CouplePoint(infinity_point(Fp2), S2)
 O1T2 = CouplePoint(infinity_point(Fp2), T2)
-
 Es, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, PQ1PQ2, [O1S2, O1T2], n)
-println(jInvariant_A(Es[1]), " ", jInvariant_A(Es[2]))
-println(images)
+
+if jInvariant_A(Es[1]) == jInvariant_A(A1)
+    idx = 1
+else
+    idx = 2
+end
+println(Es[idx])
+@assert jInvariant_A(Es[idx]) == jInvariant_A(A1)
+a24_1d = A_to_a24(Es[idx])
+println([images[1][idx], images[2][idx]])
+Kd, Kdd = isomorphism_Montgomery(a24_1d, a24_1, [images[1][idx], images[2][idx]])
+if is_infinity(Kd)
+    # the order of Kdd is 15
+    T = ladder(ZZ(3), Kdd, a24_1)
+    a24_2d, T = odd_isogeny(a24_1, T, 5, [Kdd])
+    a24_2d, _ = odd_isogeny(a24_2d, T[1], 3, Proj1{typeof(i)}[])
+    println(1)
+elseif is_infinity(ladder(ZZ(3), Kd, a24_1))
+    # the order of Kd is 3, so the order of Kdd is 5 or 15
+    a24_2d, T = odd_isogeny(a24_1, Kd, 3, [Kdd])
+    a24_2d, _ = odd_isogeny(a24_2d, T[1], 5, Proj1{typeof(i)}[])
+    println(2)
+else
+    # the order of [3]Kd is 5, so the order of Kdd is 3 or 15
+    T = ladder(ZZ(3), Kd, a24_1)
+    a24_2d, T = odd_isogeny(a24_1, T, 5, [Kdd])
+    a24_2d, _ = odd_isogeny(a24_2d, T[1], 3, Proj1{typeof(i)}[])
+    println(3)
+end
+@assert jInvariant_a24(a24_2d) == jInvariant_a24(a24_2)

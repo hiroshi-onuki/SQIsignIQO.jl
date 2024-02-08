@@ -158,6 +158,17 @@ function Montgomery_coeff(a24::Proj1)
     return a//a24.Z
 end
 
+function A_to_a24(A::T) where T <: RingElem
+    F = parent(A)
+    return Proj1(A + 2, F(4))
+end
+
+function A_to_a24(A::Proj1)
+    Z2 = A.Z + A.Z
+    Z4 = Z2 + Z2
+    return Proj1(A.X + Z2, Z4)
+end
+
 # the j-invariant of a24
 function jInvariant_a24(a24::Proj1)
     j = a24.X + a24.X - a24.Z
@@ -332,6 +343,53 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) whe
     end
 
     return a24, Qs
+end
+
+# image of Ps under an isomorphism from a24 to a24d
+function isomorphism_Montgomery(a24::Proj1{T}, a24d::Proj1{T}, Ps::Vector{Proj1{T}}) where T
+    a24 == a24d && return Ps
+    (2*a24.X - a24.Z)*a24d.Z == -(2*a24d.X - a24d.Z)*a24.Z && return -Ps
+
+    if a24d.X + a24d.X - a24d.Z == 0
+        # the codomain is y^2 = x^3 + x
+        A = Montgomery_coeff(a24)
+        beta = -A/3
+        gamma = sqrt(1/(1 - 3*beta^2))
+        Qs = Proj1{T}[]
+        for P in Ps
+            X = (P.X - beta*P.Z)*gamma
+            Z = P.Z
+            Q = Proj1(X, Z)
+            push!(Qs, Q)
+        end
+        return Qs
+    end
+
+    # sqrt{A^2 - 4} = (deltaX:deltaZ)
+    a = 4*a24.X
+    c = a24.Z^2
+    cd = a24d.Z^2
+    t1 = a^2 - 4*a*a24.Z + c
+    deltaX = ((a - 2*a24.Z)*t1)*cd
+    deltaZ = (32*(a24d.X^2 - a24d.X*a24d.Z)*c + (2*c + t1)*cd)*a24.Z
+    @assert (deltaX / deltaZ)^2 == Montgomery_coeff(a24)^2 - 4
+    A = Montgomery_coeff(a24)
+    @assert (-A - deltaX / deltaZ) / 2 * (-3) == A
+
+    t1 = a24.Z*deltaX
+    t2 = 2*a24.Z*deltaZ
+    X = -4*a24.X*deltaZ - t1 + t2
+    Z = (X - 2*t1)*a24d.Z
+    Z = a24d.Z
+    println(X, " ", Z, " ", a24d.X, " ", a24d.Z)
+
+    Qs = Proj1{T}[]
+    for P in Ps
+        QX = (P.X*t2 - P.Z*X)*2 *(2*a24d.X - a24d.Z)
+        QZ = P.Z*Z
+        push!(Qs, Proj1(QX, QZ))
+    end
+    return Qs
 end
 
 # isogeny of odd degree d

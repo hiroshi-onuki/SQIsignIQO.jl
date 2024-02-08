@@ -3,6 +3,16 @@ struct CouplePoint{T <: RingElem}
     P2::Proj1{T}
 end
 
+function Base.getindex(P::CouplePoint{T}, i::Integer) where T <: RingElem
+    if i == 1
+        return P.P1
+    elseif i == 2
+        return P.P2
+    else
+        throw(BoundError(P, i))
+    end
+end
+
 function double(P::CouplePoint{T}, a24_1::Proj1{T}, a24_2::Proj1{T}) where T <: RingElem
     P1, P2 = P.P1, P.P2
     P1 = xDBL(P1, a24_1)
