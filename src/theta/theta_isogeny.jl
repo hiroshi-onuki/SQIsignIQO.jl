@@ -89,6 +89,9 @@ function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
         if k == n - 2
             domain, image_points = two_two_isogeny_8torsion(domain, Tp1, Tp2, image_points, false)
         elseif k == n - 1
+            # remove kernel generators
+            pop!(image_points)
+            pop!(image_points)
             domain, image_points = two_two_isogeny_8torsion_to_product(domain, Tp1, Tp2, image_points)
         else
             domain, image_points = two_two_isogeny_8torsion(domain, Tp1, Tp2, image_points, true)
@@ -152,6 +155,9 @@ function product_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
         if k == n - 2
             domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, false)
         elseif k == n - 1
+            # remove kernel generators
+            pop!(image_points)
+            pop!(image_points)
             domain, image_points = two_two_isogeny_8torsion_to_product(domain, ker1, ker2, image_points)
         else
             domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, true)

@@ -5,6 +5,14 @@ struct Point{T <: RingElem}
     Z::T
 end
 
+function Base.:(==)(P::Point{T}, Q::Point{T}) where T <: RingElem
+    return P.X*Q.Z == P.Z*Q.X && P.Y*Q.Z == P.Z*Q.Y
+end
+
+function Base.:-(P::Point{T}) where T <: RingElem
+    return Point(P.X, -P.Y, P.Z)
+end
+
 function Point(X::T, Y::T) where T <: RingElem
     F = parent(X)
     return Point(X, Y, F(1))

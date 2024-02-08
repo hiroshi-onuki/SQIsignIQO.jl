@@ -159,7 +159,7 @@ function Montgomery_coeff(a24::Proj1)
 end
 
 # the j-invariant of a24
-function jInvariant(a24::Proj1)
+function jInvariant_a24(a24::Proj1)
     j = a24.X + a24.X - a24.Z
     j += j
     j = j^2
@@ -180,6 +180,10 @@ function jInvariant(a24::Proj1)
     j *= t0
 
     return j
+end
+
+function jInvariant_A(A::T) where T <: RingElem
+    return 2^8*(A^2 - 3)^3 / (A^2 - 4)
 end
 
 # 2-isogey. return (A + 2)/4, where Mont_A = E/<P> with ord(P) = 2.
