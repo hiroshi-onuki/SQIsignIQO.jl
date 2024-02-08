@@ -13,6 +13,10 @@ function QOrderElem(a::Integer, b::Integer, c::Integer, d::Integer, p::Integer)
     return QOrderElem(a, b, c, d, p, div(p + 1, 4))
 end
 
+function QOrderElem(a::Integer, p::Integer)
+    return QOrderElem(a, 0, 0, 0, p, div(p + 1, 4))
+end
+
 function Base.getindex(x::QOrderElem, i::Integer)
     if i == 1
         return x.a
