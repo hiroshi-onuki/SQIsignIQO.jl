@@ -108,10 +108,10 @@ function Hadamard(v::Union{Vector{T}, ThetaLv2{T}}) where T <: RingElem
     return Hadamard(v[1], v[2], v[3], v[4])
 end
 
-function product_theta_null(t1::ThetaLv1{T}, t2::ThetaLv1{T}) where T <: RingElem
+function product_theta_null(t1::ThetaDim1{T}, t2::ThetaDim1{T}) where T <: RingElem
     return ThetaNullLv2(t1[1]*t2[1], t1[2]*t2[1], t1[1]*t2[2], t1[2]*t2[2])
 end
 
-function product_theta_pt(t1::ThetaLv1{T}, t2::ThetaLv1{T}) where T <: RingElem
+function product_theta_pt(t1::ThetaDim1{T}, t2::ThetaDim1{T}) where T <: RingElem
     return ThetaPtLv2(t1[1]*t2[1], t1[2]*t2[1], t1[1]*t2[2], t1[2]*t2[2])
 end

@@ -84,7 +84,7 @@ end
 
 function split_theta_point(P::ThetaLv2)
     a, b, d = P.a, P.b, P.d
-    return [ThetaLv1(a, b), ThetaLv1(b, d)]
+    return [ThetaDim1(a, b), ThetaDim1(b, d)]
 end
 
 # theta null corresponding to a diagonal period matrix to Montgomery curves
