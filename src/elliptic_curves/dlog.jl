@@ -19,11 +19,11 @@ end
 function fq_dlog_power_of_2(x::FqFieldElem, base::FqFieldElem, e::Integer)
     n = BigInt(0)
     t = x
-    for i in 1:e-1
-        if t^(BigInt(2)^(e-i)) == base^(BigInt(2)^(e-i))
+    for i in 1:e
+        if t^(BigInt(2)^(e-i)) == base^(BigInt(2)^(e-1))
             n += BigInt(2)^(i-1)
+            t //= base^(BigInt(2)^(i-1))
         end
-        t //= base^(BigInt(2)^(i-1))
     end
     return n
 end
