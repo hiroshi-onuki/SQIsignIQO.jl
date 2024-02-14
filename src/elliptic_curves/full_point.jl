@@ -58,6 +58,8 @@ function double(P::Point{T}, A::Proj1{T}) where T <: RingElem
 end
 
 function add(P::Point{T}, Q::Point{T}, A::Proj1{T}) where T <: RingElem
+    P.Z == 0 && return Q
+    Q.Z == 0 && return P
     X1, Y1, Z1 = P.X, P.Y, P.Z
     X2, Y2, Z2 = Q.X, Q.Y, Q.Z
     X1Z2 = X1 * Z2
@@ -85,6 +87,7 @@ function add(P::Point{T}, Q::Point{T}, A::Proj1{T}) where T <: RingElem
 end
 
 function mult(m::Integer, P::Point{T}, A::Proj1{T}) where T <: RingElem
+    m < 0 && return -mult(-m, P, A)
     F = parent(A.X)
     m == 0 && return infinity_full_point(F)
     m == 1 && return P

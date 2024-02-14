@@ -1,20 +1,32 @@
 using Nemo
-import KaniSQIsign: fq_dlog_power_of_2
+import KaniSQIsign: Proj1, ec_dlog_power_of_2, random_point_order_2power, add, mult
 
-
-p = BigInt(2^8 * 3 * 5 * 7 - 1)
+p = BigInt(2)^247*79 - 1
 R, T = polynomial_ring(GF(p), "T")
 Fp2, i = finite_field(T^2 + 1, "i")
-e = 9
+e = 247
 
-base = rand(Fp2)^div(p^2 - 1, 2^e)
-while base^(2^(e-1)) == 1
-    global base = rand(Fp2)^div(p^2 - 1, 2^e)
-end
+A = Fp2(0)
+P, Q = basis_2power_torsion(A, e)
+R, S = basis_2power_torsion(A, e)
+PQ = add(P, Q, Proj1(A))
 
-x = rand(Fp2)^div(p^2 - 1, 2^e)
-@assert base^(2^e) == 1
-@assert x^(2^e) == 1
+n1 = 100
+n2 = 200
 
-n = fq_dlog_power_of_2(x, base, e)
-@assert x == base^n
+P = mult(n1, R, Proj1(A))
+Q = mult(n2, S, Proj1(A))
+println(Weil_pairing_2power(A, S, P, e))
+
+xP = Proj1(P.X, P.Z)
+xQ = Proj1(Q.X, Q.Z)
+xPQ = Proj1(PQ.X, PQ.Z)
+
+n1, n2, n3, n4 = ec_dlog_power_of_2(xP, xQ, xPQ, R, S, A, e)
+println(n1, " ", n2, " ", n3, " ", n4)
+n1R = mult(n1, R, Proj1(A))
+n2S = mult(n2, S, Proj1(A))
+n3R = mult(n3, R, Proj1(A))
+n4S = mult(n4, S, Proj1(A))
+@test P == add(n1R, n2S, Proj1(A))
+@test Q == add(n3R, n4S, Proj1(A))

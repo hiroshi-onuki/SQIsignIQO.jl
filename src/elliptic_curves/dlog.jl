@@ -8,11 +8,19 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
     end
 
     w0 = Weil_pairing_2power(A, R, S, e)
-    w1 = Weil_pairing_2power(A, P, R, e)
-    w2 = Weil_pairing_2power(A, P, S, e)
-    w3 = Weil_pairing_2power(A, Q, R, e)
-    w4 = Weil_pairing_2power(A, Q, S, e)
-    
+    w1 = Weil_pairing_2power(A, P, S, e)
+    w2 = Weil_pairing_2power(A, P, R, e)
+    w3 = Weil_pairing_2power(A, Q, S, e)
+    w4 = Weil_pairing_2power(A, Q, R, e)
+
+    println(w0, " ", w1, " ", w2, " ", w3, " ", w4)
+
+    n1 = fq_dlog_power_of_2(w1, w0, e)
+    n2 = -fq_dlog_power_of_2(w2, w0, e)
+    n3 = fq_dlog_power_of_2(w3, w0, e)
+    n4 = -fq_dlog_power_of_2(w4, w0, e)
+
+    return n1, n2, n3, n4
 end
 
 # return n such that x = base^n
