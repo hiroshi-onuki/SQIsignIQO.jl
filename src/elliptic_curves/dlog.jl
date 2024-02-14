@@ -3,8 +3,9 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
             A::T, e::Integer) where T <: RingElem
     P = Point(A, xP)
     Q = Point(A, xQ)
-    if xPQ != add(P, Q, Proj1(A))
-        Q = -Q
+    PQ = add(P, Q, Proj1(A))
+    if !(xPQ == Proj1(PQ.X, PQ.Z))
+        global Q = -Q
     end
 
     w0 = Weil_pairing_2power(A, R, S, e)
@@ -13,9 +14,7 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
     w3 = Weil_pairing_2power(A, Q, S, e)
     w4 = Weil_pairing_2power(A, Q, R, e)
 
-    println(w0, " ", w1, " ", w2, " ", w3, " ", w4)
-
-    n1 = fq_dlog_power_of_2(w1, w0, e)
+    n1 = @time fq_dlog_power_of_2(w1, w0, e)
     n2 = -fq_dlog_power_of_2(w2, w0, e)
     n3 = fq_dlog_power_of_2(w3, w0, e)
     n4 = -fq_dlog_power_of_2(w4, w0, e)

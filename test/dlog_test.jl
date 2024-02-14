@@ -11,19 +11,11 @@ P, Q = basis_2power_torsion(A, e)
 R, S = basis_2power_torsion(A, e)
 PQ = add(P, Q, Proj1(A))
 
-n1 = 100
-n2 = 200
-
-P = mult(n1, R, Proj1(A))
-Q = mult(n2, S, Proj1(A))
-println(Weil_pairing_2power(A, S, P, e))
-
 xP = Proj1(P.X, P.Z)
 xQ = Proj1(Q.X, Q.Z)
 xPQ = Proj1(PQ.X, PQ.Z)
 
-n1, n2, n3, n4 = ec_dlog_power_of_2(xP, xQ, xPQ, R, S, A, e)
-println(n1, " ", n2, " ", n3, " ", n4)
+n1, n2, n3, n4 = @time ec_dlog_power_of_2(xP, xQ, xPQ, R, S, A, e)
 n1R = mult(n1, R, Proj1(A))
 n2S = mult(n2, S, Proj1(A))
 n3R = mult(n3, R, Proj1(A))
