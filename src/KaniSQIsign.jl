@@ -4,6 +4,7 @@ using Nemo
 include("utilities/finite_field.jl")
 include("utilities/batch_inv.jl")
 include("utilities/cornacchia.jl")
+include("utilities/lattice.jl")
 
 include("elliptic_curves/proj1.jl")
 include("elliptic_curves/full_point.jl")
@@ -22,6 +23,7 @@ include("theta/theta_isogeny.jl")
 include("constants/constants.jl")
 
 include("quoternion/order.jl")
+include("quoternion/ideal.jl")
 include("quoternion/klpt.jl")
 
 end # module KaniSQIsign

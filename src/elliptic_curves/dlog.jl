@@ -1,4 +1,4 @@
-
+# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
 function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{T}, S::Point{T}, 
             A::T, e::Integer) where T <: RingElem
     P = Point(A, xP)
