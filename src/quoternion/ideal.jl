@@ -34,10 +34,9 @@ function small_element(I::LeftIdeal)
 
     # LLL reduction
     H = integral_LLL([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]], q)
-    println(H)
-    LLLmat = hcat([b.v for b in I.basis]...) * H
+    LLLmat = hcat([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]]...) * H
     red_basis = [QOrderElem(LLLmat[:, i], p) for i in 1:4]
 
-    B = 1000
-    return sum([red_basis[i]*rand(1:B) for i in 1:4])
+    B = 6
+    return sum([rand(-B:B) * red_basis[i] for i in 1:4])
 end
