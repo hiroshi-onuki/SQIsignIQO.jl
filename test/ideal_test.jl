@@ -13,7 +13,7 @@ end
 while gcd(a) != 1
     global a = div(a, gcd(a))
 end
-n = 110
+n = 117
 I = LeftIdeal(a, BigInt(2)^n)
 println(factor(ZZ(norm(I))))
 @assert norm(I) == BigInt(2)^n

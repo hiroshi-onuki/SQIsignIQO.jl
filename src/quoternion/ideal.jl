@@ -78,12 +78,15 @@ function small_element(I::LeftIdeal)
             if x != zeros(Integer, 4)
                 v = sum([x[i]*red_basis[i] for i in 1:4])
                 alpha = QOrderElem(v[1], v[2], v[3], v[4], p)
-                a, b, found = sum_of_two_squares(BigInt(2)^137 - div(norm(alpha), N))
-                if found
-                    return alpha, a, b, true
+                newN = div(norm(alpha), N)
+                if newN % 2 == 1
+                    a, b, found = sum_of_two_squares(BigInt(2)^137 - div(norm(alpha), N))
+                    if found
+                        return alpha, a, b, true
+                    end
                 end
             else
-                return QQrderElem(0), 0, 0, false
+                return QOrderElem(0, p), 0, 0, false
             end
         end
     end
