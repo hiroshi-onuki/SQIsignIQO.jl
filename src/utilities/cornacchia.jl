@@ -71,11 +71,11 @@ function sum_of_two_squares(n::Integer)
             n = div(n, l)
             e += 1
         end
-        s = l^(div(e, 2))
+        s = BigInt(l)^(div(e, 2))
         a *= s
         b *= s
         if e % 2 == 1
-            l % 4 == 3 && return 0, 1, false
+            l % 4 == 3 && return 0, 0, false
             s, t = Cornacchia_Smith(l)
             a, b = a*s - b*t, a*t + b*s
         end
@@ -84,7 +84,7 @@ function sum_of_two_squares(n::Integer)
         s, t = Cornacchia_Smith(n)
         a, b = a*s - b*t, a*t + b*s
     elseif n > 1
-        return 0, 2, false
+        return 0, 0, false
     end
     return a, b, true
 end

@@ -41,19 +41,73 @@ function small_element(I::LeftIdeal)
     Imatrix = ideal_to_matrix(I)
     H = integral_LLL([Imatrix[:, i] for i in 1:4], q)
     LLLmat = Imatrix * H
-    red_basis = [QOrderElem(LLLmat[:, i], p) for i in 1:4]
+    red_basis = [LLLmat[:, i] for i in 1:4]
 
-    B = 6
     N = norm(I)
+    C = BigInt(2)^137*N
+
+    q = make_quadratic_form_coeffs(red_basis, q)
+    S = zeros(Rational{Integer}, 4)
+    U = zeros(Rational{Integer}, 4)
+    L = zeros(Integer, 4)
+    x = zeros(Integer, 4)
+    S[4] = C
+
+    i = 4
+    tmp = div(S[i] * denominator(U[i])^2, q[i,i])
+    Z = integer_square_root(tmp) // denominator(U[i])
+    L[i] = Integer(floor(Z - U[i]))
+    x[i] = Integer(ceil(-Z-U[i]) - 1)
+
     while true
-        c1, c2, c3, c4 = [rand(-B:B) for i in 1:4]
-        x = c1*red_basis[1] + c2*red_basis[2] + c3*red_basis[3] + c4*red_basis[4]
-        if x != 0
-            n = div(norm(x), N)
-            _, _, found = sum_of_two_squares(BigInt(2)^137 - n)
-            if found
-                return x
+        x[i] += 1
+        while x[i] > L[i]
+            i += 1
+            x[i] += 1
+        end
+        if i > 1
+            S[i-1] = S[i] - q[i,i]*(x[i] + U[i])^2
+            i -= 1
+            U[i] = sum([q[i,j]*x[j] for j in i+1:4])
+
+            tmp = div(S[i] * denominator(U[i])^2, q[i,i])
+            Z = integer_square_root(tmp) // denominator(U[i])
+            L[i] = Integer(floor(Z - U[i]))
+            x[i] = Integer(ceil(-Z - U[i]) - 1)
+        else
+            if x != zeros(Integer, 4)
+                v = sum([x[i]*red_basis[i] for i in 1:4])
+                alpha = QOrderElem(v[1], v[2], v[3], v[4], p)
+                a, b, found = sum_of_two_squares(BigInt(2)^137 - div(norm(alpha), N))
+                if found
+                    return alpha, a, b, true
+                end
+            else
+                return QQrderElem(0), 0, 0, false
             end
         end
     end
+end
+
+# return coefficients q_i,j s.t. Nrd(x) = sum_i q_i,i*(x_i + sum_j q_i,j*x_j)^2, where x = sum_i x_iI[i].
+# See p.103 in H. Cohen, A Course in Computational Algebraic Number Theory.
+function make_quadratic_form_coeffs(basis::Vector{Vector{T}}, quadratic_form::Function) where T <: Integer
+    n = length(basis)
+    C = zeros(Rational{T}, n, n)
+    q = zeros(Rational{T}, n, n)
+
+    for i in 1:n
+        C[i, i] = quadratic_form(basis[i], basis[i])
+        for j in i+1:n
+            C[i, j] = quadratic_form(basis[i], basis[j])
+        end
+    end
+
+    for i in 1:n
+        q[i, i] = C[i, i] - (i > 1 ? sum([q[j, j] * q[j, i]^2 for j in 1:i-1]) : 0)
+        for j in i+1:n
+            q[i, j] = (2*C[i, j] - 2*sum([q[k,k]*q[k,i]*q[k,j] for k in 1:i])) / (2*q[i, i])
+        end
+    end
+    return q
 end

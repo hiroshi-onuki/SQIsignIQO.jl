@@ -13,16 +13,19 @@ end
 while gcd(a) != 1
     global a = div(a, gcd(a))
 end
-n = 120
+n = 110
 I = LeftIdeal(a, BigInt(2)^n)
 println(factor(ZZ(norm(I))))
 @assert norm(I) == BigInt(2)^n
-x = small_element(I)
+x, a, b, found = small_element(I)
+println(found)
 println(x)
 @assert norm(x) % norm(I) == 0
 println(log(2, div(norm(x), norm(I))))
 
-x = small_element(I)
+x, a, b, found = small_element(I)
 println(x)
+println(factor(ZZ(a^2 + b^2)))
 @assert norm(x) % norm(I) == 0
+@assert a^2 + b^2 == BigInt(2)^137 - div(norm(x), norm(I))
 println(log(2, div(norm(x), norm(I))))

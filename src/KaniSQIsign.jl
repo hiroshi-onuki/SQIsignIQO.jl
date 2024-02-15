@@ -1,6 +1,8 @@
 module KaniSQIsign
 
 using Nemo
+
+include("utilities/integer.jl")
 include("utilities/finite_field.jl")
 include("utilities/batch_inv.jl")
 include("utilities/cornacchia.jl")

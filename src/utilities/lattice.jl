@@ -167,37 +167,6 @@ function short_vectors(basis::Vector{Vector{T}}, quadratic_form::Function, C::T)
     end
 end
 
-# return coefficients q_i,j s.t. Nrd(x) = sum_i q_i,i*(x_i + sum_j q_i,j*x_j)^2, where x = sum_i x_iI[i].
-# See p.103 in H. Cohen, A Course in Computational Algebraic Number Theory.
-function make_quadratic_form_coeffs(basis::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
-    # input check
-    n = length(basis)
-    n == 0 && return basis
-    m = length(basis[1])
-    prod([length(v) == m for v in basis]) || error("lengths of generatars are different")
-    m == size(M,1) == size(M,2) || error("sizes of vector and bilinear matrix are different")
-    m < n && error("number of vectors greater than these dimension")
-
-    C = zeros(Rational{T}, n, n)
-    q = zeros(Rational{T}, n, n)
-    bilinear(x,y) = transpose(x)*M*y
-
-    for i in 1:n
-        C[i, i] = bilinear(basis[i], basis[i])
-        for j in i+1:n
-            C[i, j] = bilinear(basis[i], basis[j])
-        end
-    end
-
-    for i in 1:n
-        q[i, i] = C[i, i] - (i > 1 ? sum([q[j, j] * q[j, i]^2 for j in 1:i-1]) : 0)
-        for j in i+1:n
-            q[i, j] = (2*C[i, j] - 2*sum([q[k,k]*q[k,i]*q[k,j] for k in 1:i])) / (2*q[i, i])
-        end
-    end
-    return q
-end
-
 # Is LLL reduced?
 function LLLcheck(b::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
     # input check
