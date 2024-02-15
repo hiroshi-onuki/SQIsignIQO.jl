@@ -26,7 +26,7 @@ function get_basis(gens::Vector{Vector{T}}) where T <: Integer
 end
 
 # Algorithm 2.6.7 in H. Cohen, A Course in Computational Algebraic Number Theory
-function integral_LLL(basis::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
+function integral_LLL(basis::Vector{Vector{T}}, quadratic_form::Function) where T <: Integer
     b = deepcopy(basis)
 
     # input check
@@ -34,10 +34,9 @@ function integral_LLL(basis::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
     n == 0 && return b
     m = length(b[1])
     prod([length(v) == m for v in b]) || error("lengths of generatars are different")
-    m == size(M,1) == size(M,2) || error("sizes of vector and bilinear matrix are different")
     m < n && error("number of vectors greater than these dimension")
 
-    q(x,y) = transpose(x)*M*y
+    q = quadratic_form
     k = 2
     kmax = 1
     d = zeros(T, n+1)
@@ -53,8 +52,7 @@ function integral_LLL(basis::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
             for j in 1:k
                 u = q(b[k], b[j])
                 for i in 1:j-1
-                    #u = div(d[i+1]*u - lam[k, i]*lam[j, i], d[i])
-                    u = T((d[i+1]*u - lam[k, i]*lam[j, i]) // d[i])
+                    u = div(d[i+1]*u - lam[k, i]*lam[j, i], d[i])
                 end
                 if j < k
                     lam[k, j] = u
@@ -116,17 +114,16 @@ end
     C; upper bound of the quadratic forms of output vectors
     Algorithm 2.7.5 in H. Cohen, A Course in Computational Algebraic Number Theory.
 =#
-function short_vectors(basis::Vector{Vector{T}}, M::Matrix{T}, C::T) where T <: Integer
+function short_vectors(basis::Vector{Vector{T}}, quadratic_form::Function, C::T) where T <: Integer
     # input check
     n = length(basis)
     n == 0 && return basis
     m = length(basis[1])
     prod([length(v) == m for v in basis]) || error("lengths of generatars are different")
-    m == size(M,1) == size(M,2) || error("sizes of vector and bilinear matrix are different")
     m < n && error("number of vectors greater than these dimension")
 
     # LLL reduction
-    H = integral_LLL(basis, M)
+    H = integral_LLL(basis, quadratic_form)
     LLLmat = hcat([b for b in basis]...) * H
     red_basis = [LLLmat[:, i] for i in 1:n]
 
@@ -140,7 +137,7 @@ function short_vectors(basis::Vector{Vector{T}}, M::Matrix{T}, C::T) where T <: 
 
     i = n
     tmp = T(floor(S[i] // q[i,i] * denominator(U[i])^2))
-    Z = IntegerSquareRoot(tmp) // denominator(U[i])
+    Z = integer_square_root(tmp) // denominator(U[i])
     L[i] = T(floor(Z - U[i]))
     x[i] = T(ceil(-Z-U[i]) - 1)
 

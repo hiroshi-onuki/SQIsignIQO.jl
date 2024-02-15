@@ -13,6 +13,10 @@ function QOrderElem(a::Integer, b::Integer, c::Integer, d::Integer, p::Integer)
     return QOrderElem(a, b, c, d, p, div(p + 1, 4))
 end
 
+function QOrderElem(v::Vector{T}, p::Integer) where T <: Integer
+    return QOrderElem(v[1], v[2], v[3], v[4], p, div(p + 1, 4))
+end
+
 function QOrderElem(a::Integer, p::Integer)
     return QOrderElem(a, 0, 0, 0, p, div(p + 1, 4))
 end
@@ -69,4 +73,8 @@ end
 
 function norm(x::QOrderElem)
     return div((2*x.a + x.d)^2 + (2*x.b + x.c)^2 + x.p*(x.c^2 + x.d^2), 4)
+end
+
+function quadratic_form(x::QOrderElem, y::QOrderElem)
+    return norm(x + y) - norm(x) - norm(y)
 end

@@ -26,3 +26,18 @@ function LeftIdeal(x::QOrderElem, N::Integer)
     basis = get_basis(vcat(Ox, ON))
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4], x.p, x.nj) for b in basis])
 end
+
+# smallest element in I
+function small_element(I::LeftIdeal)
+    p = I.b1.p
+    q(x, y) = quadratic_form(QOrderElem(x, p), QOrderElem(y, p))
+
+    # LLL reduction
+    H = integral_LLL([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]], q)
+    println(H)
+    LLLmat = hcat([b.v for b in I.basis]...) * H
+    red_basis = [QOrderElem(LLLmat[:, i], p) for i in 1:4]
+
+    B = 1000
+    return sum([red_basis[i]*rand(1:B) for i in 1:4])
+end
