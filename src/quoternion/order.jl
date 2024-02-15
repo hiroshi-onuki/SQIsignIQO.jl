@@ -39,6 +39,10 @@ function Base.:(==)(x::QOrderElem, y::QOrderElem)
     return x.a == y.a && x.b == y.b && x.c == y.c && x.d == y.d && x.p == y.p
 end
 
+function Base.:(==)(x::QOrderElem, a::Integer)
+    return x.a == a && x.b == 0 && x.c == 0 && x.d == 0
+end
+
 function Base.:+(x::QOrderElem, y::QOrderElem)
     return QOrderElem(x.a + y.a, x.b + y.b, x.c + y.c, x.d + y.d, x.p, x.nj)
 end
@@ -49,6 +53,14 @@ end
 
 function Base.:-(x::QOrderElem)
     return QOrderElem(-x.a, -x.b, -x.c, -x.d, x.p, x.nj)
+end
+
+function Base.div(x::QOrderElem, a::Integer)
+    return QOrderElem(div(x.a, a), div(x.b, a), div(x.c, a), div(x.d, a), x.p, x.nj)
+end
+
+function Base.gcd(x::QOrderElem)
+    return gcd(x.a, x.b, x.c, x.d)
 end
 
 function left_mult_matrix(x::QOrderElem)

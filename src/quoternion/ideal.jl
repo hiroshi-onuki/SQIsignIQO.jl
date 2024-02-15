@@ -14,8 +14,13 @@ function Base.:*(x::QOrderElem, I::LeftIdeal)
     return LeftIdeal(x*I.b1, x*I.b2, x*I.b3, x*I.b4)
 end
 
+function ideal_to_matrix(I::LeftIdeal)
+    return hcat([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]]...)
+end
+
 function norm(I::LeftIdeal)
-    return gcd(norm(I.b1), norm(I.b2), norm(I.b3), norm(I.b4))
+    D = det(ideal_to_matrix(I))
+    return Integer(sqrt(abs(D)))
 end
 
 # left O-ideal Ox + ON
@@ -33,10 +38,22 @@ function small_element(I::LeftIdeal)
     q(x, y) = quadratic_form(QOrderElem(x, p), QOrderElem(y, p))
 
     # LLL reduction
-    H = integral_LLL([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]], q)
-    LLLmat = hcat([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]]...) * H
+    Imatrix = ideal_to_matrix(I)
+    H = integral_LLL([Imatrix[:, i] for i in 1:4], q)
+    LLLmat = Imatrix * H
     red_basis = [QOrderElem(LLLmat[:, i], p) for i in 1:4]
 
     B = 6
-    return sum([rand(-B:B) * red_basis[i] for i in 1:4])
+    N = norm(I)
+    while true
+        c1, c2, c3, c4 = [rand(-B:B) for i in 1:4]
+        x = c1*red_basis[1] + c2*red_basis[2] + c3*red_basis[3] + c4*red_basis[4]
+        if x != 0
+            n = div(norm(x), N)
+            _, _, found = sum_of_two_squares(BigInt(2)^137 - n)
+            if found
+                return x
+            end
+        end
+    end
 end

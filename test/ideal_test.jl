@@ -10,7 +10,13 @@ if found
     println(a)
     println(div(norm(a), BigInt(2)^e))
 end
-I = LeftIdeal(a, BigInt(2)^120)
+while gcd(a) != 1
+    global a = div(a, gcd(a))
+end
+n = 120
+I = LeftIdeal(a, BigInt(2)^n)
+println(factor(ZZ(norm(I))))
+@assert norm(I) == BigInt(2)^n
 x = small_element(I)
 println(x)
 @assert norm(x) % norm(I) == 0
