@@ -10,9 +10,6 @@ function FullRepresentInteger(M::Integer, p::Integer)
         w = rand(-md:md)
         Md = 4*M - p*(z^2 + w^2)
         x, y, found = sum_of_two_squares(Md)
-        if found
-            @assert x^2 + y^2 == Md
-        end
         if !found || (x - w) % 2 != 0 || (y - z) % 2 != 0
             found = false
             counter += 1

@@ -59,6 +59,10 @@ function Base.:*(x::QOrderElem, y::QOrderElem)
     return QOrderElem(a, b, c, d, x.p, x.nj)
 end
 
+function Base.:*(a::Integer, x::QOrderElem)
+    return QOrderElem(a*x.a, a*x.b, a*x.c, a*x.d, x.p, x.nj)
+end
+
 function involution(x::QOrderElem)
     return QOrderElem(x.a+x.d, -x.b, -x.c, -x.d, x.p, x.nj)
 end
