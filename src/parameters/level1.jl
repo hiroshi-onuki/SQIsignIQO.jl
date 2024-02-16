@@ -1,7 +1,7 @@
 # global constans
 const p = BigInt(2)^247 * 79 - 1
-const ExponentForIsogeny = 117
-const ExponentForTorsion = 130
+const ExponentForIsogeny = 110
+const ExponentForTorsion = 137
 const Cofactor = 79
 
 const KLPT_repres_num_gamma_trial = 16384

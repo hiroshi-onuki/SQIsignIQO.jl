@@ -1,7 +1,7 @@
 # LegendreSymbol (a|q)
 function quadratic_residue_symbol(a::Integer, q::Integer)
-    r = powermod(a, div(p-1, 2), q)
-    (r - 1) % p == 0 ? (return 1) : return -1
+    r = powermod(a, div(q-1, 2), q)
+    (r - 1) % q == 0 ? (return 1) : return -1
 end
 
 # square root of a mod q. q is a prime.

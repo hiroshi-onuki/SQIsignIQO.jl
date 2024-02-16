@@ -1,13 +1,7 @@
-# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
-function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{T}, S::Point{T}, 
-            A::T, e::Integer) where T <: RingElem
-    P = Point(A, xP)
-    Q = Point(A, xQ)
-    PQ = add(P, Q, Proj1(A))
-    if !(xPQ == Proj1(PQ.X, PQ.Z))
-        global Q = -Q
-    end
 
+# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
+function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T}, 
+            A::T, e::Integer) where T <: RingElem
     w0 = Weil_pairing_2power(A, R, S, e)
     w1 = Weil_pairing_2power(A, P, S, e)
     w2 = Weil_pairing_2power(A, P, R, e)
@@ -20,6 +14,19 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
     n4 = -fq_dlog_power_of_2(w4, w0, e)
 
     return n1, n2, n3, n4
+end
+
+# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
+function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{T}, S::Point{T}, 
+            A::T, e::Integer) where T <: RingElem
+    P = Point(A, xP)
+    Q = Point(A, xQ)
+    PQ = add(P, Q, Proj1(A))
+    if !(xPQ == Proj1(PQ.X, PQ.Z))
+        global Q = -Q
+    end
+
+    return ec_dlog_power_of_2(P, Q, R, S, A, e)
 end
 
 # return n such that x = base^n
