@@ -5,20 +5,16 @@ struct QOrderElem
     b::BigInt
     c::BigInt
     d::BigInt
-    p::BigInt
-    nj::BigInt
 end
 
-function QOrderElem(a::Integer, b::Integer, c::Integer, d::Integer, p::Integer)
-    return QOrderElem(a, b, c, d, p, div(p + 1, 4))
+const Div_p1_4 = div(p + 1, 4)
+
+function QOrderElem(v::Vector{T}) where T <: Integer
+    return QOrderElem(v[1], v[2], v[3], v[4])
 end
 
-function QOrderElem(v::Vector{T}, p::Integer) where T <: Integer
-    return QOrderElem(v[1], v[2], v[3], v[4], p, div(p + 1, 4))
-end
-
-function QOrderElem(a::Integer, p::Integer)
-    return QOrderElem(a, 0, 0, 0, p, div(p + 1, 4))
+function QOrderElem(a::Integer)
+    return QOrderElem(a, 0, 0, 0)
 end
 
 function Base.getindex(x::QOrderElem, i::Integer)
@@ -36,7 +32,7 @@ function Base.getindex(x::QOrderElem, i::Integer)
 end
 
 function Base.:(==)(x::QOrderElem, y::QOrderElem)
-    return x.a == y.a && x.b == y.b && x.c == y.c && x.d == y.d && x.p == y.p
+    return x.a == y.a && x.b == y.b && x.c == y.c && x.d == y.d
 end
 
 function Base.:(==)(x::QOrderElem, a::Integer)
@@ -44,19 +40,19 @@ function Base.:(==)(x::QOrderElem, a::Integer)
 end
 
 function Base.:+(x::QOrderElem, y::QOrderElem)
-    return QOrderElem(x.a + y.a, x.b + y.b, x.c + y.c, x.d + y.d, x.p, x.nj)
+    return QOrderElem(x.a + y.a, x.b + y.b, x.c + y.c, x.d + y.d)
 end
 
 function Base.:-(x::QOrderElem, y::QOrderElem)
-    return QOrderElem(x.a - y.a, x.b - y.b, x.c - y.c, x.d - y.d, x.p, x.nj)
+    return QOrderElem(x.a - y.a, x.b - y.b, x.c - y.c, x.d - y.d)
 end
 
 function Base.:-(x::QOrderElem)
-    return QOrderElem(-x.a, -x.b, -x.c, -x.d, x.p, x.nj)
+    return QOrderElem(-x.a, -x.b, -x.c, -x.d)
 end
 
 function Base.div(x::QOrderElem, a::Integer)
-    return QOrderElem(div(x.a, a), div(x.b, a), div(x.c, a), div(x.d, a), x.p, x.nj)
+    return QOrderElem(div(x.a, a), div(x.b, a), div(x.c, a), div(x.d, a))
 end
 
 function Base.gcd(x::QOrderElem)
@@ -64,27 +60,27 @@ function Base.gcd(x::QOrderElem)
 end
 
 function left_mult_matrix(x::QOrderElem)
-    return [x.a -x.b -x.b-x.nj*x.c -x.nj*x.d
-            x.b x.a -x.nj*x.d x.b+x.nj*x.c
+    return [x.a -x.b -x.b-Div_p1_4*x.c -Div_p1_4*x.d
+            x.b x.a -Div_p1_4*x.d x.b+Div_p1_4*x.c
             x.c x.d x.a+x.d -x.b
             x.d -x.c x.b x.a+x.d]
 end
 
 function Base.:*(x::QOrderElem, y::QOrderElem)
     a, b, c, d = left_mult_matrix(x) * [y.a, y.b, y.c, y.d]
-    return QOrderElem(a, b, c, d, x.p, x.nj)
+    return QOrderElem(a, b, c, d)
 end
 
 function Base.:*(a::Integer, x::QOrderElem)
-    return QOrderElem(a*x.a, a*x.b, a*x.c, a*x.d, x.p, x.nj)
+    return QOrderElem(a*x.a, a*x.b, a*x.c, a*x.d)
 end
 
 function involution(x::QOrderElem)
-    return QOrderElem(x.a+x.d, -x.b, -x.c, -x.d, x.p, x.nj)
+    return QOrderElem(x.a+x.d, -x.b, -x.c, -x.d)
 end
 
 function norm(x::QOrderElem)
-    return div((2*x.a + x.d)^2 + (2*x.b + x.c)^2 + x.p*(x.c^2 + x.d^2), 4)
+    return div((2*x.a + x.d)^2 + (2*x.b + x.c)^2 + p*(x.c^2 + x.d^2), 4)
 end
 
 function quadratic_form(x::QOrderElem, y::QOrderElem)

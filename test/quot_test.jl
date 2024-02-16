@@ -1,9 +1,7 @@
 using Nemo
-import KaniSQIsign: QOrderElem, norm, involution
+import KaniSQIsign.Level1: QOrderElem, norm, involution
 
-p = 21503
-
-x = QOrderElem(1, 2, 3, 4, p)
-y = QOrderElem(1, 3, 12, 1, p)
-@assert x*involution(x) == QOrderElem(norm(x), 0, 0, 0, p)
+x = QOrderElem(1, 2, 3, 4)
+y = QOrderElem(1, 3, 12, 1)
+@assert x*involution(x) == QOrderElem(norm(x), 0, 0, 0)
 @assert norm(x) * norm(y) == norm(x*y)

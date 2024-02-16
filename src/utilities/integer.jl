@@ -1,3 +1,4 @@
+export integer_square_root
 
 # floor(sqrt(n))
 function integer_square_root(n::T) where T <: Integer

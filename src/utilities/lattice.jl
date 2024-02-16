@@ -1,3 +1,5 @@
+export get_basis, integral_LLL
+
 # Return a Z-module basis from input generators gens
 function get_basis(gens::Vector{Vector{T}}) where T <: Integer
     n = length(gens)

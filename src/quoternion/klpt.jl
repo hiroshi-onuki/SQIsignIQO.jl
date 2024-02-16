@@ -1,12 +1,12 @@
 # return a quoternion in O0 of norm M
-function FullRepresentInteger(M::Integer, p::Integer)
+function FullRepresentInteger(M::Integer)
     counter = 0
     found = false
     x, y, z, w = 0, 0, 0, 0
     while !found && counter < KLPT_repres_num_gamma_trial
-        m = int_sqrt(div(4*M, p))
+        m = integer_square_root(div(4*M, p))
         z = rand(-m:m)
-        md = int_sqrt(div(4*M - z^2, p))
+        md = integer_square_root(div(4*M - z^2, p))
         w = rand(-md:md)
         Md = 4*M - p*(z^2 + w^2)
         x, y, found = sum_of_two_squares(Md)
@@ -16,8 +16,8 @@ function FullRepresentInteger(M::Integer, p::Integer)
         end
     end
     if found
-        return QOrderElem(div(x - w, 2), div(y - z, 2), z, w, p), found
+        return QOrderElem(div(x - w, 2), div(y - z, 2), z, w), found
     else
-        return QOrderElem(0, p), found
+        return QOrderElem(0), found
     end
 end

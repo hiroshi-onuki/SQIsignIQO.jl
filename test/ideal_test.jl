@@ -1,15 +1,14 @@
 using Nemo
-import KaniSQIsign: QOrderElem, norm, LeftIdeal, FullRepresentInteger, two_e_good_element
+import KaniSQIsign
+import KaniSQIsign.Level1: QOrderElem, norm, LeftIdeal, FullRepresentInteger, two_e_good_element
 
-p = BigInt(2)^247 * 79 - 1
-p = BigInt(2)^377 * 3 * 7 * 11 - 1
-p = BigInt(2)^496 * 5^3 - 1
-e1 = 238
-e2 = 258
+e1 = KaniSQIsign.Level1.ExponentForIsogeny
+e2 = KaniSQIsign.Level1.ExponentForTorsion
+f = KaniSQIsign.Level1.Cofactor
 
-N = 79 * 3 * 7 * 11 * 5^3
+N = 101 * f
 e = Int(ceil(log(2, p))) + 10
-a, found = FullRepresentInteger(N*BigInt(2)^e, p)
+a, found = FullRepresentInteger(N*BigInt(2)^e)
 if found
     println(a)
     println(div(norm(a), BigInt(2)^e))
@@ -18,9 +17,9 @@ while gcd(a) != 1
     global a = div(a, gcd(a))
 end
 
-I = LeftIdeal(a, BigInt(2)^e1 * 5^3)
+I = LeftIdeal(a, BigInt(2)^e1 * f)
 println(factor(ZZ(norm(I))))
-@assert norm(I) == BigInt(2)^e1 * 5^3
+@assert norm(I) == BigInt(2)^e1 * f
 
 x, a, b, found = two_e_good_element(I, e2)
 println(x)

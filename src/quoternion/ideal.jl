@@ -25,17 +25,16 @@ end
 
 # left O-ideal Ox + ON
 function LeftIdeal(x::QOrderElem, N::Integer)
-    basis = [QOrderElem(1,0,0,0,x.p,x.nj), QOrderElem(0,1,0,0,x.p,x.nj), QOrderElem(0,0,1,0,x.p,x.nj), QOrderElem(0,0,0,1,x.p,x.nj)]
+    basis = [QOrderElem(1,0,0,0), QOrderElem(0,1,0,0), QOrderElem(0,0,1,0), QOrderElem(0,0,0,1)]
     Ox = [[(b*x)[i] for i in 1:4] for b in basis]
     ON = [[N,0,0,0],[0,N,0,0],[0,0,N,0],[0,0,0,N]]
     basis = get_basis(vcat(Ox, ON))
-    return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4], x.p, x.nj) for b in basis])
+    return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
 end
 
 # return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + b^2
 function two_e_good_element(I::LeftIdeal, e::Integer)
-    p = I.b1.p
-    q(x, y) = quadratic_form(QOrderElem(x, p), QOrderElem(y, p))
+    q(x, y) = quadratic_form(QOrderElem(x), QOrderElem(y))
 
     # LLL reduction
     Imatrix = ideal_to_matrix(I)
@@ -77,7 +76,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
         else
             if x != zeros(Integer, 4)
                 v = sum([x[i]*red_basis[i] for i in 1:4])
-                alpha = QOrderElem(v[1], v[2], v[3], v[4], p)
+                alpha = QOrderElem(v[1], v[2], v[3], v[4])
                 newN = div(norm(alpha), N)
                 if newN % 2 == 1
                     a, b, found = sum_of_two_squares(BigInt(2)^e - div(norm(alpha), N))
@@ -86,7 +85,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
                     end
                 end
             else
-                return QOrderElem(0, p), 0, 0, false
+                return QOrderElem(0), 0, 0, false
             end
         end
     end
