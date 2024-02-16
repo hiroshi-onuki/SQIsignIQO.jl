@@ -32,8 +32,8 @@ function LeftIdeal(x::QOrderElem, N::Integer)
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4], x.p, x.nj) for b in basis])
 end
 
-# smallest element in I
-function small_element(I::LeftIdeal)
+# return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + b^2
+function two_e_good_element(I::LeftIdeal, e::Integer)
     p = I.b1.p
     q(x, y) = quadratic_form(QOrderElem(x, p), QOrderElem(y, p))
 
@@ -44,7 +44,7 @@ function small_element(I::LeftIdeal)
     red_basis = [LLLmat[:, i] for i in 1:4]
 
     N = norm(I)
-    C = BigInt(2)^137*N
+    C = BigInt(2)^e * N
 
     q = make_quadratic_form_coeffs(red_basis, q)
     S = zeros(Rational{Integer}, 4)
@@ -80,7 +80,7 @@ function small_element(I::LeftIdeal)
                 alpha = QOrderElem(v[1], v[2], v[3], v[4], p)
                 newN = div(norm(alpha), N)
                 if newN % 2 == 1
-                    a, b, found = sum_of_two_squares(BigInt(2)^137 - div(norm(alpha), N))
+                    a, b, found = sum_of_two_squares(BigInt(2)^e - div(norm(alpha), N))
                     if found
                         return alpha, a, b, true
                     end
