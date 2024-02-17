@@ -23,7 +23,7 @@ function check_short_element()
     I = LeftIdeal(a, BigInt(2)^e1 * 3 * 5 * f)
     @assert norm(I) == BigInt(2)^e1 * 3 * 5 * f
 
-    x, a, b, found = @time two_e_good_element(I, e2)
+    x, a, b, found = two_e_good_element(I, e2)
     if found
         @assert norm(x) % norm(I) == 0
         @assert a^2 + b^2 == BigInt(2)^e2 - div(norm(x), norm(I))

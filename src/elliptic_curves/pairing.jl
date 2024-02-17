@@ -1,3 +1,4 @@
+export Weil_pairing_2power
 
 # Miller function f_{P}(Q)
 function Miller_function(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T <: RingElem

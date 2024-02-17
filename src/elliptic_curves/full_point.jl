@@ -1,3 +1,5 @@
+export Point, double, add, mult
+
 # full point on a Montgomery curve
 struct Point{T <: RingElem}
     X::T
