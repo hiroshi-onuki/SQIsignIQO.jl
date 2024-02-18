@@ -24,7 +24,7 @@ def calcFields(p):
     assert i**2 == -1
     return Fp4, Fp2, i
 
-# return a point whose x-coodinate in Fp2 on E of order l^e, where l is prime.
+# return a point whose x-coordinate in Fp2 on E of order l^e, where l is prime.
 def point_ord(E, Fp2, is_twist, l, e):
     p = E.base_ring().characteristic()
     if is_twist:
