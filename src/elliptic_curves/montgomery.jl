@@ -1,3 +1,8 @@
+export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
+random_point, random_point_order_2power,
+    Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
+    two_e_iso, isomorphism_Montgomery, odd_isogeny
+
 # random point on a Montgomery curve: y^2 = x^3 + Ax^2 + x
 function random_point(A::T) where T <: RingElem
     F = parent(A)
@@ -130,7 +135,7 @@ function ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     return P0
 end
 
-# return P + [m]Q
+# return x(P + [m]Q) from x(P), x(Q), x(Q-P)
 function ladder3pt(m::Integer, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m < 0 && error("m in Ladder3pt must be nonnegative")
     is_infinity(QmP) && error("Q == P is not allowed")

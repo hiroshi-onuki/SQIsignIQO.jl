@@ -1,3 +1,4 @@
+export Proj1, infinity_point, is_infinity, affine
 
 # projective point of dimension one
 struct Proj1{T <: RingElem}

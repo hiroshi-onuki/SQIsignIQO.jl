@@ -1,4 +1,4 @@
-export Point, double, add, mult
+export Point, double, add, mult, is_infinity
 
 # full point on a Montgomery curve
 struct Point{T <: RingElem}
@@ -29,6 +29,10 @@ function Point(A::T, XZ::Proj1{T}) where T <: RingElem
     Z = Z2 * Yd
     @assert Y^2*Z^2 == X^3*Z + A*X^2*Z^2 + X*Z^3
     return Point(X, Y, Z)
+end
+
+function is_infinity(P::Point{T}) where T <: RingElem
+    return P.Z == 0
 end
 
 function infinity_full_point(F::T) where T <: Ring
