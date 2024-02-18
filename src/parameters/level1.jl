@@ -8,6 +8,24 @@ const Cofactor = 79
 const KLPT_repres_num_gamma_trial = 16384
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
+struct TorsionData
+    A0::Fp2
+    a24_0::Proj1
+    P2e::Point
+    Q2e::Point
+    xPe2::Proj1
+    xQe2::Proj1
+    xPQe2::Proj1
+    wp_P2e_Q2e::Fp2
+    DegreesOddTorsionBases::Vector{Int}
+    DegreesOddTorsionBasesTwist::Vector{Int}
+    OddTorsionBases::Vector{Vector{Proj1}}
+    OddTorsionBasesTwist::Vector{Vector{Proj1}}
+    Matrices_2e::Vector{Matrix{Int}}
+    Matrices_odd::Vector{Matrix{Int}}
+    Matrices_odd_twist::Vector{Matrix{Int}}
+end
+
 # Fp2 and values in Fp2
 function make_field_curve_torsions()
     _, T = polynomial_ring(GF(p), "T")
@@ -55,5 +73,5 @@ function make_field_curve_torsions()
     Matrices_odd = [[M_i_79, M_ij_79, M_1k_79]]
     Matrices_odd_twist = [[M_i_3, M_ij_3, M_1k_3], [M_i_5, M_ij_5, M_1k_5]]
 
-    return Fp2, Fp2_i, A0, P2e, Q2e, xPe2, xQe2, xPQe2, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist
+    return Fp2, Fp2_i, TorsionData(A0, Proj1(A0 + 2, Fp2(4)), P2e, Q2e, xPe2, xQe2, xPQe2, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist)
 end

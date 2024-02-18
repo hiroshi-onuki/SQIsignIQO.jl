@@ -6,6 +6,20 @@ struct LeftIdeal
     b4::QOrderElem
 end
 
+function Base.get_index(I::LeftIdeal, i::Integer)
+    if i == 1
+        return I.b1
+    elseif i == 2
+        return I.b2
+    elseif i == 3
+        return I.b3
+    elseif i == 4
+        return I.b4
+    else
+        throw(BoundsError(I, i))
+    end
+end
+
 function LeftIdeal(basis::Vector{QOrderElem})
     return LeftIdeal(basis[1], basis[2], basis[3], basis[4])
 end
@@ -112,4 +126,15 @@ function make_quadratic_form_coeffs(basis::Vector{Vector{T}}, quadratic_form::Fu
         end
     end
     return q
+end
+
+# Return a primitive element in I
+function primitive_element(I::LeftIdeal)
+    a = I[1]
+    i = 1
+    while gcd(a.v) != 1
+        a += I[i]
+        i = (i % 4) + 1
+    end
+    return a
 end
