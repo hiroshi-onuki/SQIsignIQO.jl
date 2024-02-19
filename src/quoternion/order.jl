@@ -1,3 +1,5 @@
+export QOrderElem, involution, norm, quadratic_form
+
 # element in the maximal order <1, i, (i + j)/2, (1 + ij)/2> in B_{p, infinity}
 # represented by the coefficients of the above basis
 struct QOrderElem

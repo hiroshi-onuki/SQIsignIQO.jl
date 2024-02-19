@@ -1,3 +1,5 @@
+export CouplePoint, double, double_iter
+
 struct CouplePoint{T <: RingElem}
     P1::Proj1{T}
     P2::Proj1{T}

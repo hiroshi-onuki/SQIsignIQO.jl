@@ -8,22 +8,22 @@ const Cofactor = 79
 const KLPT_repres_num_gamma_trial = 16384
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
-struct TorsionData
-    A0::Fp2
-    a24_0::Proj1
-    P2e::Point
-    Q2e::Point
-    xPe2::Proj1
-    xQe2::Proj1
-    xPQe2::Proj1
-    wp_P2e_Q2e::Fp2
+struct TorsionData{T <: RingElem}
+    A0::T
+    a24_0::Proj1{T}
+    P2e::Point{T}
+    Q2e::Point{T}
+    xPe2::Proj1{T}
+    xQe2::Proj1{T}
+    xPQe2::Proj1{T}
+    wp_P2e_Q2e::T
     DegreesOddTorsionBases::Vector{Int}
     DegreesOddTorsionBasesTwist::Vector{Int}
-    OddTorsionBases::Vector{Vector{Proj1}}
-    OddTorsionBasesTwist::Vector{Vector{Proj1}}
-    Matrices_2e::Vector{Matrix{Int}}
-    Matrices_odd::Vector{Matrix{Int}}
-    Matrices_odd_twist::Vector{Matrix{Int}}
+    OddTorsionBases::Vector{Vector{Proj1{T}}}
+    OddTorsionBasesTwist::Vector{Vector{Proj1{T}}}
+    Matrices_2e::Vector{Matrix{BigInt}}
+    Matrices_odd::Vector{Vector{Matrix{Int}}}
+    Matrices_odd_twist::Vector{Vector{Matrix{Int}}}
 end
 
 # Fp2 and values in Fp2

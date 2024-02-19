@@ -1,3 +1,5 @@
+export LeftIdeal, LeftIdeal, ideal_to_matrix, norm, LeftIdeal, larger_ideal, two_e_good_element, make_quadratic_form_coeffs, primitive_element
+
 # left ideal of the maximal order <1, i, (i + j)/2, (1 + ij)/2>
 struct LeftIdeal
     b1::QOrderElem
@@ -6,7 +8,7 @@ struct LeftIdeal
     b4::QOrderElem
 end
 
-function Base.get_index(I::LeftIdeal, i::Integer)
+function Base.getindex(I::LeftIdeal, i::Integer)
     if i == 1
         return I.b1
     elseif i == 2
@@ -28,6 +30,14 @@ function Base.:*(x::QOrderElem, I::LeftIdeal)
     return LeftIdeal(x*I.b1, x*I.b2, x*I.b3, x*I.b4)
 end
 
+function Base.gcd(I::LeftIdeal)
+    return gcd(gcd(I.b1), gcd(I.b2), gcd(I.b3), gcd(I.b4))
+end
+
+function Base.div(I::LeftIdeal, a::Integer)
+    return LeftIdeal(div(I.b1, a), div(I.b2, a), div(I.b3, a), div(I.b4, a))
+end
+
 function ideal_to_matrix(I::LeftIdeal)
     return hcat([[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]]...)
 end
@@ -43,6 +53,13 @@ function LeftIdeal(x::QOrderElem, N::Integer)
     Ox = [[(b*x)[i] for i in 1:4] for b in basis]
     ON = [[N,0,0,0],[0,N,0,0],[0,0,N,0],[0,0,0,N]]
     basis = get_basis(vcat(Ox, ON))
+    return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
+end
+
+# left O-ideal I + ON
+function larger_ideal(I::LeftIdeal, N::Integer)
+    ON = [[N,0,0,0],[0,N,0,0],[0,0,N,0],[0,0,0,N]]
+    basis = get_basis(vcat(ideal_to_matrix(I), ON))
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
 end
 
@@ -132,7 +149,7 @@ end
 function primitive_element(I::LeftIdeal)
     a = I[1]
     i = 1
-    while gcd(a.v) != 1
+    while gcd(a) != 1
         a += I[i]
         i = (i % 4) + 1
     end

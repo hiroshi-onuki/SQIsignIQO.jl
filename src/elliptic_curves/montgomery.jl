@@ -155,6 +155,30 @@ function ladder3pt(m::Integer, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Pro
     return P1;
 end
 
+# return x([a]P + [b]Q) from x(P), x(Q), x(Q-P), where ord(P) = ord(Q) = 2^e
+function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQmP::Proj1{T}, a24::Proj1{T}, e::Int) where T <: RingElem
+    g = gcd(a, b)
+    f = 0
+    while g & 1 == 0
+        g >>= 1
+        f += 1
+    end
+    a >>= f
+    b >>= f
+    if a & 1 == 0
+        c = invmod(b, BigInt(2)^e)
+        a = (a * c) % (BigInt(2)^e)
+        xR = ladder3pt(a, xQ, xP, xQmP, a24)
+        xR = ladder(c, xR, a24)
+    else
+        c = invmod(a, BigInt(2)^e)
+        b = (b * c) % (BigInt(2)^e)
+        xR = ladder3pt(b, xP, xQ, xQmP, a24)
+        xR = ladder(c, xR, a24)
+    end
+    return xDBLe(xR, a24, f)
+end
+
 # Montgomery coefficient of a24
 function Montgomery_coeff(a24::Proj1)
     a = a24.X + a24.X

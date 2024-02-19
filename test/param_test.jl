@@ -2,27 +2,33 @@ using Nemo
 using KaniSQIsign
 import KaniSQIsign.Level1: make_field_curve_torsions
 
-Fp2, i, A0, P2e, Q2e, xPe2, xQe2, xPQe2, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist = make_field_curve_torsions()
+Fp2, i, tdata = make_field_curve_torsions()
 
 p = KaniSQIsign.Level1.p
 e = KaniSQIsign.Level1.ExponentFull
-a24 = Proj1(A0 + 2, Fp2(4))
+A0 = tdata.A0
+a24 = tdata.a24_0
+P2e = tdata.P2e
+Q2e = tdata.Q2e
+xPe2 = tdata.xPe2
+xQe2 = tdata.xQe2
+xPQe2 = tdata.xPQe2
 
 function check_torsion_orders()
     @test is_infinity(mult(BigInt(2)^e, P2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), P2e, Proj1(A0)))
     @test is_infinity(mult(BigInt(2)^e, Q2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), Q2e, Proj1(A0)))
-    for i in length(OddTorsionBases)
-        l = DegreesOddTorsionBases[i]
-        xP, xQ, xPQ = OddTorsionBases[i]
+    for i in length(tdata.OddTorsionBases)
+        l = tdata.DegreesOddTorsionBases[i]
+        xP, xQ, xPQ = tdata.OddTorsionBases[i]
         @test is_infinity(ladder(l, xP, a24))
         @test is_infinity(ladder(l, xQ, a24))
         @test is_infinity(ladder(l, xPQ, a24))
     end
-    for i in length(OddTorsionBasesTwist)
-        l = DegreesOddTorsionBasesTwist[i]
-        xP, xQ, xPQ = OddTorsionBasesTwist[i]
+    for i in length(tdata.OddTorsionBasesTwist)
+        l = tdata.DegreesOddTorsionBasesTwist[i]
+        xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
         @test is_infinity(ladder(l, xP, a24))
         @test is_infinity(ladder(l, xQ, a24))
         @test is_infinity(ladder(l, xPQ, a24))
@@ -92,26 +98,26 @@ end
 
 function check_matrices_actions()
     # check actions on 2^e-torsion
-    @test check_i_action([xPe2, xQe2, xPQe2], Matrices_2e[1], a24, BigInt(2)^e)
-    @test check_ij_action([xPe2, xQe2, xPQe2], Matrices_2e[2], a24, BigInt(2)^e)
-    @test check_1k_action([xPe2, xQe2, xPQe2], Matrices_2e[3], a24, BigInt(2)^e)
+    @test check_i_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[1], a24, BigInt(2)^e)
+    @test check_ij_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[2], a24, BigInt(2)^e)
+    @test check_1k_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[3], a24, BigInt(2)^e)
 
     # check actions on odd-torsion
-    for i in length(OddTorsionBases)
-        l = DegreesOddTorsionBases[i]
-        xP, xQ, xPQ = OddTorsionBases[i]
-        @test check_i_action([xP, xQ, xPQ], Matrices_odd[i][1], a24, l)
-        @test check_ij_action([xP, xQ, xPQ], Matrices_odd[i][2], a24, l)
-        @test check_1k_action([xP, xQ, xPQ], Matrices_odd[i][3], a24, l)
+    for i in length(tdata.OddTorsionBases)
+        l = tdata.DegreesOddTorsionBases[i]
+        xP, xQ, xPQ = tdata.OddTorsionBases[i]
+        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l)
+        @test check_ij_action([xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l)
+        @test check_1k_action([xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l)
     end
 
     # check actions on twist odd-torsion
-    for i in length(OddTorsionBasesTwist)
-        l = DegreesOddTorsionBasesTwist[i]
-        xP, xQ, xPQ = OddTorsionBasesTwist[i]
-        @test check_i_action([xP, xQ, xPQ], Matrices_odd_twist[i][1], a24, l)
-        @test check_ij_action([xP, xQ, xPQ], Matrices_odd_twist[i][2], a24, l)
-        @test check_1k_action([xP, xQ, xPQ], Matrices_odd_twist[i][3], a24, l)
+    for i in length(tdata.OddTorsionBasesTwist)
+        l = tdata.DegreesOddTorsionBasesTwist[i]
+        xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
+        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][1], a24, l)
+        @test check_ij_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][2], a24, l)
+        @test check_1k_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][3], a24, l)
     end
 end
 

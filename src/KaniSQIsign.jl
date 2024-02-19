@@ -31,6 +31,8 @@ include("quoternion/cornacchia.jl")
 include("quoternion/ideal.jl")
 include("quoternion/klpt.jl")
 
+include("ideal_to_isogeny/ideal_to_isogeny.jl")
+
 end # module Level1
 
 end # module KaniSQIsign
