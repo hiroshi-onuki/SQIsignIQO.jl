@@ -3,7 +3,8 @@ import KaniSQIsign: random_point, random_point_order_2power,
     Proj1, odd_isogeny, is_infinity, ladder, x_add_sub,
     Point, Weil_pairing_2power, Montgomery_coeff, add, mult,
     CouplePoint, product_isogeny_no_strategy, jInvariant_A, jInvariant_a24,
-    infinity_point, A_to_a24, isomorphism_Montgomery
+    infinity_point, A_to_a24, isomorphism_Montgomery,
+    product_isogeny_sqrt_no_strategy, double_iter
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = BigInt(characteristic(parent(A)))
@@ -102,6 +103,13 @@ PQ1PQ2 = CouplePoint(PQ1, PQ2)
 O1S2 = CouplePoint(infinity_point(Fp2), S2)
 O1T2 = CouplePoint(infinity_point(Fp2), T2)
 Es, images = product_isogeny_no_strategy(a24_1, a24_2, P1P2, Q1Q2, PQ1PQ2, [O1S2, O1T2], n)
+
+# using square roots
+P1P2_d = double_iter(P1P2, a24_1, a24_2, 2)
+Q1Q2_d = double_iter(Q1Q2, a24_1, a24_2, 2)
+PQ1PQ2_d = double_iter(PQ1PQ2, a24_1, a24_2, 2)
+Esd, images_d = product_isogeny_sqrt_no_strategy(a24_1, a24_2, P1P2_d, Q1Q2_d, PQ1PQ2_d, [O1S2, O1T2], n)
+@assert Set([jInvariant_A(Es[1]), jInvariant_A(Es[2])]) == Set([jInvariant_A(Esd[2]), jInvariant_A(Esd[1])])
 
 if jInvariant_A(Es[1]) == jInvariant_A(A1)
     idx = 1

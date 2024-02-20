@@ -1,5 +1,5 @@
 export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
-random_point, random_point_order_2power,
+    linear_comb_2_e, random_point, random_point_order_2power,
     Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
     two_e_iso, isomorphism_Montgomery, odd_isogeny
 
@@ -157,6 +157,11 @@ end
 
 # return x([a]P + [b]Q) from x(P), x(Q), x(Q-P), where ord(P) = ord(Q) = 2^e
 function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQmP::Proj1{T}, a24::Proj1{T}, e::Int) where T <: RingElem
+    ad, bd = a, b
+    a = a % (BigInt(2)^e)
+    b = b % (BigInt(2)^e)
+    a < 0 && (a += BigInt(2)^e)
+    b < 0 && (b += BigInt(2)^e)
     g = gcd(a, b)
     f = 0
     while g & 1 == 0
@@ -165,18 +170,32 @@ function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQm
     end
     a >>= f
     b >>= f
+    println("f = ", f)
     if a & 1 == 0
         c = invmod(b, BigInt(2)^e)
         a = (a * c) % (BigInt(2)^e)
         xR = ladder3pt(a, xQ, xP, xQmP, a24)
-        xR = ladder(c, xR, a24)
+        xR = ladder(b, xR, a24)
     else
         c = invmod(a, BigInt(2)^e)
         b = (b * c) % (BigInt(2)^e)
         xR = ladder3pt(b, xP, xQ, xQmP, a24)
-        xR = ladder(c, xR, a24)
+        xR = ladder(a, xR, a24)
     end
-    return xDBLe(xR, a24, f)
+    ret = xDBLe(xR, a24, f)
+
+    A = Montgomery_coeff(a24)
+    P = Point(A, xP)
+    Q = Point(A, xQ)
+    PQ = add(P, Q, Proj1(A))
+    if !(xQmP == Proj1(PQ.X, PQ.Z))
+        global Q = -Q
+    end
+    PQ = add(P, Q, Proj1(A))
+    @assert xQmP == Proj1(PQ.X, PQ.Z)
+    aPbQ = add(mult(ad, P, Proj1(A)), mult(bd, Q, Proj1(A)), Proj1(A))
+    @assert ret == Proj1(aPbQ.X, aPbQ.Z)
+    return ret
 end
 
 # Montgomery coefficient of a24

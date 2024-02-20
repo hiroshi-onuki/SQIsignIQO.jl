@@ -18,8 +18,10 @@ function kernel_gen_power_of_prime(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a2
     M::Matrix{S}, l::Int, e::Int) where T <: RingElem where S <: Integer
     a, b = kernel_coefficients(M, l, e)
     if a == 1
+        b < 0 && (b += S(l)^e)
         return ladder3pt(b, xP, xQ, xPQ, a24)
     else
+        a < 0 && (a += S(l)^e)
         return ladder3pt(a, xQ, xP, xPQ, a24)
     end
 end
@@ -69,11 +71,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         ker = pop!(eval_points)
     end
     a24d, images = two_e_iso(a24, ker, e, eval_points)
-    println(Montgomery_coeff(a24d))
-    @assert false
 
     # compute beta in I s.t. J := I \bar{beta}/n(I) has norm 2^e - a^2 - b^2
-    beta, a, b, found = two_e_good_element(I, ExponentForIsogeny)
+    beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
     !found && throw(ArgumentError("No good element found"))
 
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
@@ -81,12 +81,12 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     beta = involution(beta) # beta = J \bar{I}
     M_beta = beta[1]*[1 0; 0 1] + beta[2]*tdata.Matrices_2e[1] + beta[3]*tdata.Matrices_2e[2] + beta[4]*tdata.Matrices_2e[3]
     c11, c21, c12, c22 = M_beta * M
-    xP2 = linear_comb_2_e(c11, c21, xP2, xQ2, xPQ2, a24d, ExponentFull)
-    xQ2 = linear_comb_2_e(c12, c22, xP2, xQ2, xPQ2, a24d, ExponentFull)
-    xPQ2 = linear_comb_2_e(c11+c12, c21+c22, xPQ2, xQ2, xP2, a24d, ExponentlFull)
-    @assert is_infinity(xBDLe(xP2, a24d, ExponentFull - e))
-    @assert is_infinity(xBDLe(xQ2, a24d, ExponentFull - e))
-    @assert is_infinity(xBDLe(xPQ2, a24d, ExponentFull - e))
+    xP2 = linear_comb_2_e(c11, c12, xP2, xQ2, xPQ2, a24d, ExponentFull)
+    xQ2 = linear_comb_2_e(c21, c22, xP2, xQ2, xPQ2, a24d, ExponentFull)
+    xPQ2 = linear_comb_2_e(c11+c21, c12+c22, xP2, xQ2, xPQ2, a24d, ExponentFull)
+    @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
+    @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
+    @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
 
     # compute the images of the basis of E_0[2^ExponentFull] under norm(I)(a + bi)
     c11, c21, c12, c22 = [a 0; 0 a] + b * tdata.Matrices_2e[1]
@@ -109,7 +109,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     P1P2 = CouplePoint(xP1, xP2)
     Q1Q2 = CouplePoint(xQ1, xQ2)
     PQ1PQ2 = CouplePoint(xPQ1, xPQ2)
-    Es, images = product_isogeny_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint[], ExponentForTorsion)
+    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint[], ExponentForTorsion)
 
     return Es
 end 
