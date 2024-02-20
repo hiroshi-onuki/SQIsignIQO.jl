@@ -32,6 +32,7 @@ function check_short_element()
     end
 end
 
-for _ in 1:10
+for _ in 1:100
     check_short_element()
 end
+println("All tests passed!")

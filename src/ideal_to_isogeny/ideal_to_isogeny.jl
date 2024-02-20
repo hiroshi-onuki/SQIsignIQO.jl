@@ -41,7 +41,36 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     alpha = primitive_element(I)
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*tdata.Matrices_2e[1] + alpha[3]*tdata.Matrices_2e[2] + alpha[4]*tdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M*M0, 2, e)
-    a24d, images = two_e_iso(a24, ker, e, [xP, xQ, xPQ])
+    eval_points = [xP, xQ, xPQ] 
+    if is_special
+        push!(eval_points, ker)
+        degs = Int[]
+        for i in 1:length(tdata.DegreesOddTorsionBases)
+            l = tdata.DegreesOddTorsionBases[i]
+            push!(degs, l)
+            xPl, xQl, xPQl = tdata.OddTorsionBases[i]
+            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd[i][1] + alpha[3] * tdata.Matrices_odd[i][2] + alpha[4] * tdata.Matrices_odd[i][3]
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, M*Ml, l, 1)
+            push!(eval_points, ker_l)
+        end
+        for i in 1:length(tdata.DegreesOddTorsionBasesTwist)
+            l = tdata.DegreesOddTorsionBasesTwist[i]
+            push!(degs, l)
+            xPl, xQl, xPQl = tdata.OddTorsionBasesTwist[i]
+            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd_twist[i][1] + alpha[3] * tdata.Matrices_odd_twist[i][2] + alpha[4] * tdata.Matrices_odd_twist[i][3]
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, M*Ml, l, 1)
+            push!(eval_points, ker_l)
+        end
+        while length(degs) > 0
+            l = pop!(degs)
+            ker = pop!(eval_points)
+            a24, eval_points = odd_isogeny(a24, ker, l, eval_points)
+        end
+        ker = pop!(eval_points)
+    end
+    a24d, images = two_e_iso(a24, ker, e, eval_points)
+    println(Montgomery_coeff(a24d))
+    @assert false
 
     # compute beta in I s.t. J := I \bar{beta}/n(I) has norm 2^e - a^2 - b^2
     beta, a, b, found = two_e_good_element(I, ExponentForIsogeny)
