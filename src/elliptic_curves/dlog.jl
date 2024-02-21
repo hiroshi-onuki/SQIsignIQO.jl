@@ -2,14 +2,14 @@ export ec_dlog_power_of_2
 
 # return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
 function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T}, 
-            A::T, e::Integer) where T <: RingElem
+    A::T, e::Integer) where T <: RingElem
     w0 = Weil_pairing_2power(A, R, S, e)
     w1 = Weil_pairing_2power(A, P, S, e)
     w2 = Weil_pairing_2power(A, P, R, e)
     w3 = Weil_pairing_2power(A, Q, S, e)
     w4 = Weil_pairing_2power(A, Q, R, e)
 
-    n1 = @time fq_dlog_power_of_2(w1, w0, e)
+    n1 = fq_dlog_power_of_2(w1, w0, e)
     n2 = -fq_dlog_power_of_2(w2, w0, e)
     n3 = fq_dlog_power_of_2(w3, w0, e)
     n4 = -fq_dlog_power_of_2(w4, w0, e)
