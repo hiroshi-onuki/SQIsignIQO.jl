@@ -1,7 +1,7 @@
 export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
     linear_comb_2_e, random_point, random_point_order_2power,
     Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
-    two_e_iso, isomorphism_Montgomery, odd_isogeny
+    two_e_iso, isomorphism_Montgomery, odd_isogeny, torsion_basis
 
 # random point on a Montgomery curve: y^2 = x^3 + Ax^2 + x
 function random_point(A::T) where T <: RingElem
@@ -459,4 +459,50 @@ function odd_isogeny(a24::Proj1{T}, ker::Proj1{T}, d::Integer, Qs::Vector{Proj1{
     C *= (a24.X - a24.Z)^d
     retQs = Proj1{T}[Proj1(Qs[i].X*imQs[i][1]^2, Qs[i].Z*imQs[i][2]^2) for i in 1:length(Qs)]
     return Proj1(A, A - C), retQs
+end
+
+# return a fixed basis (P, Q) of E[2^e] from P
+function complete_baisis(A::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int) where T <: RingElem
+    F = parent(A.X)
+    p = Integer(characteristic(F))
+    N = (p + 1) >> e
+    a24 = A_to_a24(A)
+    i = gen(F)
+    Q = Proj1(x)
+    while true
+        x += i
+        if is_square(A.Z * x * (A.Z * (x^2 + 1) + A.X * x))
+            Q = Proj1(x)
+            Q = ladder(N, Q, a24)
+            Qd = xDBLe(Q, a24, e-1)
+            if !is_infinity(Qd) && Qd != Pd
+                break
+            end
+        end
+    end
+    return P, Q
+end
+
+# return a fixed basis of E[2^e]
+function torsion_basis(A::Proj1{T}, e::Int) where T <: RingElem
+    F = parent(A.X)
+    p = Integer(characteristic(F))
+    N = (p + 1) >> e
+    a24 = A_to_a24(A)
+    i = gen(F)
+    x = F(1)
+    P = Proj1(x)
+    Pd = Proj1(x)
+    while true
+        x += i
+        if is_square(A.Z * x * (A.Z * (x^2 + 1) + A.X * x))
+            P = Proj1(x)
+            P = ladder(N, P, a24)
+            Pd = xDBLe(P, a24, e-1)
+            if !is_infinity(Pd)
+                break
+            end
+        end
+    end
+    return complete_baisis(A, P, Pd, x, e)
 end
