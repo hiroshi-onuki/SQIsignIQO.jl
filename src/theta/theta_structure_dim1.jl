@@ -26,7 +26,7 @@ function theta_to_Montgomery(tnull::ThetaDim1{T}) where T <: RingElem
     a, b = tnull.a, tnull.b
     a2, b2 = a^2, b^2
     T1, T2 = a2 + b2, a2 - b2
-    A = -(T1^2 + T2^2) / (T1*T2)
+    A = Proj1(-(T1^2 + T2^2), T1*T2)
     return A
 end
 

@@ -226,8 +226,12 @@ function jInvariant_a24(a24::Proj1)
     return j
 end
 
+function jInvariant_A(A::Proj1)
+    return jInvariant_a24(A_to_a24(A))
+end
+
 function jInvariant_A(A::T) where T <: RingElem
-    return 2^8*(A^2 - 3)^3 / (A^2 - 4)
+    return jInvariant_a24(A_to_a24(A))
 end
 
 # 2-isogey. return (A + 2)/4, where Mont_A = E/<P> with ord(P) = 2.

@@ -134,5 +134,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQ1PQ2 = CouplePoint(xPQ1, xPQ2)
     Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint{FqFieldElem}[], ExponentForTorsion)
 
+    @assert jInvariant_A(Es[1]) == jInvariant_a24(a24_0) || jInvariant_A(Es[2]) == jInvariant_a24(a24_0)
+
     return Es
 end 
