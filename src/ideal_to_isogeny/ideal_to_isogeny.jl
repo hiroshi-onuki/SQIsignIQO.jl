@@ -17,6 +17,8 @@ end
 function kernel_gen_power_of_prime(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a24::Proj1{T},
     M::Matrix{S}, l::Int, e::Int) where T <: RingElem where S <: Integer
     a, b = kernel_coefficients(M, l, e)
+    @assert (a * M[1, 1] + b * M[1, 2]) % (S(l)^e) == 0
+    @assert (a * M[2, 1] + b * M[2, 2]) % (S(l)^e) == 0
     if a == 1
         b < 0 && (b += S(l)^e)
         return ladder3pt(b, xP, xQ, xPQ, a24)
@@ -79,7 +81,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP2t, xQ2t, xPQ2t = images
     beta_bar = involution(beta) # beta_bar = J \bar{I}
     M_beta_bar = beta_bar[1]*[1 0; 0 1] + beta_bar[2]*cdata.Matrices_2e[1] + beta_bar[3]*cdata.Matrices_2e[2] + beta_bar[4]*cdata.Matrices_2e[3]
-    c11, c21, c12, c22 = M_beta_bar * M
+    c11, c21, c12, c22 = M * M_beta_bar
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
@@ -154,7 +156,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQdd = cdata.isomorphism_to_A0(Es[idx], xPQdd)
 
     # compute the matrix M' s.t. phi_J(P0, Q0)^t = M'(Pd, Qd)^t
-    c11, c12, c21, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
+    c11, c22, c12, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
     D = BigInt(2)^ExponentForTorsion - a^2 - b^2
     Md = [c22 -c12; -c21 c11] * invmod(D * (c11 * c22 - c12 * c21), BigInt(2)^ExponentFull)
 

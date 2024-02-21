@@ -19,10 +19,10 @@ a = QOrderElem(1)
 a, found = FullRepresentInteger(N*BigInt(2)^e)
 a = div(a, gcd(a))
 
-I = LeftIdeal(a, BigInt(2)^e1 * 3 * 5 * 79)
+I = LeftIdeal(a, BigInt(2)^(2*e1) * 3 * 5 * 79)
 while gcd(I) != 1
     global I = div(I, gcd(I))
 end
 println(factor(ZZ(norm(I))))
 
-a24 = ideal_to_isogeny_from_O0(I, e1, cdata)
+a24 = ideal_to_isogeny_from_O0(I, 2*e1, cdata)
