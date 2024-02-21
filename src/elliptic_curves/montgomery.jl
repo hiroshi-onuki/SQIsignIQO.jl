@@ -191,6 +191,13 @@ function Montgomery_coeff(a24::Proj1)
     return a//a24.Z
 end
 
+function a24_to_A(a24::Proj1)
+    a = a24.X + a24.X
+    a -= a24.Z
+    a += a
+    return Proj1(a, a24.Z)
+end
+
 function A_to_a24(A::T) where T <: RingElem
     F = parent(A)
     return Proj1(A + 2, F(4))
@@ -462,11 +469,11 @@ function odd_isogeny(a24::Proj1{T}, ker::Proj1{T}, d::Integer, Qs::Vector{Proj1{
 end
 
 # return a fixed basis (P, Q) of E[2^e] from P
-function complete_baisis(A::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int) where T <: RingElem
-    F = parent(A.X)
+function complete_baisis(a24::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int) where T <: RingElem
+    F = parent(a24.X)
     p = Integer(characteristic(F))
     N = (p + 1) >> e
-    a24 = A_to_a24(A)
+    A = a24_to_A(a24)
     i = gen(F)
     Q = Proj1(x)
     while true
@@ -480,15 +487,16 @@ function complete_baisis(A::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int) w
             end
         end
     end
-    return P, Q
+    PQ = x_add_sub(P, Q, a24)
+    return P, Q, PQ
 end
 
 # return a fixed basis of E[2^e]
-function torsion_basis(A::Proj1{T}, e::Int) where T <: RingElem
-    F = parent(A.X)
+function torsion_basis(a24::Proj1{T}, e::Int) where T <: RingElem
+    F = parent(a24.X)
     p = Integer(characteristic(F))
     N = (p + 1) >> e
-    a24 = A_to_a24(A)
+    A = a24_to_A(a24)
     i = gen(F)
     x = F(1)
     P = Proj1(x)
@@ -504,5 +512,5 @@ function torsion_basis(A::Proj1{T}, e::Int) where T <: RingElem
             end
         end
     end
-    return complete_baisis(A, P, Pd, x, e)
+    return complete_baisis(a24, P, Pd, x, e)
 end

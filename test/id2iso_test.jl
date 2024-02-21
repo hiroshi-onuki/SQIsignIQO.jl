@@ -6,7 +6,7 @@ import KaniSQIsign.Level1: short_ideal_to_isogeny
 p = KaniSQIsign.Level1.p
 e1 = KaniSQIsign.Level1.ExponentForIsogeny
 e2 = KaniSQIsign.Level1.ExponentForTorsion
-Fp2, i, tdata = KaniSQIsign.Level1.make_field_curve_torsions()
+Fp2, i, cdata = KaniSQIsign.Level1.make_field_curve_torsions()
 a24_0 = tdata.a24_0
 xP0 = tdata.xP2e
 xQ0 = tdata.xQ2e
@@ -26,4 +26,4 @@ end
 println(factor(ZZ(norm(I))))
 
 M0 = BigInt[1 0; 0 1]
-a24 = short_ideal_to_isogeny(I, a24_0, xP0, xQ0, xPQ0, M0, tdata, true)
+a24 = short_ideal_to_isogeny(I, a24_0, xP0, xQ0, xPQ0, M0, cdata, true)

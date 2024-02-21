@@ -1,3 +1,4 @@
+export square_root
 
 # square root of x in Fp2
 function square_root(x::FinFieldElem)

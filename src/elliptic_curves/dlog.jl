@@ -1,3 +1,4 @@
+export ec_dlog_power_of_2
 
 # return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
 function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T}, 

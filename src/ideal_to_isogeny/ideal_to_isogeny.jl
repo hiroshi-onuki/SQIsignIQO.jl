@@ -28,12 +28,12 @@ end
 
 # I : left ideal of O0 s.t. I = I_1 I_2, n(I_1) is odd and n(I_2) = 2^ExponentForIsogeny
 # a24 : the coefficient of E := E_0 / E_0[I_1]
-# xP, xQ, xPQ : basis of E[2^ExponentFull] s.t. (P, Q)^t = M(P0, Q0)^t
+# xP, xQ, xPQ : the fixed basis of E[2^ExponentFull] s.t. phi_I_2(P_0, Q_0)^t = M(P, Q)^t
 # return the coefficient a24d of E' := E_0 / E_0[I_1 I_2],
-# the fixed basis (P', Q') of E'[2^ExponentFull], and M' s.t. (P', Q')^t = M'(P0, Q0)^t
+# the fixed basis (P', Q') of E'[2^ExponentFull], and M' s.t. phi_J(P_0, Q_0)^t = M'(P', Q')^t
 # If is_special is true, then n(I_2) = 2^ExponentForIsogeny * (small odd number)
 function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T},
-    M::Matrix{BigInt}, tdata::TorsionData, is_special::Bool=false) where T <: RingElem
+    M::Matrix{BigInt}, cdata::CurveData, is_special::Bool=false) where T <: RingElem
     e = ExponentForIsogeny
     xPd = xDBLe(xP, a24, ExponentFull - e)
     xQd = xDBLe(xQ, a24, ExponentFull - e)
@@ -41,25 +41,25 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # 2^e-isogeny corresponding to I_2
     alpha = primitive_element(I)
-    M0 = alpha[1]*[1 0; 0 1] + alpha[2]*tdata.Matrices_2e[1] + alpha[3]*tdata.Matrices_2e[2] + alpha[4]*tdata.Matrices_2e[3]
-    ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M*M0, 2, e)
+    M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
+    ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0*M, 2, e)
     eval_points = [xP, xQ, xPQ]
     if is_special
         push!(eval_points, ker)
         degs = Int[]
-        for i in 1:length(tdata.DegreesOddTorsionBases)
-            l = tdata.DegreesOddTorsionBases[i]
+        for i in 1:length(cdata.DegreesOddTorsionBases)
+            l = cdata.DegreesOddTorsionBases[i]
             push!(degs, l)
-            xPl, xQl, xPQl = tdata.OddTorsionBases[i]
-            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd[i][1] + alpha[3] * tdata.Matrices_odd[i][2] + alpha[4] * tdata.Matrices_odd[i][3]
+            xPl, xQl, xPQl = cdata.OddTorsionBases[i]
+            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd[i][1] + alpha[3] * cdata.Matrices_odd[i][2] + alpha[4] * cdata.Matrices_odd[i][3]
             ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
             push!(eval_points, ker_l)
         end
-        for i in 1:length(tdata.DegreesOddTorsionBasesTwist)
-            l = tdata.DegreesOddTorsionBasesTwist[i]
+        for i in 1:length(cdata.DegreesOddTorsionBasesTwist)
+            l = cdata.DegreesOddTorsionBasesTwist[i]
             push!(degs, l)
-            xPl, xQl, xPQl = tdata.OddTorsionBasesTwist[i]
-            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd_twist[i][1] + alpha[3] * tdata.Matrices_odd_twist[i][2] + alpha[4] * tdata.Matrices_odd_twist[i][3]
+            xPl, xQl, xPQl = cdata.OddTorsionBasesTwist[i]
+            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd_twist[i][1] + alpha[3] * cdata.Matrices_odd_twist[i][2] + alpha[4] * cdata.Matrices_odd_twist[i][3]
             ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
             push!(eval_points, ker_l)
         end
@@ -79,7 +79,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
     xP2t, xQ2t, xPQ2t = images
     beta_bar = involution(beta) # beta_bar = J \bar{I}
-    M_beta_bar = beta_bar[1]*[1 0; 0 1] + beta_bar[2]*tdata.Matrices_2e[1] + beta_bar[3]*tdata.Matrices_2e[2] + beta_bar[4]*tdata.Matrices_2e[3]
+    M_beta_bar = beta_bar[1]*[1 0; 0 1] + beta_bar[2]*cdata.Matrices_2e[1] + beta_bar[3]*cdata.Matrices_2e[2] + beta_bar[4]*cdata.Matrices_2e[3]
     c11, c21, c12, c22 = M_beta_bar * M
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
@@ -89,11 +89,11 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
 
     # compute the images of the basis of E_0[2^ExponentFull] under norm(I)(a + bi)
-    c11, c21, c12, c22 = [a 0; 0 a] + b * tdata.Matrices_2e[1]
-    a24_0 = tdata.a24_0
-    xP0 = tdata.xP2e
-    xQ0 = tdata.xQ2e
-    xPQ0 = tdata.xPQ2e
+    c11, c21, c12, c22 = [a 0; 0 a] + b * cdata.Matrices_2e[1]
+    a24_0 = cdata.a24_0
+    xP0 = cdata.xP2e
+    xQ0 = cdata.xQ2e
+    xPQ0 = cdata.xPQ2e
     xP0 = xDBLe(xP0, a24_0, e)
     xQ0 = xDBLe(xQ0, a24_0, e)
     xPQ0 = xDBLe(xPQ0, a24_0, e)
@@ -106,7 +106,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQ1 = linear_comb_2_e(c11-c12, c21-c22, xP0, xQ0, xPQ0, a24_0, ExponentForTorsion)
 
     # pairing check
-    A1 = tdata.A0
+    A1 = cdata.A0
     P1 = Point(A1, xP1)
     Q1 = Point(A1, xQ1)
     PQ1 = add(P1, -Q1, Proj1(A1))
@@ -128,13 +128,36 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) * Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion) == 1
 
+    # fixed basis of E'[2^ExponentFull]
+    xPd, xQd, xPQd = torsion_basis(a24d, ExponentFull)
+
     # compute (2,2)-isogenies
     P1P2 = CouplePoint(xP1, xP2)
     Q1Q2 = CouplePoint(xQ1, xQ2)
     PQ1PQ2 = CouplePoint(xPQ1, xPQ2)
-    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint{FqFieldElem}[], ExponentForTorsion)
+    O1 = infinity_point(parent(a24_0.X))
+    O1Pd = CouplePoint(O1, xPd)
+    O1Qd = CouplePoint(O1, xQd)
+    O1PQd = CouplePoint(O1, xPQd)
+    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd], ExponentForTorsion)
 
-    @assert jInvariant_A(Es[1]) == jInvariant_a24(a24_0) || jInvariant_A(Es[2]) == jInvariant_a24(a24_0)
+    # isomorphism to A0
+    if Es[1] == Proj1(cdata.A0) || Es[1] == Proj1(cdata.A0d) || Es[1] == Proj1(cdata.A0dd)
+        idx = 1
+    else
+        idx = 2
+    end
+    xPdd = images[1][idx]
+    xQdd = images[2][idx]
+    xPQdd = images[3][idx]
+    xPdd = cdata.isomorphism_to_A0(Es[idx], xPdd)
+    xQdd = cdata.isomorphism_to_A0(Es[idx], xQdd)
+    xPQdd = cdata.isomorphism_to_A0(Es[idx], xPQdd)
 
-    return Es
+    # compute the matrix M' s.t. phi_J(P0, Q0)^t = M'(Pd, Qd)^t
+    c11, c12, c21, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
+    D = BigInt(2)^ExponentForTorsion - a^2 - b^2
+    Md = [c22 -c12; -c21 c11] * invmod(D * (c11 * c22 - c12 * c21), BigInt(2)^ExponentFull)
+
+    return a24d, xPdd, xQdd, xPQdd, Md
 end 

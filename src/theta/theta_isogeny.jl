@@ -96,6 +96,7 @@ function two_two_isogeny_4torsion(domain::ThetaNullLv2{T}, T1::ThetaPtLv2{T}, im
         y *= B_inv
         z *= C_inv
         t *= D_inv
+        x, y, z, t = Hadamard(x, y, z, t)
         ret[i] = ThetaPtLv2(x, y, z, t)
     end
 
@@ -127,7 +128,6 @@ function two_two_isogeny_2torsion(domain::ThetaNullLv2{T}, image_points::Vector{
         y *= B_inv
         z *= C_inv
         t *= D_inv
-        x, y, z, t = Hadamard(x, y, z, t)
         ret[i] = ThetaPtLv2(x, y, z, t)
     end
 

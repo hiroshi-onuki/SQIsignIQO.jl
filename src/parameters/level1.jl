@@ -8,9 +8,12 @@ const Cofactor = 79
 const KLPT_repres_num_gamma_trial = 16384
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
-struct TorsionData{T <: RingElem}
+struct CurveData{T <: RingElem}
     A0::T
+    A0d::T
+    A0dd::T
     a24_0::Proj1{T}
+    j0::T
     P2e::Point{T}
     Q2e::Point{T}
     xP2e::Proj1{T}
@@ -24,6 +27,7 @@ struct TorsionData{T <: RingElem}
     Matrices_2e::Vector{Matrix{BigInt}}
     Matrices_odd::Vector{Vector{Matrix{Int}}}
     Matrices_odd_twist::Vector{Vector{Matrix{Int}}}
+    isomorphism_to_A0::Function
 end
 
 # Fp2 and values in Fp2
@@ -73,5 +77,28 @@ function make_field_curve_torsions()
     Matrices_odd = [[M_i_79, M_ij_79, M_1k_79]]
     Matrices_odd_twist = [[M_i_3, M_ij_3, M_1k_3], [M_i_5, M_ij_5, M_1k_5]]
 
-    return Fp2, Fp2_i, TorsionData(A0, Proj1(A0 + 2, Fp2(4)), P2e, Q2e, xP2e, xQ2e, xPQ2e, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist)
+    # make constants for isomorphism to the curve E_A0
+    _, T = polynomial_ring(Fp2, "T")
+    As = roots((256 * (T^2 - 3)^3 - 1728 * (T^2 - 4))/T^2)
+    A0d = As[1]
+    beta = -A0d/3
+    gamma = square_root(1 / (1 - 3*beta^2))
+    gamma = gamma[1]/gamma[2]
+    A0dd = As[2]
+    beta_d = -A0dd/3
+    gamma_d = square_root(1 / (1 - 3*beta_d^2))
+    gamma_d = gamma_d[1]/gamma_d[2]
+    function isomorphism_to_A0(A::Proj1{FqFieldElem}, P::Proj1{FqFieldElem})
+        if A == Proj1(A0)
+            return P
+        elseif A == Proj1(A0d)
+            return Proj1(gamma*(P.X - beta*P.Z), P.Z)
+        elseif A == Proj1(A0dd)
+            return Proj1(gamma_d*(P.X - beta_d*P.Z), P.Z)
+        else
+            throw(ArgumentError("A is not A0d or A0dd"))
+        end
+    end
+
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, A_to_a24(A0), jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist, isomorphism_to_A0)
 end
