@@ -1,7 +1,7 @@
 using Nemo
 using KaniSQIsign
 using KaniSQIsign.Level1
-import KaniSQIsign.Level1: short_ideal_to_isogeny
+import KaniSQIsign.Level1: ideal_to_isogeny_from_O0
 
 p = KaniSQIsign.Level1.p
 e1 = KaniSQIsign.Level1.ExponentForIsogeny
@@ -25,5 +25,4 @@ while gcd(I) != 1
 end
 println(factor(ZZ(norm(I))))
 
-M0 = BigInt[1 0; 0 1]
-a24 = short_ideal_to_isogeny(I, a24_0, xP0, xQ0, xPQ0, M0, cdata, true)
+a24 = ideal_to_isogeny_from_O0(I, e1, cdata)
