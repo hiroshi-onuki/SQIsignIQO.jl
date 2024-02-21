@@ -103,7 +103,30 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQ0 = ladder(N, xPQ0, a24_0)
     xP1 = linear_comb_2_e(c11, c21, xP0, xQ0, xPQ0, a24_0, ExponentForTorsion)
     xQ1 = linear_comb_2_e(c12, c22, xP0, xQ0, xPQ0, a24_0, ExponentForTorsion)
-    xPQ1 = linear_comb_2_e(c11+c12, c21+c22, xPQ0, xQ0, xP0, a24_0, ExponentForTorsion)
+    xPQ1 = linear_comb_2_e(c11-c12, c21-c22, xP0, xQ0, xPQ0, a24_0, ExponentForTorsion)
+
+    # pairing check
+    A1 = tdata.A0
+    P1 = Point(A1, xP1)
+    Q1 = Point(A1, xQ1)
+    PQ1 = add(P1, -Q1, Proj1(A1))
+    if xPQ1 != Proj1(PQ1.X, PQ1.Z)
+        Q1 = -Q1
+    end
+    PQ1 = add(P1, -Q1, Proj1(A1))
+    @assert xPQ1 == Proj1(PQ1.X, PQ1.Z)
+
+    A2 = Montgomery_coeff(a24d)
+    P2 = Point(A2, xP2)
+    Q2 = Point(A2, xQ2)
+    PQ2 = add(P2, -Q2, Proj1(A2))
+    if xPQ2 != Proj1(PQ2.X, PQ2.Z)
+        Q2 = -Q2
+    end
+    PQ2 = add(P2, -Q2, Proj1(A2))
+    @assert xPQ2 == Proj1(PQ2.X, PQ2.Z)
+
+    @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) * Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion) == 1
 
     # compute (2,2)-isogenies
     P1P2 = CouplePoint(xP1, xP2)
