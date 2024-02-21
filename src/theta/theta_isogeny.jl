@@ -134,7 +134,7 @@ function two_two_isogeny_2torsion(domain::ThetaNullLv2{T}, image_points::Vector{
     return ThetaNullLv2(A, B, C, D), ret
 end
 
-# (2^n, 2^n)-isogeny with kernel <4*P1P2, 4*P2Q2>. P1Q1P2Q2 = (x(P1 + Q1), x(P2 + Q2))
+# (2^n, 2^n)-isogeny with kernel <4*P1P2, 4*P2Q2>. P1Q1P2Q2 = (x(P1 - Q1), x(P2 - Q2))
 function product_isogeny_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
     P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T}, P1Q1P2Q2::CouplePoint{T},
     image_points::Vector{CouplePoint{T}}, n::Integer) where T <: RingElem
@@ -233,7 +233,7 @@ function product_isogeny(a24_1::Proj1{T}, a24_2::Proj1{T},
     return split_to_product(domain, image_points)
 end
 
-# (2^n, 2^n)-isogeny with kernel <P1P2, P2Q2>. P1Q1P2Q2 = (x(P1 + Q1), x(P2 + Q2))
+# (2^n, 2^n)-isogeny with kernel <P1P2, P2Q2>. P1Q1P2Q2 = (x(P1 - Q1), x(P2 - Q2))
 function product_isogeny_sqrt_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
     P1P2::CouplePoint{T}, Q1Q2::CouplePoint{T}, P1Q1P2Q2::CouplePoint{T},
     image_points::Vector{CouplePoint{T}}, n::Integer) where T <: RingElem

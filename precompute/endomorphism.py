@@ -80,7 +80,7 @@ def action_matrix(alpha, basis, N, zeta4, F2):
     aP, aQ = [action(alpha, R, zeta4, F2) for R in [P, Q]]
     a, b, c, d = bi_dlp(aP, aQ, P, Q, N)
     assert a*P + b*Q == aP and c*P + d*Q == aQ
-    return matrix([[a, b], [c, d]])
+    return matrix([[a, c], [b, d]])
 
 # matrices of the multiplications by i, (i + j)/2, (1 + ij)/2
 def action_matrices(basis, N, zeta4, F2):

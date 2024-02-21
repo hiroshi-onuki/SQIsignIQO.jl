@@ -16,12 +16,12 @@ function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T},
     return n1, n2, n3, n4
 end
 
-# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
+# return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S, where xPQ = x(P-Q)
 function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{T}, S::Point{T}, 
             A::T, e::Integer) where T <: RingElem
     P = Point(A, xP)
     Q = Point(A, xQ)
-    PQ = add(P, Q, Proj1(A))
+    PQ = add(P, -Q, Proj1(A))
     if !(xPQ == Proj1(PQ.X, PQ.Z))
         global Q = -Q
     end

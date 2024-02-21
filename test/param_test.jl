@@ -10,9 +10,9 @@ A0 = tdata.A0
 a24 = tdata.a24_0
 P2e = tdata.P2e
 Q2e = tdata.Q2e
-xPe2 = tdata.xPe2
-xQe2 = tdata.xQe2
-xPQe2 = tdata.xPQe2
+xP2e = tdata.xP2e
+xQ2e = tdata.xQ2e
+xPQ2e = tdata.xPQ2e
 
 function check_torsion_orders()
     @test is_infinity(mult(BigInt(2)^e, P2e, Proj1(A0)))
@@ -39,14 +39,14 @@ end
 function linear_comb(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a24::Proj1{T}, order::Integer) where T <: RingElem
     xaP = ladder(a, xP, a24) # x(aP)
     xQaP = ladder3pt(order - a, xQ, xP, xPQ, a24) # x(Q - aP)
-    xaPbQ = ladder3pt(b, xaP, xQ, xQaP, a24) # x(Q - aP - bQ)
+    xaPbQ = ladder3pt(b, xaP, xQ, xQaP, a24)
     return xaPbQ
 end
 
 function matrix_action(basis::Vector{Proj1{T}}, M::Matrix{S}, a24::Proj1{T}, order::Integer) where T <: RingElem where S <: Integer
     xP, xQ, xPQ = basis
-    MPQ1 = linear_comb(M[1, 1], M[1, 2], xP, xQ, xPQ, a24, order)
-    MPQ2 = linear_comb(M[2, 1], M[2, 2], xP, xQ, xPQ, a24, order)
+    MPQ1 = linear_comb(M[1, 1], M[2, 1], xP, xQ, xPQ, a24, order)
+    MPQ2 = linear_comb(M[1, 2], M[2, 2], xP, xQ, xPQ, a24, order)
     return MPQ1, MPQ2
 end
 
@@ -98,9 +98,9 @@ end
 
 function check_matrices_actions()
     # check actions on 2^e-torsion
-    @test check_i_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[1], a24, BigInt(2)^e)
-    @test check_ij_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[2], a24, BigInt(2)^e)
-    @test check_1k_action([xPe2, xQe2, xPQe2], tdata.Matrices_2e[3], a24, BigInt(2)^e)
+    @test check_i_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[1], a24, BigInt(2)^e)
+    @test check_ij_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[2], a24, BigInt(2)^e)
+    @test check_1k_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
 
     # check actions on odd-torsion
     for i in length(tdata.OddTorsionBases)

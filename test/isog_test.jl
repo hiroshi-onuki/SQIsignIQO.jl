@@ -71,11 +71,11 @@ PQ1 = ladder(7, PQ1, a24_1)
 P1full = Point(A1, P1)
 Q1full = Point(A1, Q1)
 PQ1full = Point(A1, PQ1)
-R1full = add(P1full, Q1full, Proj1(A1))
+R1full = add(P1full, -Q1full, Proj1(A1))
 if R1full.X * PQ1full.Z != PQ1full.X * R1full.Z
     global Q1full = -Q1full
 end
-R1full = add(P1full, Q1full, Proj1(A1))
+R1full = add(P1full, -Q1full, Proj1(A1))
 @assert R1full.X * PQ1full.Z == PQ1full.X * R1full.Z
 P1full = mult(4, P1full, Proj1(A1))
 Q1full = mult(4, Q1full, Proj1(A1))
@@ -84,11 +84,11 @@ Q1full = mult(4, Q1full, Proj1(A1))
 P2full = Point(A2, P2)
 Q2full = Point(A2, Q2)
 PQ2full = Point(A2, PQ2)
-R2 = add(P2full, Q2full, Proj1(A2))
+R2 = add(P2full, -Q2full, Proj1(A2))
 if R2.X * PQ2full.Z != PQ2full.X * R2.Z
     global Q2full = -Q2full
 end
-R2 = add(P2full, Q2full, Proj1(A2))
+R2 = add(P2full, -Q2full, Proj1(A2))
 @assert R2.X * PQ2full.Z == PQ2full.X * R2.Z
 P2full = mult(4, P2full, Proj1(A2))
 Q2full = mult(4, Q2full, Proj1(A2))

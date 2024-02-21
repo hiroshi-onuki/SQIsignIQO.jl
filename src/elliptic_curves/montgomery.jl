@@ -157,7 +157,6 @@ end
 
 # return x([a]P + [b]Q) from x(P), x(Q), x(Q-P), where ord(P) = ord(Q) = 2^e
 function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQmP::Proj1{T}, a24::Proj1{T}, e::Int) where T <: RingElem
-    ad, bd = a, b
     a = a % (BigInt(2)^e)
     b = b % (BigInt(2)^e)
     a < 0 && (a += BigInt(2)^e)
@@ -170,7 +169,6 @@ function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQm
     end
     a >>= f
     b >>= f
-    println("f = ", f)
     if a & 1 == 0
         c = invmod(b, BigInt(2)^e)
         a = (a * c) % (BigInt(2)^e)
@@ -182,20 +180,7 @@ function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQm
         xR = ladder3pt(b, xP, xQ, xQmP, a24)
         xR = ladder(a, xR, a24)
     end
-    ret = xDBLe(xR, a24, f)
-
-    A = Montgomery_coeff(a24)
-    P = Point(A, xP)
-    Q = Point(A, xQ)
-    PQ = add(P, Q, Proj1(A))
-    if !(xQmP == Proj1(PQ.X, PQ.Z))
-        global Q = -Q
-    end
-    PQ = add(P, Q, Proj1(A))
-    @assert xQmP == Proj1(PQ.X, PQ.Z)
-    aPbQ = add(mult(ad, P, Proj1(A)), mult(bd, Q, Proj1(A)), Proj1(A))
-    @assert ret == Proj1(aPbQ.X, aPbQ.Z)
-    return ret
+    return xDBLe(xR, a24, f)
 end
 
 # Montgomery coefficient of a24

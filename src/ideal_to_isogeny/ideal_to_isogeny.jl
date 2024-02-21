@@ -43,7 +43,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     alpha = primitive_element(I)
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*tdata.Matrices_2e[1] + alpha[3]*tdata.Matrices_2e[2] + alpha[4]*tdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M*M0, 2, e)
-    eval_points = [xP, xQ, xPQ] 
+    eval_points = [xP, xQ, xPQ]
     if is_special
         push!(eval_points, ker)
         degs = Int[]
@@ -52,7 +52,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             push!(degs, l)
             xPl, xQl, xPQl = tdata.OddTorsionBases[i]
             Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd[i][1] + alpha[3] * tdata.Matrices_odd[i][2] + alpha[4] * tdata.Matrices_odd[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, M*Ml, l, 1)
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
             push!(eval_points, ker_l)
         end
         for i in 1:length(tdata.DegreesOddTorsionBasesTwist)
@@ -60,7 +60,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             push!(degs, l)
             xPl, xQl, xPQl = tdata.OddTorsionBasesTwist[i]
             Ml = alpha[1] * [1 0; 0 1] + alpha[2] * tdata.Matrices_odd_twist[i][1] + alpha[3] * tdata.Matrices_odd_twist[i][2] + alpha[4] * tdata.Matrices_odd_twist[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, M*Ml, l, 1)
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
             push!(eval_points, ker_l)
         end
         while length(degs) > 0
@@ -72,18 +72,18 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     end
     a24d, images = two_e_iso(a24, ker, e, eval_points)
 
-    # compute beta in I s.t. J := I \bar{beta}/n(I) has norm 2^e - a^2 - b^2
+    # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
     !found && throw(ArgumentError("No good element found"))
 
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
-    xP2, xQ2, xPQ2 = images
-    beta = involution(beta) # beta = J \bar{I}
-    M_beta = beta[1]*[1 0; 0 1] + beta[2]*tdata.Matrices_2e[1] + beta[3]*tdata.Matrices_2e[2] + beta[4]*tdata.Matrices_2e[3]
-    c11, c21, c12, c22 = M_beta * M
-    xP2 = linear_comb_2_e(c11, c12, xP2, xQ2, xPQ2, a24d, ExponentFull)
-    xQ2 = linear_comb_2_e(c21, c22, xP2, xQ2, xPQ2, a24d, ExponentFull)
-    xPQ2 = linear_comb_2_e(c11+c21, c12+c22, xP2, xQ2, xPQ2, a24d, ExponentFull)
+    xP2t, xQ2t, xPQ2t = images
+    beta_bar = involution(beta) # beta_bar = J \bar{I}
+    M_beta_bar = beta_bar[1]*[1 0; 0 1] + beta_bar[2]*tdata.Matrices_2e[1] + beta_bar[3]*tdata.Matrices_2e[2] + beta_bar[4]*tdata.Matrices_2e[3]
+    c11, c21, c12, c22 = M_beta_bar * M
+    xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
+    xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
+    xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
@@ -91,9 +91,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # compute the images of the basis of E_0[2^ExponentFull] under norm(I)(a + bi)
     c11, c21, c12, c22 = [a 0; 0 a] + b * tdata.Matrices_2e[1]
     a24_0 = tdata.a24_0
-    xP0 = tdtata.xP0
-    xQ0 = tdata.xQ0
-    xPQ0 = tdata.xPQ0
+    xP0 = tdata.xP2e
+    xQ0 = tdata.xQ2e
+    xPQ0 = tdata.xPQ2e
     xP0 = xDBLe(xP0, a24_0, e)
     xQ0 = xDBLe(xQ0, a24_0, e)
     xPQ0 = xDBLe(xPQ0, a24_0, e)
@@ -109,7 +109,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     P1P2 = CouplePoint(xP1, xP2)
     Q1Q2 = CouplePoint(xQ1, xQ2)
     PQ1PQ2 = CouplePoint(xPQ1, xPQ2)
-    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint[], ExponentForTorsion)
+    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, CouplePoint{FqFieldElem}[], ExponentForTorsion)
 
     return Es
 end 
