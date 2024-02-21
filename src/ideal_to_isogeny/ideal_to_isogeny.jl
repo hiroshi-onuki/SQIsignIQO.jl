@@ -13,16 +13,17 @@ function kernel_coefficients(M::Matrix{T}, l::Int, e::Int) where T <: Integer
     end
 end
 
-# return the kernel of the l^e-isogeny determined by the kernel matrix M
+# return the kernel of the l^e-isogeny determined by the kernel matrix Mker
 function kernel_gen_power_of_prime(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a24::Proj1{T},
-    M::Matrix{S}, l::Int, e::Int) where T <: RingElem where S <: Integer
-    a, b = kernel_coefficients(M, l, e)
-    @assert (a * M[1, 1] + b * M[1, 2]) % (S(l)^e) == 0
-    @assert (a * M[2, 1] + b * M[2, 2]) % (S(l)^e) == 0
-    if a == 1
+    Mker::Matrix{S}, Mimage::Matrix{S}, l::Int, e::Int) where T <: RingElem where S <: Integer
+    a, b = kernel_coefficients(Mker, l, e)
+    a, b = Mimage * [a, b]
+    if a % l != 0
+        b = (b * invmod(a, S(l)^e)) % S(l)^e
         b < 0 && (b += S(l)^e)
         return ladder3pt(b, xP, xQ, xPQ, a24)
     else
+        a = (a * invmod(b, S(l)^e)) % S(l)^e
         a < 0 && (a += S(l)^e)
         return ladder3pt(a, xQ, xP, xPQ, a24)
     end
@@ -43,7 +44,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # 2^e-isogeny corresponding to I_2
     alpha = primitive_element(I)
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
-    ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0*M, 2, e)
+    ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
     eval_points = [xP, xQ, xPQ]
     if is_special
         push!(eval_points, ker)
@@ -53,7 +54,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             push!(degs, l)
             xPl, xQl, xPQl = cdata.OddTorsionBases[i]
             Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd[i][1] + alpha[3] * cdata.Matrices_odd[i][2] + alpha[4] * cdata.Matrices_odd[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, 1)
             push!(eval_points, ker_l)
         end
         for i in 1:length(cdata.DegreesOddTorsionBasesTwist)
@@ -61,7 +62,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             push!(degs, l)
             xPl, xQl, xPQl = cdata.OddTorsionBasesTwist[i]
             Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd_twist[i][1] + alpha[3] * cdata.Matrices_odd_twist[i][2] + alpha[4] * cdata.Matrices_odd_twist[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, l, 1)
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, 1)
             push!(eval_points, ker_l)
         end
         while length(degs) > 0
@@ -85,7 +86,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
-    @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
+    @assert is_infinity(xDBLe(xP2, a24d, ExponentFull))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
 
@@ -154,13 +155,16 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPdd = cdata.isomorphism_to_A0(Es[idx], xPdd)
     xQdd = cdata.isomorphism_to_A0(Es[idx], xQdd)
     xPQdd = cdata.isomorphism_to_A0(Es[idx], xPQdd)
+    @assert is_infinity(xDBLe(xPdd, a24_0, ExponentFull))
+    @assert is_infinity(xDBLe(xQdd, a24_0, ExponentFull))
+    @assert is_infinity(xDBLe(xPQdd, a24_0, ExponentFull))
 
-    # compute the matrix M' s.t. phi_J(P0, Q0)^t = M'(Pd, Qd)^t
-    c11, c22, c12, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
+    # compute the matrix M' s.t. phi_J(P0, Q0) = (Pd, Qd)M'
+    c11, c21, c12, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
     D = BigInt(2)^ExponentForTorsion - a^2 - b^2
-    Md = [c22 -c12; -c21 c11] * invmod(D * (c11 * c22 - c12 * c21), BigInt(2)^ExponentFull)
+    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull) * D
 
-    return a24d, xPdd, xQdd, xPQdd, Md, beta, D
+    return a24d, xPd, xQd, xPQd, Md, beta, D
 end
 
 # isogeny E0 to E0/E0[I], where n(I) = ExtraDegree*2^e
