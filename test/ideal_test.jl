@@ -35,4 +35,4 @@ end
 for _ in 1:100
     check_short_element()
 end
-println("All tests passed!")
+println("Short ideal tests passed!")

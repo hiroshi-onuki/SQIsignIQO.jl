@@ -86,7 +86,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
-    @assert is_infinity(xDBLe(xP2, a24d, ExponentFull))
+    @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
 
@@ -128,7 +128,10 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQ2 = add(P2, -Q2, Proj1(A2))
     @assert xPQ2 == Proj1(PQ2.X, PQ2.Z)
 
+    @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
+    @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) * Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion) == 1
+    # end of pairing check
 
     # fixed basis of E'[2^ExponentFull]
     xPd, xQd, xPQd = torsion_basis(a24d, ExponentFull)
