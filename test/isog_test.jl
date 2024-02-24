@@ -6,7 +6,7 @@ import KaniSQIsign: random_point, random_point_order_2power,
     infinity_point, A_to_a24, product_isogeny_sqrt_no_strategy, double_iter
 
 # image of Ps under an isomorphism from a24 to a24d
-function isomorphism_Montgomery(a24::Proj1{T}, a24d::Proj1{T}, Ps::Vector{Proj1{T}}) where T
+function isomorphism_Mont(a24::Proj1{T}, a24d::Proj1{T}, Ps::Vector{Proj1{T}}) where T
     a24 == a24d && return Ps
     (2*a24.X - a24.Z)*a24d.Z == -(2*a24d.X - a24d.Z)*a24.Z && return -Ps
 
@@ -164,7 +164,7 @@ else
 end
 @assert jInvariant_A(Es[idx]) == jInvariant_A(A1)
 a24_1d = A_to_a24(Es[idx])
-Kd, Kdd = isomorphism_Montgomery(a24_1d, a24_1, [images[1][idx], images[2][idx]])
+Kd, Kdd = isomorphism_Mont(a24_1d, a24_1, [images[1][idx], images[2][idx]])
 if is_infinity(Kd)
     # the order of Kdd is 15
     @assert !is_infinity(ladder(3, Kdd, a24_1)) && !is_infinity(ladder(5, Kdd, a24_1))

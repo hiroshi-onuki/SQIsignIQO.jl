@@ -1,7 +1,7 @@
 export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
     linear_comb_2_e, random_point, random_point_order_2power,
     Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
-    two_e_iso, isomorphism_Montgomery, odd_isogeny, torsion_basis
+    two_e_iso, odd_isogeny, torsion_basis, isomorphism_Montgomery
 
 # random point on a Montgomery curve: y^2 = x^3 + Ax^2 + x
 function random_point(A::T) where T <: RingElem
@@ -466,4 +466,14 @@ function torsion_basis(a24::Proj1{T}, e::Int) where T <: RingElem
         end
     end
     return complete_baisis(a24, P, Pd, x, e)
+end
+
+# isomorphism from Montgomery curnve with a24 to Montgomery curve mapping P4 to (1, *)
+function isomorphism_Montgomery(a24::Proj1{T}, P4::Proj1{T}, Ps::Vector{Proj1{T}}) where T <: RingElem
+    P2 = xDBL(P4, a24)
+    A = a24_to_A(a24)
+    u = P4.X * P2.Z - P2.X * P4.Z
+    Ad = Proj1((A.X * P2.Z + 3*P2.X*A.Z) * P4.Z, u * A.Z)
+    imPs = [Proj1(P4.Z * (P.X * P2.Z - P2.X * P.Z), u * P.Z) for P in Ps]
+    return A_to_a24(Ad), imPs
 end
