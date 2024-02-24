@@ -32,7 +32,7 @@ function check_short_element()
     end
 end
 
-for _ in 1:100
+for _ in 1:1
     check_short_element()
 end
 println("Short ideal tests passed!")

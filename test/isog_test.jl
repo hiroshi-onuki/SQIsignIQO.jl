@@ -3,8 +3,54 @@ import KaniSQIsign: random_point, random_point_order_2power,
     Proj1, odd_isogeny, is_infinity, ladder, x_add_sub,
     Point, Weil_pairing_2power, Montgomery_coeff, add, mult,
     CouplePoint, product_isogeny_no_strategy, jInvariant_A, jInvariant_a24,
-    infinity_point, A_to_a24, isomorphism_Montgomery,
-    product_isogeny_sqrt_no_strategy, double_iter
+    infinity_point, A_to_a24, product_isogeny_sqrt_no_strategy, double_iter
+
+# image of Ps under an isomorphism from a24 to a24d
+function isomorphism_Montgomery(a24::Proj1{T}, a24d::Proj1{T}, Ps::Vector{Proj1{T}}) where T
+    a24 == a24d && return Ps
+    (2*a24.X - a24.Z)*a24d.Z == -(2*a24d.X - a24d.Z)*a24.Z && return -Ps
+
+    if a24d.X + a24d.X - a24d.Z == 0
+        # the codomain is y^2 = x^3 + x
+        A = Montgomery_coeff(a24)
+        beta = -A/3
+        gamma = sqrt(1/(1 - 3*beta^2))
+        Qs = Proj1{T}[]
+        for P in Ps
+            X = (P.X - beta*P.Z)*gamma
+            Z = P.Z
+            Q = Proj1(X, Z)
+            push!(Qs, Q)
+        end
+        return Qs
+    end
+
+    # sqrt{A^2 - 4} = (deltaX:deltaZ)
+    a = 4*a24.X
+    c = a24.Z^2
+    cd = a24d.Z^2
+    t1 = a^2 - 4*a*a24.Z + c
+    deltaX = ((a - 2*a24.Z)*t1)*cd
+    deltaZ = (32*(a24d.X^2 - a24d.X*a24d.Z)*c + (2*c + t1)*cd)*a24.Z
+    @assert (deltaX / deltaZ)^2 == Montgomery_coeff(a24)^2 - 4
+    A = Montgomery_coeff(a24)
+    @assert (-A - deltaX / deltaZ) / 2 * (-3) == A
+
+    t1 = a24.Z*deltaX
+    t2 = 2*a24.Z*deltaZ
+    X = -4*a24.X*deltaZ - t1 + t2
+    Z = (X - 2*t1)*a24d.Z
+    Z = a24d.Z
+    println(X, " ", Z, " ", a24d.X, " ", a24d.Z)
+
+    Qs = Proj1{T}[]
+    for P in Ps
+        QX = (P.X*t2 - P.Z*X)*2 *(2*a24d.X - a24d.Z)
+        QZ = P.Z*Z
+        push!(Qs, Proj1(QX, QZ))
+    end
+    return Qs
+end
 
 function basis_2power_torsion(A::T, e::Integer) where T <: RingElem
     p = BigInt(characteristic(parent(A)))
