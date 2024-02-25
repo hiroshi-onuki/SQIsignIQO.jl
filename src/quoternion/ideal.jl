@@ -79,6 +79,23 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
     LLLmat = Imatrix * H
     red_basis = [LLLmat[:, i] for i in 1:4]
 
+    # random search
+    found = false
+    counter = 0
+    while !found && counter < KLPT_equiv_num_iter
+        counter += 1
+        c1, c2, c3, c4 = [rand(-KLPT_equiv_bound_coeff:KLPT_equiv_bound_coeff) for _ in 1:4]
+        alpha = c1 * red_basis[1] + c2 * red_basis[2] + c3 * red_basis[3] + c4 * red_basis[4]
+        alpha = QOrderElem(alpha)
+        N = div(norm(alpha), norm(I))
+        N % 2 == 0 && continue
+        a, b, found = sum_of_two_squares(BigInt(2)^e - N)
+        if found
+            return alpha, a, b, true
+        end
+    end
+    return QOrderElem(0), 0, 0, found
+
     N = norm(I)
     C = BigInt(2)^e * N
 

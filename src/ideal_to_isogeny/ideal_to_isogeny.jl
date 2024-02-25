@@ -77,6 +77,10 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
     !found && throw(ArgumentError("No good element found"))
+    @assert isin(beta, I)
+    @assert div(norm(beta), norm(I)) == BigInt(2)^ExponentForTorsion - a^2 - b^2
+    println(factor(ZZ(div(norm(beta), norm(I)))))
+    println(factor(ZZ(a^2 + b^2)))
 
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
     xP2t, xQ2t, xPQ2t = images
@@ -130,6 +134,16 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQ2 = add(P2, -Q2, Proj1(A2))
     @assert xPQ2 == Proj1(PQ2.X, PQ2.Z)
 
+    Ptmp = Point(A1, xP0)
+    Qtmp = Point(A1, xQ0)
+    PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
+    if xPQ0 != Proj1(PQtmp.X, PQtmp.Z)
+        Qtmp = -Qtmp
+    end
+    PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
+    @assert xPQ0 == Proj1(PQtmp.X, PQtmp.Z)
+
+    @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(a^2 + b^2)
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) * Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion) == 1
@@ -198,14 +212,14 @@ end
 # isogeny E0 to E0/E0[I], where n(I) = ExtraDegree*2^e
 function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
     a24 = cdata.a24_0
-    xP = cdata.xP2e
-    xQ = cdata.xQ2e
-    xPQ = cdata.xPQ2e
+    xP0 = cdata.xP2e
+    xQ0 = cdata.xQ2e
+    xPQ0 = cdata.xPQ2e
     M = BigInt[1 0; 0 1]
 
     # the first isogeny is the special case
     I_d = larger_ideal(I, ExtraDegree * BigInt(2)^ExponentForIsogeny)
-    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, ExponentForIsogeny, cdata, true)
+    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, ExponentForIsogeny, cdata, true)
     I = ideal_transform(I, beta, ExtraDegree * BigInt(2)^ExponentForIsogeny)
     e -= ExponentForIsogeny
 
