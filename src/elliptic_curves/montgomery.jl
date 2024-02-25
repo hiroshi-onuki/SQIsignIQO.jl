@@ -376,7 +376,6 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) whe
     end
     if k == -1
         if P.X == 0
-            println("hoge")
             a24, Qs = two_iso_zero(a24, Qs)
         else
             a24 = two_iso_curve(P)

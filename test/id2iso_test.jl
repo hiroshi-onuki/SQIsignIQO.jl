@@ -13,15 +13,15 @@ xQ0 = tdata.xQ2e
 xPQ0 = tdata.xPQ2e
 
 N = 3 * 5 * 79
-e = Int(ceil(log(2, p))) + e1
+e = 4*Int(ceil(log(2, p))) + e1
 
 a = QOrderElem(1)
 a, found = FullRepresentInteger(N*BigInt(2)^e)
 a = div(a, gcd(a))
 println((a[1] - a[2]) % 2 == 0 && (a[3] - a[4]) % 2 == 0)
 
-I = LeftIdeal(a, BigInt(2)^(2*e1) * 3 * 5 * 79)
+I = LeftIdeal(a, BigInt(2)^(4*e1) * 3 * 5 * 79)
 @assert gcd(I) == 1
 println(factor(ZZ(norm(I))))
 
-a24 = ideal_to_isogeny_from_O0(I, 2*e1, cdata)
+a24 = ideal_to_isogeny_from_O0(I, 4*e1, cdata)

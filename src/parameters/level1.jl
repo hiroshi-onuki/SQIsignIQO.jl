@@ -22,6 +22,9 @@ struct CurveData{T <: RingElem}
     xP2e::Proj1{T}
     xQ2e::Proj1{T}
     xPQ2e::Proj1{T}
+    xP2e_short::Proj1{T}
+    xQ2e_short::Proj1{T}
+    xPQ2e_short::Proj1{T}
     wp_P2e_Q2e::T
     DegreesOddTorsionBases::Vector{Int}
     DegreesOddTorsionBasesTwist::Vector{Int}
@@ -64,11 +67,15 @@ function make_field_curve_torsions()
     M_i_5 = [1 4; 2 4]
     M_ij_5 = [4 2; 3 1]
     M_1k_5 = [2 1; 0 4]
-        
+
+    a24_0 = A_to_a24(A0)
     xP2e = Proj1(P2e.X, P2e.Z)
     xQ2e = Proj1(Q2e.X, Q2e.Z)
     PQ2e = add(P2e, -Q2e, Proj1(A0))
     xPQ2e = Proj1(PQ2e.X, PQ2e.Z)
+    xP2e_short = xDBLe(xP2e, a24_0, ExponentForIsogeny)
+    xQ2e_short = xDBLe(xQ2e, a24_0, ExponentForIsogeny)
+    xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogeny)
     wp_P2e_Q2e = Weil_pairing_2power(A0, P2e, Q2e, ExponentFull)
 
     DegreesOddTorsionBases = [79]
@@ -103,5 +110,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, A_to_a24(A0), jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist, isomorphism_to_A0)
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist, isomorphism_to_A0)
 end
