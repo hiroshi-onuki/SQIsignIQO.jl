@@ -18,9 +18,9 @@ function make_field_curve_torsions()
     # constatns from precompute/toy17.sage
     P2e = Point(126351*Fp2_i + 57101, 75454*Fp2_i + 34373)
     Q2e = Point(125461*Fp2_i + 44066, 7433*Fp2_i + 62895)
-    M_i_2e = [74133 82715; 109618 56939]
-    M_ij_2e = [119801 127723; 3501 11271]
-    M_1k_2e = [78125 75652; 94193 52948]
+    M_i_2e = BigInt[74133 82715; 109618 56939]
+    M_ij_2e = BigInt[119801 127723; 3501 11271]
+    M_1k_2e = BigInt[78125 75652; 94193 52948]
     xP3 = Proj1(107897*Fp2_i + 11513)
     xQ3 = Proj1(23174*Fp2_i + 11513)
     xPQ3 = Proj1(23174*Fp2_i + 119558)
@@ -52,7 +52,7 @@ function make_field_curve_torsions()
 
     DegreesOddTorsionBases = Int[]
     DegreesOddTorsionBasesTwist = [3, 5, 17]
-    OddTorsionBases = Vector{Proj1{Fp2}}[]
+    OddTorsionBases = Vector{Proj1{FqFieldElem}}[]
     OddTorsionBasesTwist = [[xP3, xQ3, xPQ3], [xP5, xQ5, xPQ5], [xP17, xQ17, xPQ17]]
 
     Matrices_2e = [M_i_2e, M_ij_2e, M_1k_2e]

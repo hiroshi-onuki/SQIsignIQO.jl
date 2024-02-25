@@ -11,14 +11,14 @@ function check_torsion_orders(e::Int, tdata::CurveData)
     @test !is_infinity(mult(BigInt(2)^(e-1), P2e, Proj1(A0)))
     @test is_infinity(mult(BigInt(2)^e, Q2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), Q2e, Proj1(A0)))
-    for i in length(tdata.OddTorsionBases)
+    for i in 1:length(tdata.OddTorsionBases)
         l = tdata.DegreesOddTorsionBases[i]
         xP, xQ, xPQ = tdata.OddTorsionBases[i]
         @test is_infinity(ladder(l, xP, a24))
         @test is_infinity(ladder(l, xQ, a24))
         @test is_infinity(ladder(l, xPQ, a24))
     end
-    for i in length(tdata.OddTorsionBasesTwist)
+    for i in 1:length(tdata.OddTorsionBasesTwist)
         l = tdata.DegreesOddTorsionBasesTwist[i]
         xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
         @test is_infinity(ladder(l, xP, a24))
@@ -98,7 +98,7 @@ function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
     @test check_1k_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
 
     # check actions on odd-torsion
-    for i in length(tdata.OddTorsionBases)
+    for i in 1:length(tdata.OddTorsionBases)
         l = tdata.DegreesOddTorsionBases[i]
         xP, xQ, xPQ = tdata.OddTorsionBases[i]
         @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l)
@@ -107,7 +107,7 @@ function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
     end
 
     # check actions on twist odd-torsion
-    for i in length(tdata.OddTorsionBasesTwist)
+    for i in 1:length(tdata.OddTorsionBasesTwist)
         l = tdata.DegreesOddTorsionBasesTwist[i]
         xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
         @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][1], a24, l)
@@ -123,4 +123,5 @@ function param_check(param::Module)
     check_matrices_actions(param.p, param.ExponentFull, tdata)
 end
 
+param_check(KaniSQIsign.Toy17)
 param_check(KaniSQIsign.Level1)

@@ -1,4 +1,4 @@
-const p = (2)^17 - 1
+const p = BigInt(2)^17 - 1
 const ExponentFull = 17
 const ExponentForIsogeny = 5
 const ExponentForTorsion = 12

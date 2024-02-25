@@ -112,7 +112,7 @@ end
 
 # return [m]P
 function ladder(m::Integer, P::Proj1{T}, a24::Proj1{T}) where T <: RingElem
-    m == 0 && return InfPoint(T)
+    m == 0 && return infinity_point(parent(P.X))
     m == 1 && return P
     m == 2 && return xDBL(P, a24)
 
