@@ -35,4 +35,18 @@ include("ideal_to_isogeny/ideal_to_isogeny.jl")
 
 end # module Level1
 
+module Toy17
+
+using Nemo, KaniSQIsign
+
+include("parameters/toy17.jl")
+include("quoternion/order.jl")
+include("quoternion/cornacchia.jl")
+include("quoternion/ideal.jl")
+include("quoternion/klpt.jl")
+
+include("ideal_to_isogeny/ideal_to_isogeny.jl")
+
+end # module toy17
+
 end # module KaniSQIsign
