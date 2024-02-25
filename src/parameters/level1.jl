@@ -1,40 +1,12 @@
-# global constans
-const p = BigInt(2)^247 * 79 - 1
-const ExponentFull = 247
-const ExponentForIsogeny = 109
-const ExponentForTorsion = 138
-const Cofactor = 79
-const ExtraDegree = 3 * 5 * 79
+include("level1/prime.jl")
+include("level1/klpt_constants.jl")
 
-const KLPT_repres_num_gamma_trial = 16384
-const KLPT_equiv_bound_coeff = 6
-const KLPT_equiv_num_iter = 28561
-const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+include("../quoternion/order.jl")
+include("../quoternion/cornacchia.jl")
+include("../quoternion/ideal.jl")
+include("../quoternion/klpt.jl")
 
-struct CurveData{T <: RingElem}
-    A0::T
-    A0d::T
-    A0dd::T
-    a24_0::Proj1{T}
-    j0::T
-    P2e::Point{T}
-    Q2e::Point{T}
-    xP2e::Proj1{T}
-    xQ2e::Proj1{T}
-    xPQ2e::Proj1{T}
-    xP2e_short::Proj1{T}
-    xQ2e_short::Proj1{T}
-    xPQ2e_short::Proj1{T}
-    wp_P2e_Q2e::T
-    DegreesOddTorsionBases::Vector{Int}
-    DegreesOddTorsionBasesTwist::Vector{Int}
-    OddTorsionBases::Vector{Vector{Proj1{T}}}
-    OddTorsionBasesTwist::Vector{Vector{Proj1{T}}}
-    Matrices_2e::Vector{Matrix{BigInt}}
-    Matrices_odd::Vector{Vector{Matrix{Int}}}
-    Matrices_odd_twist::Vector{Vector{Matrix{Int}}}
-    isomorphism_to_A0::Function
-end
+include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
 # Fp2 and values in Fp2
 function make_field_curve_torsions()

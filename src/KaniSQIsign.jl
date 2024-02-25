@@ -21,32 +21,16 @@ include("theta/theta_arithmetic.jl")
 include("theta/splitting.jl")
 include("theta/theta_isogeny.jl")
 
-module Level1
-
-using Nemo, KaniSQIsign
-
-include("parameters/level1.jl")
-include("quoternion/order.jl")
-include("quoternion/cornacchia.jl")
-include("quoternion/ideal.jl")
-include("quoternion/klpt.jl")
-
-include("ideal_to_isogeny/ideal_to_isogeny.jl")
-
-end # module Level1
+include("parameters/curve_data.jl")
 
 module Toy17
-
 using Nemo, KaniSQIsign
-
 include("parameters/toy17.jl")
-include("quoternion/order.jl")
-include("quoternion/cornacchia.jl")
-include("quoternion/ideal.jl")
-include("quoternion/klpt.jl")
-
-include("ideal_to_isogeny/ideal_to_isogeny.jl")
-
 end # module toy17
+
+module Level1
+using Nemo, KaniSQIsign
+include("parameters/level1.jl")
+end # module Level1
 
 end # module KaniSQIsign

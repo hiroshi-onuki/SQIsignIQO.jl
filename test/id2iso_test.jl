@@ -7,10 +7,10 @@ p = KaniSQIsign.Level1.p
 e1 = KaniSQIsign.Level1.ExponentForIsogeny
 e2 = KaniSQIsign.Level1.ExponentForTorsion
 Fp2, i, cdata = KaniSQIsign.Level1.make_field_curve_torsions()
-a24_0 = tdata.a24_0
-xP0 = tdata.xP2e
-xQ0 = tdata.xQ2e
-xPQ0 = tdata.xPQ2e
+a24_0 = cdata.a24_0
+xP0 = cdata.xP2e
+xQ0 = cdata.xQ2e
+xPQ0 = cdata.xPQ2e
 
 N = 3 * 5 * 79
 e = 4*Int(ceil(log(2, p))) + e1

@@ -1,20 +1,12 @@
 using Nemo
 using KaniSQIsign
-import KaniSQIsign.Level1: make_field_curve_torsions
 
-Fp2, i, tdata = make_field_curve_torsions()
+function check_torsion_orders(e::Int, tdata::CurveData)
+    A0 = tdata.A0
+    a24 = tdata.a24_0
+    P2e = tdata.P2e
+    Q2e = tdata.Q2e
 
-p = KaniSQIsign.Level1.p
-e = KaniSQIsign.Level1.ExponentFull
-A0 = tdata.A0
-a24 = tdata.a24_0
-P2e = tdata.P2e
-Q2e = tdata.Q2e
-xP2e = tdata.xP2e
-xQ2e = tdata.xQ2e
-xPQ2e = tdata.xPQ2e
-
-function check_torsion_orders()
     @test is_infinity(mult(BigInt(2)^e, P2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), P2e, Proj1(A0)))
     @test is_infinity(mult(BigInt(2)^e, Q2e, Proj1(A0)))
@@ -57,7 +49,7 @@ function check_i_action(basis::Vector{Proj1{T}}, Mi::Matrix{S}, a24::Proj1{T}, o
 end
 
 # check x([i + j]P) = x([i]P) + x([j]P)
-function check_ij_action(basis::Vector{Proj1{T}}, Mij::Matrix{S}, a24::Proj1{T}, order::S) where T <: RingElem where S <: Integer
+function check_ij_action(p::BigInt, basis::Vector{Proj1{T}}, Mij::Matrix{S}, a24::Proj1{T}, order::S) where T <: RingElem where S <: Integer
     MPQ1, MPQ2 = matrix_action(basis, Mij, a24, order)
     MPQ1 = xDBL(MPQ1, a24) # x([i + j]P)
     MPQ2 = xDBL(MPQ2, a24) # x([i + j]Q)
@@ -77,7 +69,7 @@ function check_ij_action(basis::Vector{Proj1{T}}, Mij::Matrix{S}, a24::Proj1{T},
 end
 
 # check x([1 + k]P) = x(P) + x([i][j]P)
-function check_1k_action(basis::Vector{Proj1{T}}, M1k::Matrix{S}, a24::Proj1{T}, order::S) where T <: RingElem where S <: Integer
+function check_1k_action(p::BigInt, basis::Vector{Proj1{T}}, M1k::Matrix{S}, a24::Proj1{T}, order::S) where T <: RingElem where S <: Integer
     MPQ1, MPQ2 = matrix_action(basis, M1k, a24, order)
     MPQ1 = xDBL(MPQ1, a24) # x([1 + k]P)
     MPQ2 = xDBL(MPQ2, a24) # x([1 + k]Q)
@@ -96,19 +88,22 @@ function check_1k_action(basis::Vector{Proj1{T}}, M1k::Matrix{S}, a24::Proj1{T},
     return true
 end
 
-function check_matrices_actions()
+function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
+    a24 = tdata.a24_0
+
     # check actions on 2^e-torsion
+    xP2e, xQ2e, xPQ2e = tdata.xP2e, tdata.xQ2e, tdata.xPQ2e
     @test check_i_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[1], a24, BigInt(2)^e)
-    @test check_ij_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[2], a24, BigInt(2)^e)
-    @test check_1k_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
+    @test check_ij_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[2], a24, BigInt(2)^e)
+    @test check_1k_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
 
     # check actions on odd-torsion
     for i in length(tdata.OddTorsionBases)
         l = tdata.DegreesOddTorsionBases[i]
         xP, xQ, xPQ = tdata.OddTorsionBases[i]
         @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l)
-        @test check_ij_action([xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l)
-        @test check_1k_action([xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l)
+        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l)
+        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l)
     end
 
     # check actions on twist odd-torsion
@@ -116,10 +111,16 @@ function check_matrices_actions()
         l = tdata.DegreesOddTorsionBasesTwist[i]
         xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
         @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][1], a24, l)
-        @test check_ij_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][2], a24, l)
-        @test check_1k_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][3], a24, l)
+        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd_twist[i][2], a24, l)
+        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd_twist[i][3], a24, l)
     end
 end
 
-check_torsion_orders()
-check_matrices_actions()
+function param_check(param::Module)
+    _, _, tdata = param.make_field_curve_torsions()
+
+    check_torsion_orders(param.ExponentFull, tdata)
+    check_matrices_actions(param.p, param.ExponentFull, tdata)
+end
+
+param_check(KaniSQIsign.Level1)
