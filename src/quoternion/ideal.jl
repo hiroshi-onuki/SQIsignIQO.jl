@@ -1,5 +1,5 @@
 export LeftIdeal, LeftIdeal, ideal_to_matrix, norm, LeftIdeal, larger_ideal, two_e_good_element,
-    make_quadratic_form_coeffs, primitive_element, ideal_transform
+    make_quadratic_form_coeffs, primitive_element, ideal_transform, isin, valid_ideal
 
 # left ideal of the maximal order <1, i, (i + j)/2, (1 + ij)/2>
 struct LeftIdeal
@@ -165,4 +165,19 @@ end
 # I * bar(beta) / N
 function ideal_transform(I::LeftIdeal, beta::QOrderElem, N::BigInt)
     return div(I*involution(beta), N)
+end
+
+# x in I
+function isin(x::QOrderElem, I::LeftIdeal)
+    return gcd(I * involution(x)) % norm(I) == 0
+end
+
+# O_0 * I \subset I
+function valid_ideal(I::LeftIdeal)
+    for b in [I.b1, I.b2, I.b3, I.b4]
+        for Ob in [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+            !isin(QOrderElem(Ob) * b, I) && return false
+        end
+    end
+    return true
 end
