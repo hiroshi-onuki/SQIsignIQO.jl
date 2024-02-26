@@ -24,7 +24,7 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
     Q = Point(A, xQ)
     PQ = add(P, -Q, Proj1(A))
     if !(xPQ == Proj1(PQ.X, PQ.Z))
-        global Q = -Q
+        Q = -Q
     end
 
     return ec_dlog_power_of_2(P, Q, R, S, A, e)

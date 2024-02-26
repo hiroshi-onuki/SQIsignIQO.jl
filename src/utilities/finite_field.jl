@@ -16,8 +16,9 @@ function square_root(x::FinFieldElem)
         end
     end
     d = (a^2 + b^2)^div(p + 1, 4)
-    x = ((a + d)/2)^div(p + 1, 4)
-    if x^2 != (a + d) * inv2
+    t = (a + d) * inv2
+    x = t^div(p + 1, 4)
+    if x^2 != t
         x = ((a - d) * inv2)^div(p + 1, 4)
     end
     y = b*inv2

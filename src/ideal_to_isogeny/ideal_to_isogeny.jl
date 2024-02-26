@@ -43,6 +43,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # 2^e-isogeny corresponding to I_2
     alpha = primitive_element(I)
+    println("n(alpha) = ", factor(ZZ(norm(alpha))))
+    println((alpha[1] - alpha[2]) % 2 == 0 && (alpha[3] - alpha[4]) % 2 == 0)
+    @assert gcd(alpha) == 1
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
     eval_points = [xP, xQ, xPQ]
