@@ -29,23 +29,20 @@ function kernel_gen_power_of_prime(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a2
     end
 end
 
-# I : left ideal of O0 s.t. I = I_1 I_2, n(I_1) is odd and n(I_2) = 2^e for e <= ExponentForIsogeny
+# I : left ideal of O0 s.t. I = I_1 I_2, n(I_1) = D and n(I_2) = 2^e for e <= ExponentForIsogeny
 # a24 : the coefficient of E := E_0 / E_0[I_1]
 # xP, xQ, xPQ : the fixed basis of E[2^ExponentFull] s.t. phi_I_2(P_0, Q_0)^t = M(P, Q)^t
 # return the coefficient a24d of E' := E_0 / E_0[I_1 I_2],
 # the fixed basis (P', Q') of E'[2^ExponentFull], and M' s.t. phi_J(P_0, Q_0)^t = M'(P', Q')^t
 # If is_special is true, then n(I_2) = 2^ExponentForIsogeny * ExtraDegree
 function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T},
-    M::Matrix{BigInt}, e::Int, cdata::CurveData, is_special::Bool=false) where T <: RingElem
+    M::Matrix{BigInt}, D::Integer, e::Int, cdata::CurveData, is_special::Bool=false) where T <: RingElem
     xPd = xDBLe(xP, a24, ExponentFull - e)
     xQd = xDBLe(xQ, a24, ExponentFull - e)
     xPQd = xDBLe(xPQ, a24, ExponentFull - e)
 
     # 2^e-isogeny corresponding to I_2
     alpha = primitive_element(I)
-    println("n(alpha) = ", factor(ZZ(norm(alpha))))
-    println((alpha[1] - alpha[2]) % 2 == 0 && (alpha[3] - alpha[4]) % 2 == 0)
-    @assert gcd(alpha) == 1
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
     eval_points = [xP, xQ, xPQ]
@@ -91,10 +88,10 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
-    xP2_4 = xDBLe(xP2, a24d, ExponentFull - e - 2)
-    if xP2_4.X != xP2_4.Z || xP2_4.X != -xP2_4.Z
-        a24d, (xP2, xQ2, xPQ2) = isomorphism_Montgomery(a24d, xP2_4, [xP2, xQ2, xPQ2])
-    end
+    #xP2_4 = xDBLe(xP2, a24d, ExponentFull - e - 2)
+    #if xP2_4.X != xP2_4.Z || xP2_4.X != -xP2_4.Z
+    #    a24d, (xP2, xQ2, xPQ2) = isomorphism_Montgomery(a24d, xP2_4, [xP2, xQ2, xPQ2])
+    #end
     @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
@@ -152,6 +149,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # fixed basis of E'[2^ExponentFull]
     xPd, xQd, xPQd = torsion_basis(a24d, ExponentFull)
+    xP2_I = linear_comb_2_e(D*M[1,1], D*M[2,1], xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
+    @assert is_infinity(xDBLe(xP2t, a24d, ExponentFull))
+    @assert is_infinity(xDBLe(xP2_I, a24d, ExponentFull))
 
     # compute (2,2)-isogenies
     P1P2 = CouplePoint(xP1, xP2)
@@ -161,7 +161,8 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     O1Pd = CouplePoint(O1, xPd)
     O1Qd = CouplePoint(O1, xQd)
     O1PQd = CouplePoint(O1, xPQd)
-    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd], ExponentForTorsion)
+    O1P2_I = CouplePoint(O1, xP2_I)
+    Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd, O1P2_I], ExponentForTorsion)
 
     # isomorphism to A0
     if Es[1] == Proj1(cdata.A0) || Es[1] == Proj1(cdata.A0d) || Es[1] == Proj1(cdata.A0dd)
@@ -172,12 +173,29 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPdd = images[1][idx]
     xQdd = images[2][idx]
     xPQdd = images[3][idx]
+    xP0beta = images[4][idx]
     xPdd = cdata.isomorphism_to_A0(Es[idx], xPdd)
     xQdd = cdata.isomorphism_to_A0(Es[idx], xQdd)
     xPQdd = cdata.isomorphism_to_A0(Es[idx], xPQdd)
+    xP0beta = cdata.isomorphism_to_A0(Es[idx], xP0beta)
     @assert is_infinity(xDBLe(xPdd, a24_0, ExponentFull))
     @assert is_infinity(xDBLe(xQdd, a24_0, ExponentFull))
     @assert is_infinity(xDBLe(xPQdd, a24_0, ExponentFull))
+    @assert is_infinity(xDBLe(xP0beta, a24_0, ExponentFull))
+
+    M_beta = beta[1]*[1 0; 0 1] + beta[2]*cdata.Matrices_2e[1] + beta[3]*cdata.Matrices_2e[2] + beta[4]*cdata.Matrices_2e[3]
+    beta_P0 = linear_comb_2_e(M_beta[1,1], M_beta[2,1], cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
+    if xP0beta == beta_P0
+        println("good isogeny")
+    elseif xP0beta == -beta_P0
+        println("bad isogeny")
+        # muliply by i
+        xPdd = -xPdd
+        xQdd = -xQdd
+        xPQdd = -xPQdd
+    else
+        throw(ArgumentError("No good isogeny found"))
+    end
 
     # pairing check
     A0 = cdata.A0
@@ -200,7 +218,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert Weil_pairing_2power(A0, P0, Q0, ExponentFull) == Weil_pairing_2power(A2, P2, Q2, ExponentFull)^(BigInt(2)^ExponentForTorsion - a^2 - b^2)
     # end of pairing check
 
-    # compute the matrix M' s.t. phi_J(P0, Q0) = D*(Pd, Qd)M'
+    # compute the matrix M' s.t. phi_J(P0, Q0) = norm(J)*(Pd, Qd)M'
     c11, c21, c12, c22 = ec_dlog_power_of_2(xPdd, xQdd, xPQdd, cdata.P2e, cdata.Q2e, cdata.A0, ExponentFull)
     @assert xPdd == linear_comb_2_e(c11, c21, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     @assert xQdd == linear_comb_2_e(c12, c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
@@ -220,7 +238,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
 
     # the first isogeny is the special case
     I_d = larger_ideal(I, ExtraDegree * BigInt(2)^ExponentForIsogeny)
-    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, ExponentForIsogeny, cdata, true)
+    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true)
     I = ideal_transform(I, beta, ExtraDegree * BigInt(2)^ExponentForIsogeny)
     e -= ExponentForIsogeny
 
@@ -228,7 +246,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
         println("e = ", e)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
-        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, e_d, cdata)
+        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new

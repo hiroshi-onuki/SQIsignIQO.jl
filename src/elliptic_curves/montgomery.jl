@@ -141,6 +141,7 @@ end
 # return x(P + [m]Q) from x(P), x(Q), x(Q-P)
 function ladder3pt(m::Integer, P::Proj1{T}, Q::Proj1{T}, QmP::Proj1{T}, a24::Proj1{T}) where T <: RingElem
     m < 0 && error("m in Ladder3pt must be nonnegative")
+    m == 0 && return P
     is_infinity(QmP) && error("Q == P is not allowed")
 
     P0 = Q;
@@ -164,6 +165,8 @@ function linear_comb_2_e(a::Integer, b::Integer, xP::Proj1{T}, xQ::Proj1{T}, xQm
     b = b % (BigInt(2)^e)
     a < 0 && (a += BigInt(2)^e)
     b < 0 && (b += BigInt(2)^e)
+    a == 0 && return ladder(b, xQ, a24)
+    b == 0 && return ladder(a, xP, a24)
     g = gcd(a, b)
     f = 0
     while g & 1 == 0

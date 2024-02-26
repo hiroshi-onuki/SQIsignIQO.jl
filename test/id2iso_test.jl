@@ -25,4 +25,4 @@ function test_id2iso(param::Module, n::Int)
     println(a24)
 end
 
-test_id2iso(KaniSQIsign.Toy17, 4)
+test_id2iso(KaniSQIsign.Level1, 4)
