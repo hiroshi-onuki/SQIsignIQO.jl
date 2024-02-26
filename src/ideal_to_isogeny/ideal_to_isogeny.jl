@@ -79,8 +79,6 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     !found && throw(ArgumentError("No good element found"))
     @assert isin(beta, I)
     @assert div(norm(beta), norm(I)) == BigInt(2)^ExponentForTorsion - a^2 - b^2
-    println(factor(ZZ(div(norm(beta), norm(I)))))
-    println(factor(ZZ(a^2 + b^2)))
 
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
     xP2t, xQ2t, xPQ2t = images
