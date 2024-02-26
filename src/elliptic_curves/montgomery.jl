@@ -95,6 +95,9 @@ end
 
 # return x(P + Q) or x(P - Q)
 function x_add_sub(P::Proj1{T}, Q::Proj1{T}, a24::Proj1{T}) where T <: RingElem
+    is_infinity(P) && return Q
+    is_infinity(Q) && return P
+
     A = a24.X + a24.X
     A -= a24.Z
     A += A
