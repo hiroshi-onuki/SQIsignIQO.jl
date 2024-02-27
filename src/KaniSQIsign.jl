@@ -22,6 +22,7 @@ include("theta/splitting.jl")
 include("theta/theta_isogeny.jl")
 
 include("parameters/curve_data.jl")
+include("parameters/strategy.jl")
 
 module Toy17
 using Nemo, KaniSQIsign
