@@ -88,10 +88,6 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP2 = linear_comb_2_e(c11, c21, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xQ2 = linear_comb_2_e(c12, c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     xPQ2 = linear_comb_2_e(c11-c12, c21-c22, xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
-    #xP2_4 = xDBLe(xP2, a24d, ExponentFull - e - 2)
-    #if xP2_4.X != xP2_4.Z || xP2_4.X != -xP2_4.Z
-    #    a24d, (xP2, xQ2, xPQ2) = isomorphism_Montgomery(a24d, xP2_4, [xP2, xQ2, xPQ2])
-    #end
     @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
