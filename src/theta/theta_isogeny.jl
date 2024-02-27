@@ -250,9 +250,7 @@ function product_isogeny_sqrt_no_strategy(a24_1::Proj1{T}, a24_2::Proj1{T},
         Tp1 = double_iter(domain, image_points[end - 1], n - k - 3)
         Tp2 = double_iter(domain, image_points[end], n - k - 3)
 
-        if k == n - 4
-            domain, image_points = two_two_isogeny_8torsion(domain, Tp1, Tp2, image_points, true)
-        elseif k == n - 3
+        if k == n - 3
             # remove one of kernel generators
             pop!(image_points)
             domain, image_points = two_two_isogeny_8torsion(domain, Tp1, Tp2, image_points, true)
@@ -279,10 +277,10 @@ function product_isogeny_sqrt(a24_1::Proj1{T}, a24_2::Proj1{T},
     push!(image_points, P1P2)
     push!(image_points, Q1Q2)
 
-    P1P2_8 = double_iter(P1P2, a24_1, a24_2, n-3)
-    Q1Q2_8 = double_iter(Q1Q2, a24_1, a24_2, n-3)
-
-    domain, image_points = gluing_isogeny(a24_1, a24_2, P1P2_8, Q1Q2_8, P1Q1P2Q2, image_points, n-2)
+    # gluing isogeny
+    ker1 = double_iter(P1P2, a24_1, a24_2, n-3)
+    ker2 = double_iter(Q1Q2, a24_1, a24_2, n-3)
+    domain, image_points = gluing_isogeny(a24_1, a24_2, ker1, ker2, P1Q1P2Q2, image_points, n-2)
 
     # using strategy from the second isogeny
     strategy_idx = 1
@@ -305,14 +303,15 @@ function product_isogeny_sqrt(a24_1::Proj1{T}, a24_2::Proj1{T},
             prev += strategy[strategy_idx]
             strategy_idx += 1
         end
-
         pop!(image_points)
         pop!(image_points)
         pop!(level)
+        @assert double_iter(domain, ker1, 2) != domain
+        @assert double_iter(domain, ker2, 2) != domain
 
         if k == n - 3
-            # remove one of kernel generators
-            pop!(image_points)
+            # for T1
+            push!(image_points, ker1)
             domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, true)
         else
             domain, image_points = two_two_isogeny_8torsion(domain, ker1, ker2, image_points, true)
