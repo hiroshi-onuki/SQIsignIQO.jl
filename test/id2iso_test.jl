@@ -21,7 +21,7 @@ function test_id2iso(param::Module, n::Int)
     I = param.LeftIdeal(a, BigInt(2)^(n*e1) * param.ExtraDegree)
     I = div(I, param.gcd(I))
     println(factor(ZZ(param.norm(I))))
-    a24 = param.ideal_to_isogeny_from_O0(I, n*e1, cdata)
+    a24 = param.ideal_to_isogeny_from_O0(I, n*e1 - 10, cdata)
     println(a24)
 end
 

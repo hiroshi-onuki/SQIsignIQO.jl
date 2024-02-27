@@ -95,6 +95,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert is_infinity(xDBLe(xP2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xQ2, a24d, ExponentFull - e))
     @assert is_infinity(xDBLe(xPQ2, a24d, ExponentFull - e))
+    xP2 = xDBLe(xP2, a24d, ExponentFull - e - ExponentForTorsion)
+    xQ2 = xDBLe(xQ2, a24d, ExponentFull - e - ExponentForTorsion)
+    xPQ2 = xDBLe(xPQ2, a24d, ExponentFull - e - ExponentForTorsion)
 
     # compute the images of the basis of E_0[2^ExponentFull] under norm(I_2)(a + bi)
     c11, c21, c12, c22 = [a 0; 0 a] + b * cdata.Matrices_2e[1]
