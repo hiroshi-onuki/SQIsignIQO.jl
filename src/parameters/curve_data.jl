@@ -17,11 +17,9 @@ struct CurveData{T <: RingElem}
     xPQ2e_short::Proj1{T}
     wp_P2e_Q2e::T
     DegreesOddTorsionBases::Vector{Int}
-    DegreesOddTorsionBasesTwist::Vector{Int}
+    ExponentsOddTorsionBases::Vector{Int}
     OddTorsionBases::Vector{Vector{Proj1{T}}}
-    OddTorsionBasesTwist::Vector{Vector{Proj1{T}}}
     Matrices_2e::Vector{Matrix{BigInt}}
     Matrices_odd::Vector{Vector{Matrix{Int}}}
-    Matrices_odd_twist::Vector{Vector{Matrix{Int}}}
     isomorphism_to_A0::Function
 end

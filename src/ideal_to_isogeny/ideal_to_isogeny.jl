@@ -48,25 +48,24 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     eval_points = [xP, xQ, xPQ]
     if is_special
         push!(eval_points, ker)
-        degs = Int[]
+        degs = Vector{Int}[]
         for i in 1:length(cdata.DegreesOddTorsionBases)
             l = cdata.DegreesOddTorsionBases[i]
-            push!(degs, l)
+            el = cdata.ExponentsOddTorsionBases[i]
+            push!(degs, [l, el])
             xPl, xQl, xPQl = cdata.OddTorsionBases[i]
             Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd[i][1] + alpha[3] * cdata.Matrices_odd[i][2] + alpha[4] * cdata.Matrices_odd[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, 1)
-            push!(eval_points, ker_l)
-        end
-        for i in 1:length(cdata.DegreesOddTorsionBasesTwist)
-            l = cdata.DegreesOddTorsionBasesTwist[i]
-            push!(degs, l)
-            xPl, xQl, xPQl = cdata.OddTorsionBasesTwist[i]
-            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd_twist[i][1] + alpha[3] * cdata.Matrices_odd_twist[i][2] + alpha[4] * cdata.Matrices_odd_twist[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, 1)
+            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, el)
             push!(eval_points, ker_l)
         end
         while length(degs) > 0
-            l = pop!(degs)
+            # compute l^el-isogeny (no strategy because el is small)
+            l, el = pop!(degs)
+            for i in 1:el-1
+                ker = eval_points[end]
+                ker = ladder(l^(el-i), ker, a24)
+                a24, eval_points = odd_isogeny(a24, ker, l, eval_points)
+            end
             ker = pop!(eval_points)
             a24, eval_points = odd_isogeny(a24, ker, l, eval_points)
         end

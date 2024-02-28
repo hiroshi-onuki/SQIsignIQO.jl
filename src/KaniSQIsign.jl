@@ -6,6 +6,7 @@ include("utilities/integer.jl")
 include("utilities/finite_field.jl")
 include("utilities/batch_inv.jl")
 include("utilities/lattice.jl")
+include("utilities/strategy.jl")
 
 include("elliptic_curves/proj1.jl")
 include("elliptic_curves/full_point.jl")
@@ -22,7 +23,6 @@ include("theta/splitting.jl")
 include("theta/theta_isogeny.jl")
 
 include("parameters/curve_data.jl")
-include("parameters/strategy.jl")
 
 module Toy17
 using Nemo, KaniSQIsign

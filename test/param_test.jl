@@ -13,17 +13,11 @@ function check_torsion_orders(e::Int, tdata::CurveData)
     @test !is_infinity(mult(BigInt(2)^(e-1), Q2e, Proj1(A0)))
     for i in 1:length(tdata.OddTorsionBases)
         l = tdata.DegreesOddTorsionBases[i]
+        el = tdata.ExponentsOddTorsionBases[i]
         xP, xQ, xPQ = tdata.OddTorsionBases[i]
-        @test is_infinity(ladder(l, xP, a24))
-        @test is_infinity(ladder(l, xQ, a24))
-        @test is_infinity(ladder(l, xPQ, a24))
-    end
-    for i in 1:length(tdata.OddTorsionBasesTwist)
-        l = tdata.DegreesOddTorsionBasesTwist[i]
-        xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
-        @test is_infinity(ladder(l, xP, a24))
-        @test is_infinity(ladder(l, xQ, a24))
-        @test is_infinity(ladder(l, xPQ, a24))
+        @test is_infinity(ladder(l^el, xP, a24))
+        @test is_infinity(ladder(l^el, xQ, a24))
+        @test is_infinity(ladder(l^el, xPQ, a24))
     end
 end
 
@@ -100,19 +94,11 @@ function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
     # check actions on odd-torsion
     for i in 1:length(tdata.OddTorsionBases)
         l = tdata.DegreesOddTorsionBases[i]
+        el = tdata.ExponentsOddTorsionBases[i]
         xP, xQ, xPQ = tdata.OddTorsionBases[i]
-        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l)
-        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l)
-        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l)
-    end
-
-    # check actions on twist odd-torsion
-    for i in 1:length(tdata.OddTorsionBasesTwist)
-        l = tdata.DegreesOddTorsionBasesTwist[i]
-        xP, xQ, xPQ = tdata.OddTorsionBasesTwist[i]
-        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd_twist[i][1], a24, l)
-        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd_twist[i][2], a24, l)
-        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd_twist[i][3], a24, l)
+        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l^el)
+        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l^el)
+        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l^el)
     end
 end
 

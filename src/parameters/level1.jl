@@ -52,14 +52,12 @@ function make_field_curve_torsions()
     xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogeny)
     wp_P2e_Q2e = Weil_pairing_2power(A0, P2e, Q2e, ExponentFull)
 
-    DegreesOddTorsionBases = [79]
-    DegreesOddTorsionBasesTwist = [3, 5]
-    OddTorsionBases = [[xP79, xQ79, xPQ79]]
-    OddTorsionBasesTwist = [[xP3, xQ3, xPQ3], [xP5, xQ5, xPQ5]]
+    DegreesOddTorsionBases = [3, 5, 79]
+    ExponentsOddTorsionBases = [1, 1, 1]
+    OddTorsionBases = [[xP3, xQ3, xPQ3], [xP5, xQ5, xPQ5], [xP79, xQ79, xPQ79]]
 
     Matrices_2e = [M_i_2e, M_ij_2e, M_1k_2e]
-    Matrices_odd = [[M_i_79, M_ij_79, M_1k_79]]
-    Matrices_odd_twist = [[M_i_3, M_ij_3, M_1k_3], [M_i_5, M_ij_5, M_1k_5]]
+    Matrices_odd = [[M_i_3, M_ij_3, M_1k_3], [M_i_5, M_ij_5, M_1k_5], [M_i_79, M_ij_79, M_1k_79]]
 
     # make constants for isomorphism to the curve E_A0
     _, T = polynomial_ring(Fp2, "T")
@@ -84,5 +82,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, DegreesOddTorsionBasesTwist, OddTorsionBases, OddTorsionBasesTwist, Matrices_2e, Matrices_odd, Matrices_odd_twist, isomorphism_to_A0)
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, Matrices_odd, isomorphism_to_A0)
 end
