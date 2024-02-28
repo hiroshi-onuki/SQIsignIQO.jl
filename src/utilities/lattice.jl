@@ -1,4 +1,4 @@
-export get_basis, integral_LLL
+export get_basis, integral_LLL, HNFmod, Gauss_elimination_mod
 
 # Return a Z-module basis from input generators gens
 function get_basis(gens::Vector{Vector{T}}) where T <: Integer
@@ -192,4 +192,60 @@ function LLLcheck(b::Vector{Vector{T}}, M::Matrix{T}) where T <: Integer
         i > 1 && q(bs[i], bs[i]) < (3//4 - mu[i,i-1]^2) * q(bs[i-1],bs[i-1]) && return false
     end
     return true
+end
+
+# Compute Hermite normal form mod D. Algorithm 2.4.8 in H. Cohen, A Course in Computational Algebraic Number Theory.
+function HNFmod(M::Matrix{T}, D::T) where T <: Integer
+    m, n = size(M)
+    i = 1
+    k = 1
+    l = min(m,n)
+    M = M .% D
+
+    while true
+        while M[i,k+1:end] .% D != zeros(T, n-k)
+            j = findfirst(x->x==minimum(abs.(filter(x->x!=0, M[i,k:end]))), abs.(M[i,k:end])) + k - 1
+            M[:, j], M[:, k] = M[:, k], M[:, j]
+            M[i, k] < 0 && (M = -M .% D)
+            b = M[i, k]
+            for j in k+1:n
+                q = div(M[i, j], b)
+                M[:, j] = (M[:, j] - q*M[:, k]) .% D
+            end
+        end
+        b = M[i, k]
+        if b == 0
+            k -= 1
+        else
+            for j in 1:k-1
+                q = div(M[i, j], b)
+                M[:, j] = (M[:, j] - q*M[:, k]) .% D
+            end
+        end
+        i == l && return M
+        i += 1
+        k += 1
+    end
+end
+
+# Gauss elimination modulo a prime N by row transformations
+function Gauss_elimination_mod(M::Matrix{T}, N::Integer) where T <: Integer
+    M = mod.(M, N)
+    m, n = size(M)
+    r = 1
+    for i in 1:n
+        k = 0
+        for j in r:m
+            M[j,i] != 0 && (k = j)
+        end
+        if k != 0
+            M[k, :], M[r, :] = M[r, :], M[k, :]
+            M[r, :] = mod.(M[r, :] * invmod(M[r, i], N), N)
+            for j in 1:m
+                j != i && (M[j, :] = mod.(M[j, :] - M[j, i]*M[r, :], N))
+            end
+            r += 1
+        end
+    end
+    return M
 end

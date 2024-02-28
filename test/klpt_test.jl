@@ -1,5 +1,6 @@
 import KaniSQIsign
-import KaniSQIsign.Level1: LeftIdeal, FullRepresentInteger, RandomEquivalentPrimeIdeal
+import KaniSQIsign.Level1: LeftIdeal, FullRepresentInteger, RandomEquivalentPrimeIdeal, EichlerModConstraint, QOrderElem,
+    isin, Quoternion_j, Quoternion_ij
 
 p = KaniSQIsign.Level1.p
 
@@ -8,6 +9,8 @@ a, found = FullRepresentInteger(N)
 a = div(a, gcd(a))
 @assert norm(a) % BigInt(2)^256 == 0
 I = LeftIdeal(a, BigInt(2)^256)
-println(factor(ZZ(norm(I))))
-J, found = RandomEquivalentPrimeIdeal(I)
-println(factor(ZZ(norm(J))))
+
+J, N, found = RandomEquivalentPrimeIdeal(I)
+gamma, found = FullRepresentInteger(N * BigInt(2)^256)
+C, D = EichlerModConstraint(J, N, gamma, QOrderElem(1), true)
+@assert isin(gamma * (C * Quoternion_j - D * Quoternion_ij), J)

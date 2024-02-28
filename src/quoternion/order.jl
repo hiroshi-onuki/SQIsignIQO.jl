@@ -10,6 +10,9 @@ struct QOrderElem
 end
 
 const Div_p1_4 = div(p + 1, 4)
+const Quoternion_i = QOrderElem(0, 1, 0, 0)
+const Quoternion_j = QOrderElem(0, -1, 2, 0)
+const Quoternion_ij = QOrderElem(-1, 0, 0, 2)
 
 function QOrderElem(v::Vector{T}) where T <: Integer
     return QOrderElem(v[1], v[2], v[3], v[4])
@@ -59,6 +62,10 @@ end
 
 function Base.gcd(x::QOrderElem)
     return gcd(x.a, x.b, x.c, x.d)
+end
+
+function to_vector(x::QOrderElem)
+    return [x.a, x.b, x.c, x.d]
 end
 
 function left_mult_matrix(x::QOrderElem)
