@@ -1,5 +1,5 @@
-export get_basis, integral_LLL, HNFmod, Gauss_elimination_mod, closest_vector, enumerate_close_vector,
-    ApproximateCVP
+export get_basis, integral_LLL, HNFmod, Gauss_elimination_mod,
+    closest_vector, enumerate_close_vector, short_basis
 
 # Return a Z-module basis from input generators gens
 function get_basis(gens::Vector{Vector{T}}) where T <: Integer
@@ -275,7 +275,6 @@ end
 function closest_vector(b0::Vector{T}, b1::Vector{T}, t::Vector{T}) where T <: Integer
     Nq(x) = x[1]^2 + x[2]^2
     Bq(x, y) = x[1]*y[1] + x[2]*y[2]
-    b1, b0 = short_basis(b0, b1)
     mu = Nq(b1) * b0 - Bq(b0, b1) * b1
     c = t - T(round(Bq(mu, t) * Nq(b1) // Nq(mu))) * b0
     c -= T(round(Bq(b1, c) // Nq(b1))) * b1
@@ -289,6 +288,7 @@ function enumerate_close_vector(b1::Vector{T}, b0::Vector{T}, t::Vector{T}, vc::
     Nq(x) = x[1]^2 + x[2]^2
     Bq(x, y) = x[1]*y[1] + x[2]*y[2]
 
+    mu = Nq(b1) * b0 - Bq(b0, b1) * b1
     ret = Vector{T}[]
 
     i = 0

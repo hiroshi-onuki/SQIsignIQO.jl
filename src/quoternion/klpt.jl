@@ -100,13 +100,19 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
     c3 = (-c0*c1) % N
     b0 = [0, N^2]
     b1 = [N, c3*N]
+    b1, b0 = short_basis(b0, b1)
     v = [lambda*C, lambda*D + N*c1*c2]
     vd = closest_vector(b0, b1, v)
     B = BigInt(2) << Int(min(ceil(log(2, N_mu/p)), 3*ceil(log(2, N)) + 10))
-    for vdd in enumerate_close_vector(b1, b0, v, vd, max_tries, B)
-        mu = order_elem_from_standard_basis(vdd[1], vdd[2], lambda*C, lambda*D)
-        if gcd(mu) == 2
-            return div(mu, 2), true
+    vs =  enumerate_close_vector(b1, b0, v, vd, max_tries, B)
+    for vdd in vs
+        M = div(N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2), N^2)
+        a, b, found = sum_of_two_squares(M)
+        if found
+            mu = order_elem_from_standard_basis(N*a, N*b, lambda*C - vdd[1], -lambda*D - N*c1*c2 + vdd[2])
+            if gcd(mu) == 2
+                return div(mu, 2), true
+            end
         end
     end
     return QOrderElem(0), false
@@ -127,8 +133,6 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
         gamma, found_gamma = FullRepresentInteger(N_I*N_gamma)
         !found_gamma && continue
         C, D = EichlerModConstraint(I, N_I, gamma, QOrderElem(1), true)
-        alpha = C * Quoternion_j - D * Quoternion_ij
-        @assert isin(gamma*alpha, I)
         N_CD = p * (C^2 + D^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, N_I)) % N_I
         quadratic_residue_symbol(N_mu_N_CD, N_I) != 1 && continue
