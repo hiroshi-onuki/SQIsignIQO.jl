@@ -53,22 +53,42 @@ function RandomEquivalentPrimeIdeal(I::LeftIdeal)
     return J, nJ, found
 end
 
+# Algorithm 11 in SQIsign documentation
+# return C, D s.t. gamma*j*(C + D*i)*delta in Z + I, where N = n(I), if divisible then N | norm(gamma).
 function EichlerModConstraint(I::LeftIdeal, N::Integer, gamma::QOrderElem, delta::QOrderElem, divisible::Bool)
     M = HNFmod(ideal_to_matrix(I), N)
     v1 = to_vector(gamma * Quoternion_j)
     v2 = to_vector(-gamma * Quoternion_ij * delta)
-    M = hcat(v1, v2, M[:, 1:2])
+
+    if divisible
+        # gamma*j*(C + D*i)*delta in I
+        M = hcat(v1, v2, M[:, 1:2])
+    else
+        # gamma*j*(C + D*i)*delta in Z + I
+        M = hcat(v1, v2, [1, 0, 0, 0], M[:, 1:2])
+    end
     M = Gauss_elimination_mod(M, N)
     if M[1, 1] == 0
         C, D = 1, 0
     elseif M[2, 2] == 0
         C, D = 0, 1
-    elseif M[3, 3] != 0
-        C, D = M[1, 4], M[2, 4]
-    elseif M[1, 3] == 0 && M[2, 3] == 0
-        C, D = M[1, 4], M[2, 4]
+    elseif M[3, 3] == 0
+        i = findfirst(x!=0 for x in M[1, 3:end]) + 2
+        if i != nothing
+            C, D = M[1, i], M[2, i]
+        else
+            C, D = 0, 1
+        end
+    elseif M[4, 4] == 0
+        i = findfirst(x!=0 for x in M[1, 4:end]) + 2
+        if i != nothing
+            C, D = M[1, i], M[2, i]
+        else
+            C, D = 0, 1
+        end
     else
-        C, D = M[1, 3], M[2, 3]
+        C, D = M[1, 5], M[2, 5]
     end
+        
     return C, D
 end
