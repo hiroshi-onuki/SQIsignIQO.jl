@@ -1,4 +1,4 @@
-export QOrderElem, involution, norm, quadratic_form
+export QOrderElem, involution, norm, quadratic_form, order_elem_from_standard_basis
 
 # element in the maximal order <1, i, (i + j)/2, (1 + ij)/2> in B_{p, infinity}
 # represented by the coefficients of the above basis
@@ -66,6 +66,10 @@ end
 
 function to_vector(x::QOrderElem)
     return [x.a, x.b, x.c, x.d]
+end
+
+function order_elem_from_standard_basis(a::Integer, b::Integer, c::Integer, d::Integer)
+    return QOrderElem(a - d, b - c, 2*c, 2*d)
 end
 
 function left_mult_matrix(x::QOrderElem)

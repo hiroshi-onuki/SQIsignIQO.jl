@@ -1,4 +1,5 @@
-export get_basis, integral_LLL, HNFmod, Gauss_elimination_mod
+export get_basis, integral_LLL, HNFmod, Gauss_elimination_mod, closest_vector, enumerate_close_vector,
+    ApproximateCVP
 
 # Return a Z-module basis from input generators gens
 function get_basis(gens::Vector{Vector{T}}) where T <: Integer
@@ -249,3 +250,64 @@ function Gauss_elimination_mod(M::Matrix{T}, N::Integer) where T <: Integer
     end
     return M
 end
+
+# Algorithm 5 in SQIsign documentation
+function short_basis(b0::Vector{T}, b1::Vector{T}) where T <: Integer
+    Nq(x) = x[1]^2 + x[2]^2
+    Bq(x, y) = x[1]*y[1] + x[2]*y[2]
+    Nq(b0) < Nq(b1) && ((b0, b1) = (b1, b0))
+    gamma = b0
+    while true
+        r = T(round(Bq(b0, b1) / Nq(b1)))
+        gamma = b0 - r * b1
+        if Nq(gamma) < Nq(b1)
+            (b0, b1) = (b1, gamma)
+        else
+            break
+        end
+    end
+    Nq(gamma) < Nq(b0) && (b0 = gamma)
+    return b1, b0
+end
+
+# Algorithm 6 in SQIsign documentation
+# the closest vector of a dim-2 vector t in a lattice <b1, b0>, where Nq(b1) < Nq(b0).
+function closest_vector(b0::Vector{T}, b1::Vector{T}, t::Vector{T}) where T <: Integer
+    Nq(x) = x[1]^2 + x[2]^2
+    Bq(x, y) = x[1]*y[1] + x[2]*y[2]
+    b1, b0 = short_basis(b0, b1)
+    mu = Nq(b1) * b0 - Bq(b0, b1) * b1
+    c = t - T(round(Bq(mu, t) * Nq(b1) // Nq(mu))) * b0
+    c -= T(round(Bq(b1, c) // Nq(b1))) * b1
+    return t - c
+end
+
+# Algorithm 7 in SQIsign documentation
+# enumerate vectors close to a dim-2 vector t in a lattice <b1, b0>,
+# vc in <b1, b0> close to t, m is maximal number of tries, B is a bound of the norm
+function enumerate_close_vector(b1::Vector{T}, b0::Vector{T}, t::Vector{T}, vc::Vector{T}, m::Int, B::T) where T <: Integer
+    Nq(x) = x[1]^2 + x[2]^2
+    Bq(x, y) = x[1]*y[1] + x[2]*y[2]
+
+    ret = Vector{T}[]
+
+    i = 0
+    d = t - vc
+    a, b, c = Nq(b0), 2*Bq(b0, b1), Nq(b1)
+    Be = B
+    B - Nq(d) > 0 && (Be = B - Nq(d))
+    By = T(floor((sqrt(4*a^2*Be) + 1)/sqrt(4*a^2*c - b^2))) + 1
+    y = -By - 1
+    while y < By && i < m
+        y += 1
+        Bx = T(floor((2*a*(1 + sqrt(4*a^2*Be + 4*c*a^2*y^2 - b^2*y^2)) - b*y*sqrt(4*a^3)) / (2*a*sqrt(4*a^3)))) + 1
+        x = -T(floor((2*a*(1 + sqrt(4*a^2*Be + 4*c*a^2*y^2 - b^2*y^2)) + b*y*sqrt(4*a^3)) / (2*a*sqrt(4*a^3)))) - 2
+        while x < Bx && i < m
+            x += 1
+            i += 1
+            Nq(d - x*b0 - y*b1) <= B && push!(ret, vc + x*b0 + y*b1)
+        end
+    end
+    return ret
+end
+

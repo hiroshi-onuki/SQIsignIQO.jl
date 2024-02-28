@@ -8,7 +8,7 @@ include("../quoternion/klpt.jl")
 
 include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
-StrategyDim2 = compute_strategy(ExponentForTorsion - 4, 2, 1)
+const StrategyDim2 = compute_strategy(ExponentForTorsion - 4, 2, 1)
 
 # Fp2 and values in Fp2
 function make_field_curve_torsions()
