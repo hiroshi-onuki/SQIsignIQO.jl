@@ -1,7 +1,8 @@
 export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
     linear_comb_2_e, random_point, random_point_order_2power,
     Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
-    two_e_iso, odd_isogeny, torsion_basis, isomorphism_Montgomery
+    two_e_iso, odd_isogeny, torsion_basis, isomorphism_Montgomery,
+    Montgomery_normalize
 
 # random point on a Montgomery curve: y^2 = x^3 + Ax^2 + x
 function random_point(A::T) where T <: RingElem
@@ -426,6 +427,7 @@ function odd_isogeny(a24::Proj1{T}, ker::Proj1{T}, d::Integer, Qs::Vector{Proj1{
     return Proj1(A, A - C), retQs
 end
 
+# Algorithm 2 in SQIsign documentation
 # return a fixed basis (P, Q) of E[2^e] from P
 function complete_baisis(a24::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int) where T <: RingElem
     F = parent(a24.X)
@@ -449,6 +451,7 @@ function complete_baisis(a24::Proj1{T}, P::Proj1{T}, Pd::Proj1{T}, x::T, e::Int)
     return P, Q, PQ
 end
 
+# Algorithm 3 in SQIsign documentation
 # return a fixed basis of E[2^e]
 function torsion_basis(a24::Proj1{T}, e::Int) where T <: RingElem
     F = parent(a24.X)
@@ -481,4 +484,58 @@ function isomorphism_Montgomery(a24::Proj1{T}, P4::Proj1{T}, Ps::Vector{Proj1{T}
     Ad = Proj1((A.X * P2.Z + 3*P2.X*A.Z) * P4.Z, u * A.Z)
     imPs = [Proj1(P4.Z * (P.X * P2.Z - P2.X * P.Z), u * P.Z) for P in Ps]
     return A_to_a24(Ad), imPs
+end
+
+# Algorithm 1 in SQIsign documentation
+function Montgomery_normalize(a24::Proj1{T}, Ps::Vector{Proj1{T}}) where T <: RingElem
+    A = a24_to_A(a24)
+    A2 = A.X^2
+    C2 = A.Z^2
+    twoC2 = C2 + C2
+    threeC2 = twoC2 + C2
+    d = A2 - twoC2 - twoC2
+    d1, d2 = square_root(d)
+    inv_2C2_d1 = 1/(twoC2 * d1)
+    Z0 = (A2 + A2) * inv_2C2_d1 * d1
+    t1 = (threeC2 + threeC2 + threeC2 - A2) * d1
+    t2 = (A2 - threeC2) * A.X * d2
+    Z1 = (t1 + t2) * inv_2C2_d1
+    Z2 = (t1 - t2) * inv_2C2_d1
+
+    Z = Z0
+    lex_order(Z1, Z) && (Z = Z1)
+    lex_order(Z2, Z) && (Z = Z2)
+
+    Ad, Cd = square_root(Z)
+    Ad = Proj1(Ad, Cd)
+
+    if A == Ad
+        R1, R2 = 0, 1
+        U1, U2 = 1, 1
+    elseif A == -Ad
+        R1, R2 = 0, 1
+        U1, U2 = -1, 1
+    else
+        Ad2 = Ad.X^2
+        Cd2 = Ad.Z^2
+        ACd2 = A2 * Cd2
+        AdC2 = Ad2 * C2
+        threeCCd2 = Cd2 * threeC2
+        nineCCd2 = threeCCd2 + threeCCd2 + threeCCd2
+        R1 = (ACd2 + AdC2 - threeCCd2 - threeCCd2) * A.X
+        R2 = (ACd2 + AdC2 + AdC2 - nineCCd2) * A.Z
+        U1 = Ad.X * A.Z * R2
+        R1C = R1 * A.Z
+        U2 = (A.X * R2 - R1C - R1C - R1C) * Ad.Z
+    end
+
+    images = Vector{Proj1{T}}(undef, length(Ps))
+    for i in 1:length(Ps)
+        P = Ps[i]
+        X = P.X
+        Z = P.Z
+        images[i] = Proj1(U1*(X*R2 + Z*R1), U2*Z*R2)
+    end
+
+    return A_to_a24(Ad), images
 end

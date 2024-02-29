@@ -72,6 +72,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         ker = pop!(eval_points)
     end
     a24d, images = two_e_iso(a24, ker, e, eval_points)
+    a24d, images = Montgomery_normalize(a24d, images)
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     beta, a, b, found = two_e_good_element(I, ExponentForTorsion)

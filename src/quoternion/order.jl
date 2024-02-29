@@ -10,6 +10,8 @@ struct QOrderElem
 end
 
 const Div_p1_4 = div(p + 1, 4)
+const Quoternion_0 = QOrderElem(0, 0, 0, 0)
+const Quoternion_1 = QOrderElem(1, 0, 0, 0)
 const Quoternion_i = QOrderElem(0, 1, 0, 0)
 const Quoternion_j = QOrderElem(0, -1, 2, 0)
 const Quoternion_ij = QOrderElem(-1, 0, 0, 2)

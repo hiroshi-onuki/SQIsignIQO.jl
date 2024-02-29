@@ -24,3 +24,9 @@ function square_root(x::FinFieldElem)
     y = b*inv2
     return [x^2 + y*i, x]
 end
+
+# x < y in lexicographic order, i.e. x < y if and only if x[0] < y[0] or (x[0] == y[0] and x[1] < y[1])
+function lex_order(x::FinFieldElem, y::FinFieldElem)
+    coeff(x, 0) == coeff(y, 0) && return lift(ZZ, coeff(x, 1)) < lift(ZZ, coeff(y, 1))
+    return lift(ZZ, coeff(x, 0)) < lift(ZZ, coeff(y, 0))
+end

@@ -19,7 +19,7 @@ function FullRepresentInteger(M::Integer)
     if found
         return QOrderElem(div(x - w, 2), div(y - z, 2), z, w), found
     else
-        return QOrderElem(0), found
+        return Quoternion_0, found
     end
 end
 
@@ -28,7 +28,7 @@ end
 function RandomEquivalentPrimeIdeal(I::LeftIdeal)
     counter = 0
     found = false
-    J = LeftIdeal([QOrderElem(0), QOrderElem(0), QOrderElem(0), QOrderElem(0)])
+    J = LeftIdeal([Quoternion_0, Quoternion_0, Quoternion_0, Quoternion_0])
     nJ = 0
     N = norm(I)
 
@@ -115,7 +115,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
             end
         end
     end
-    return QOrderElem(0), false
+    return Quoternion_0, false
 end
 
 # Algorithm 14 in SQIsign documentation
@@ -126,8 +126,8 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     N_gamma = BigInt(2)^k
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 
-    gamma = QOrderElem(0)
-    mu = QOrderElem(0)
+    gamma = Quoternion_0
+    mu = Quoternion_0
     while !found && counter < KLPT_keygen_num_gamma_trial
         counter += 1
         gamma, found_gamma = FullRepresentInteger(N_I*N_gamma)

@@ -8,6 +8,8 @@ include("../quoternion/klpt.jl")
 
 include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
+include("../sqisign/sqisign.jl")
+
 const StrategyDim2 = compute_strategy(ExponentForTorsion - 4, 2, 1)
 
 # Fp2 and values in Fp2

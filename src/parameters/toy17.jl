@@ -8,6 +8,8 @@ include("../quoternion/klpt.jl")
 
 include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
+include("../sqisign/sqisign.jl")
+
 # Fp2 and values in Fp2
 function make_field_curve_torsions()
     _, T = polynomial_ring(GF(p), "T")
