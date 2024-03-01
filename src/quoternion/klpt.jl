@@ -119,24 +119,28 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
 end
 
 # Algorithm 14 in SQIsign documentation
+# return alpha in I s.t. norm(alpha)/N_I = 2^KLPT_keygen_length * ExtraDegree
 function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     counter = 0
     found = false
-    k = Log2p - Int(floor(log(2, N_I))) + KLPT_gamma_exponent_center_shift
-    N_gamma = BigInt(2)^k
+    k = Log2p - Int(floor(log(2, N_I * ExtraDegree))) + KLPT_gamma_exponent_center_shift
+    N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 
     gamma = Quoternion_0
     mu = Quoternion_0
     while !found && counter < KLPT_keygen_num_gamma_trial
         counter += 1
+
         gamma, found_gamma = FullRepresentInteger(N_I*N_gamma)
         !found_gamma && continue
+
         C, D = EichlerModConstraint(I, N_I, gamma, QOrderElem(1), true)
         N_CD = p * (C^2 + D^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, N_I)) % N_I
         quadratic_residue_symbol(N_mu_N_CD, N_I) != 1 && continue
         lambda = sqrt_mod(4*N_mu_N_CD, N_I)
+
         mu, found = FullStrongApproximation(N_I, C, D, lambda, 4*N_mu, KLPT_signing_number_strong_approx)
     end
     return gamma*mu, found

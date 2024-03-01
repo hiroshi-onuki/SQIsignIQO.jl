@@ -11,7 +11,7 @@ function test_KeyGenKLPT(param::Module)
     println(param.isin(beta, I))
     N = div(param.norm(beta), param.norm(I))
     println(factor(ZZ(N)))
-    return N == BigInt(2)^param.KLPT_keygen_length
+    return N == param.ExtraDegree * BigInt(2)^param.KLPT_keygen_length
 end
 
 @test test_KeyGenKLPT(KaniSQIsign.Level1)

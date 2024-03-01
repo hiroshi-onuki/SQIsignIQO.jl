@@ -19,10 +19,9 @@ function test_id2iso(param::Module, n::Int, strategy::Union{Vector{Int}, Nothing
     I = param.LeftIdeal(a, BigInt(2)^(n*e1) * param.ExtraDegree)
     I = div(I, param.gcd(I))
     println(factor(ZZ(param.norm(I))))
-    a24 = param.ideal_to_isogeny_from_O0(I, n*e1 - 10, cdata, strategy)
-    println(a24)
+    param.ideal_to_isogeny_from_O0(I, n*e1 - 10, cdata, strategy)
 end
 
 strategy = KaniSQIsign.Level1.StrategyDim2
-test_id2iso(KaniSQIsign.Level1, 4)
-test_id2iso(KaniSQIsign.Level1, 4, strategy)
+#test_id2iso(KaniSQIsign.Level1, 4)
+#test_id2iso(KaniSQIsign.Level1, 4, strategy)

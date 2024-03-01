@@ -249,6 +249,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData, strate
         println("e = ", e)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
+        println(factor(ZZ(norm(I_d))))
         a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, strategy)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
