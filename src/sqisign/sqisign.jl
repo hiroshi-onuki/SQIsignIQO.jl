@@ -22,6 +22,7 @@ end
 function key_gen(cdata::CurveData)
     found = false
     counter = 0
+    pk, sk = nothing, nothing
     while !found && counter < SQISIGN_response_attempts
         counter += 1
         D_sec = random_secret_prime()
@@ -32,7 +33,8 @@ function key_gen(cdata::CurveData)
         g = gcd(J)
         d = 2*Int(log(2, g))
         J = div(J, g)
-        a24, xP, xQ, xPQ, M = ideal_to_isogeny_from_O0(J, Log2p - d, cdata, nothing)
+        println(factor(ZZ(norm(J))))
+        a24, xP, xQ, xPQ, M = ideal_to_isogeny_from_O0(J, KLPT_keygen_length - d, cdata, nothing)
         pk = Montgomery_coeff(a24)
         sk = (xP, xQ, xPQ, M, I_sec)
     end

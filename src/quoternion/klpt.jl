@@ -123,7 +123,7 @@ end
 function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     counter = 0
     found = false
-    k = Log2p - Int(floor(log(2, N_I * ExtraDegree))) + KLPT_gamma_exponent_center_shift
+    k = KLPT_keygen_gamma_lengh
     N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 

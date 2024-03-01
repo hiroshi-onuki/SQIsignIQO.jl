@@ -78,9 +78,6 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
     H = integral_LLL([Imatrix[:, i] for i in 1:4], q)
     LLLmat = Imatrix * H
     red_basis = [LLLmat[:, i] for i in 1:4]
-    for i in 1:4
-        println(log(2, div(norm(QOrderElem(red_basis[i])), norm(I))))
-    end
 
     N = norm(I)
     C = BigInt(2)^e * N
