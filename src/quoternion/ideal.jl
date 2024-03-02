@@ -23,6 +23,10 @@ function Base.getindex(I::LeftIdeal, i::Integer)
     end
 end
 
+function Base.:(==)(I1::LeftIdeal, I2::LeftIdeal)
+    return is_subset(I1, I2) && is_subset(I2, I1)
+end
+
 function LeftIdeal(basis::Vector{QOrderElem})
     return LeftIdeal(basis[1], basis[2], basis[3], basis[4])
 end
@@ -178,6 +182,13 @@ function valid_ideal(I::LeftIdeal)
         for Ob in [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
             !isin(QOrderElem(Ob) * b, I) && return false
         end
+    end
+    return true
+end
+
+function is_subset(I1::LeftIdeal, I2::LeftIdeal)
+    for b in [I1.b1, I1.b2, I1.b3, I1.b4]
+        !isin(b, I2) && return false
     end
     return true
 end
