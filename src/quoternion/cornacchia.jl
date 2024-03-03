@@ -47,18 +47,18 @@ function Cornacchia_Smith(q::Integer)
     return b, integer_square_root(q - b^2)
 end
 
-# Return a, b such that a^2 + b^2 = n or nothing if not found.
+# Return a, b such that a^2 + b^2 = n and true or 0, 0, false if no such a, b are found.
 function sum_of_two_squares(n::Integer)
     n <= 0 && return 0, 0, false
     n == 1 && return 1, 0, true
-    a, b = 1, 0
+    a, b = BigInt(1), BigInt(0)
     for l in SmallPrimes
         e = 0
         while n % l == 0
             n = div(n, l)
             e += 1
         end
-        s = l^(div(e, 2))
+        s = BigInt(l)^(div(e, 2))
         a *= s
         b *= s
         if e % 2 == 1

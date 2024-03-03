@@ -4,9 +4,27 @@ function sample_random_ideal(D::Integer)
     gamma, found = FullRepresentInteger(D * BigInt(2)^Log2p)
     !found && throw(ArgumentError("Could not find a random ideal"))
     a = rand(1:D-1)
-    println(D)
-    println(a)
     return LeftIdeal(gamma * (QOrderElem(a)  + Quoternion_i), D)
+end
+
+# Sample a random ideal of prime norm 2^e
+function sample_random_ideal_2e(e::Int)
+    gamma = Quoternion_1
+    while norm(gamma) % BigInt(2)^e != 0
+        gamma, found = FullRepresentInteger(BigInt(2)^(Log2p + e))
+        !found && continue
+        gamma = div(gamma, gcd(gamma))
+        if gcd(gamma * (Quoternion_1 - Quoternion_i)) % 2 == 0
+            gamma = div(gamma * (Quoternion_1 - Quoternion_i), 2)
+        end
+    end
+    @assert gcd(gamma * (Quoternion_1 - Quoternion_i)) % 2 == 1
+    I = LeftIdeal(gamma, BigInt(2)^e)
+    @assert !is_subset(I, LeftIdeal(Quoternion_1 + Quoternion_i, 2))
+    a = rand(1:BigInt(2)^(e))
+    J =  pushforward((1 + a) * Quoternion_1 + a * Quoternion_j, I)
+    @assert !is_subset(J, LeftIdeal(Quoternion_1 + Quoternion_i, 2))
+    return J
 end
 
 # return a random prime <= 2^KLPT_secret_key_prime_size and = 3 mod 4

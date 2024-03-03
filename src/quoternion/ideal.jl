@@ -186,9 +186,22 @@ function valid_ideal(I::LeftIdeal)
     return true
 end
 
+# I1 \subset I2
 function is_subset(I1::LeftIdeal, I2::LeftIdeal)
     for b in [I1.b1, I1.b2, I1.b3, I1.b4]
         !isin(b, I2) && return false
     end
     return true
+end
+
+# [alpha]*I
+function pushforward(alpha::QOrderElem, I::LeftIdeal)
+    Na = norm(alpha)
+    Oalpha = LeftIdeal(alpha, Na)
+    J = Oalpha * QOrderElem(norm(I), 0, 0, 0)
+    K = I * QOrderElem(Na, 0, 0, 0)
+    JKbasis = [[b[i] for i in 1:4] for b in [J.b1, J.b2, J.b3, J.b4, K.b1, K.b2, K.b3, K.b4]]
+    bs = get_basis(JKbasis)
+    L = LeftIdeal([QOrderElem(b) for b in bs])
+    return ideal_transform(L, alpha, Na)
 end
