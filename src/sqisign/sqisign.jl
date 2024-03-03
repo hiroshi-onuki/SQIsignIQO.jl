@@ -95,3 +95,6 @@ function key_gen(cdata::CurveData)
     end
     return pk, sk, found
 end
+
+function commitment(cdata::CurveData)
+end

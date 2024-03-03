@@ -1,9 +1,9 @@
 using KaniSQIsign
 
-function keygen_test(param::Module)
+function keygen_test(param::Module, num::Int)
     Fp2, Fp2_i, cdata = param.make_field_curve_torsions()
     println("Keygen test for $(param)")
-    for _ in 1:100
+    for _ in 1:num
         @time pk, sk, found = param.key_gen(cdata)
         println("Found: $(found)")
     end
@@ -23,5 +23,5 @@ function gen_ideals(param::Module, e::Int)
     println("Generated $(length(S)) ideals of norm 2^$e")
 end
 
-keygen_test(KaniSQIsign.Level1)
-#gen_ideals(KaniSQIsign.Level1, 5)
+keygen_test(KaniSQIsign.Level1, 1)
+gen_ideals(KaniSQIsign.Level1, 5)

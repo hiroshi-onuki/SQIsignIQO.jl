@@ -53,13 +53,14 @@ end
 
 function norm(I::LeftIdeal)
     D = det(ideal_to_matrix(I))
-    return Integer(sqrt(abs(D)))
+    return integer_square_root(abs(D))
 end
 
 # left O-ideal Ox + ON
 function LeftIdeal(x::QOrderElem, N::Integer)
     basis = [QOrderElem(1,0,0,0), QOrderElem(0,1,0,0), QOrderElem(0,0,1,0), QOrderElem(0,0,0,1)]
     Ox = [[(b*x)[i] for i in 1:4] for b in basis]
+    N = BigInt(N)
     ON = [[N,0,0,0],[0,N,0,0],[0,0,N,0],[0,0,0,N]]
     basis = get_basis(vcat(Ox, ON))
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
@@ -67,6 +68,7 @@ end
 
 # left O-ideal I + ON
 function larger_ideal(I::LeftIdeal, N::Integer)
+    N = BigInt(N)
     ON = [[N,0,0,0],[0,N,0,0],[0,0,N,0],[0,0,0,N]]
     Ibasis = [[b[i] for i in 1:4] for b in [I.b1, I.b2, I.b3, I.b4]]
     basis = get_basis(vcat(Ibasis, ON))
@@ -208,14 +210,21 @@ function is_subset(I1::LeftIdeal, I2::LeftIdeal)
     return true
 end
 
-# [alpha]*I
+# I1 \cap I2 s.t. gcd(norm(I1), norm(I2)) = 1
+function intersection(I1::LeftIdeal, I2::LeftIdeal)
+    N1 = norm(I1)
+    N2 = norm(I2)
+    I1N2 = I1 * QOrderElem(N2)
+    I2N1 = I2 * QOrderElem(N1)
+    gens = [I1N2.b1, I1N2.b2, I1N2.b3, I1N2.b4, I2N1.b1, I2N1.b2, I2N1.b3, I2N1.b4]
+    bs = get_basis([[b[i] for i in 1:4] for b in gens])
+    return LeftIdeal([QOrderElem(b) for b in bs])
+end
+
+# [alpha]*I, computed by (I \cap O0*alpha) * alpha^-1
 function pushforward(alpha::QOrderElem, I::LeftIdeal)
     Na = norm(alpha)
     Oalpha = LeftIdeal(alpha, Na)
-    J = Oalpha * QOrderElem(norm(I), 0, 0, 0)
-    K = I * QOrderElem(Na, 0, 0, 0)
-    JKbasis = [[b[i] for i in 1:4] for b in [J.b1, J.b2, J.b3, J.b4, K.b1, K.b2, K.b3, K.b4]]
-    bs = get_basis(JKbasis)
-    L = LeftIdeal([QOrderElem(b) for b in bs])
+    L = intersection(I, Oalpha) 
     return ideal_transform(L, alpha, Na)
 end
