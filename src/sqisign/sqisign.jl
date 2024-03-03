@@ -72,39 +72,24 @@ function key_gen(cdata::CurveData)
         a24 = cdata.a24_0
         xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
         M = BigInt[1 0; 0 1]
-        e = KLPT_keygen_length - d
         is_first = true
         extdeg = ExtraDegree
         D = 1
-        while e > 0
-            if e <= ExponentForIsogeny
-                beta = alpha
-                ed = e
-            else
-                beta = Quoternion_0
-                ed = ExponentForIsogeny
-            end
-            n_I_d = D * extdeg * BigInt(2)^ed
+        e = KLPT_keygen_length - d
+        while e > ExponentForIsogeny
+            n_I_d = D * extdeg * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            if beta != Quoternion_0
-                println("I_d: ", log(2, norm(I_d)))
-                @assert I_d == J
-                @assert ideal_transform(J, beta, norm(J)) == QOrderElem(m) * I_sec
-                @assert div(norm(beta), norm(J)) == D_sec
-                @assert D_sec == BigInt(2)^ExponentForTorsion - a^2 - b^2
-            end
-            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, beta, a, b)
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quoternion_0, 0, 0)
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
-            @assert isin(alpha, J)
-            @assert ideal_transform(J, alpha, norm(J)) == QOrderElem(m) * I_sec
-            e -= ed
+            e -= ExponentForIsogeny
             is_first = false
             extdeg = 1
         end
+        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, cdata, false, alpha, a, b)
 
         pk = Montgomery_coeff(a24)
         sk = (xP, xQ, xPQ, M, I_sec)
     end
-    return pk, sk
+    return pk, sk, found
 end

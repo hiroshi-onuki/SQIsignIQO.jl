@@ -99,7 +99,9 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
     L[i] = Integer(floor(Z - U[i]))
     x[i] = Integer(ceil(-Z-U[i]) - 1)
 
+    counter = 0
     while true
+        counter += 1
         x[i] += 1
         while x[i] > L[i]
             i += 1
@@ -122,6 +124,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
                 if newN % 2 == 1
                     a, b, found = sum_of_two_squares(BigInt(2)^e - div(norm(alpha), N))
                     if found
+                        println("counter: ", counter)
                         return alpha, a, b, true
                     end
                 end
