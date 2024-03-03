@@ -23,5 +23,5 @@ function gen_ideals(param::Module, e::Int)
     println("Generated $(length(S)) ideals of norm 2^$e")
 end
 
-keygen_test(KaniSQIsign.Level1, 1)
-gen_ideals(KaniSQIsign.Level1, 5)
+keygen_test(KaniSQIsign.Level1, 10)
+#gen_ideals(KaniSQIsign.Level1, 5)
