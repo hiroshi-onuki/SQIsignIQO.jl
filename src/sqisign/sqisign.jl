@@ -43,16 +43,66 @@ function key_gen(cdata::CurveData)
     pk, sk = nothing, nothing
     while !found && counter < SQISIGN_response_attempts
         counter += 1
+
+        # compute a secret ideal
         D_sec = random_secret_prime()
+        println("D_sec: ", log(2, D_sec))
         I_sec = sample_random_ideal(D_sec)
         alpha, found = KeyGenKLPT(I_sec, D_sec)
         !found && continue
-        J = ideal_transform(I_sec, alpha, D_sec)
-        g = gcd(J)
+        g = gcd(alpha)
         d = 2*Int(log(2, g))
-        J = div(J, g)
+        alpha = div(alpha, g)
+        J = ideal_transform(I_sec, alpha, D_sec)
+        alpha = involution(alpha) # alpha in J
         println(factor(ZZ(norm(J))))
-        a24, xP, xQ, xPQ, M = ideal_to_isogeny_from_O0(J, KLPT_keygen_length - d, cdata, nothing)
+        @assert norm(J) == ExtraDegree * BigInt(2)^(KLPT_keygen_length - d)
+
+        # find m s.t. m^2 * D_sec is 2^ExponentForTorsion-good
+        m = -1
+        a, b = 0, 0
+        found_2e_good = false
+        while !found_2e_good
+            m += 2
+            a, b, found_2e_good = sum_of_two_squares(BigInt(2)^ExponentForTorsion - m^2 * D_sec)
+        end
+        alpha = m * alpha
+
+        # ideal to isogeny
+        a24 = cdata.a24_0
+        xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+        M = BigInt[1 0; 0 1]
+        e = KLPT_keygen_length - d
+        is_first = true
+        extdeg = ExtraDegree
+        D = 1
+        while e > 0
+            if e <= ExponentForIsogeny
+                beta = alpha
+                ed = e
+            else
+                beta = Quoternion_0
+                ed = ExponentForIsogeny
+            end
+            n_I_d = D * extdeg * BigInt(2)^ed
+            I_d = larger_ideal(J, n_I_d)
+            if beta != Quoternion_0
+                println("I_d: ", log(2, norm(I_d)))
+                @assert I_d == J
+                @assert ideal_transform(J, beta, norm(J)) == QOrderElem(m) * I_sec
+                @assert div(norm(beta), norm(J)) == D_sec
+                @assert D_sec == BigInt(2)^ExponentForTorsion - a^2 - b^2
+            end
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, beta, a, b)
+            J = ideal_transform(J, beta, n_I_d)
+            alpha = div(alpha * involution(beta), n_I_d)
+            @assert isin(alpha, J)
+            @assert ideal_transform(J, alpha, norm(J)) == QOrderElem(m) * I_sec
+            e -= ed
+            is_first = false
+            extdeg = 1
+        end
+
         pk = Montgomery_coeff(a24)
         sk = (xP, xQ, xPQ, M, I_sec)
     end

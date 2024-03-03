@@ -34,9 +34,10 @@ end
 # xP, xQ, xPQ : the fixed basis of E[2^ExponentFull] s.t. phi_I_2(P_0, Q_0)^t = M(P, Q)^t
 # return the coefficient a24d of E' := E_0 / E_0[I_1 I_2],
 # the fixed basis (P', Q') of E'[2^ExponentFull], and M' s.t. phi_J(P_0, Q_0)^t = M'(P', Q')^t
-# If is_special is true, then n(I_2) = 2^ExponentForIsogeny * ExtraDegree
+# If use_extdeg is true, then n(I_2) = 2^ExponentForIsogeny * ExtraDegree
 function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T},
-    M::Matrix{BigInt}, D::Integer, e::Int, cdata::CurveData, is_special::Bool, strategy::Union{Vector{Int}, Nothing}=nothing) where T <: RingElem
+    M::Matrix{BigInt}, D::Integer, e::Int, cdata::CurveData, use_extdeg::Bool,
+    precomp_beta::QOrderElem, precomp_a::Integer, precomp_b::Integer) where T <: RingElem
     xPd = xDBLe(xP, a24, ExponentFull - e)
     xQd = xDBLe(xQ, a24, ExponentFull - e)
     xPQd = xDBLe(xPQ, a24, ExponentFull - e)
@@ -46,7 +47,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
     eval_points = [xP, xQ, xPQ]
-    if is_special
+    if use_extdeg
         push!(eval_points, ker)
         degs = Vector{Int}[]
         for i in 1:length(cdata.DegreesOddTorsionBases)
@@ -75,8 +76,12 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     a24d, images = Montgomery_normalize(a24d, images)
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
-    beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
-    !found && throw(ArgumentError("No good element found"))
+    if precomp_beta == Quoternion_0
+        beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
+        !found && throw(ArgumentError("No good element found"))
+    else
+        beta, a, b = precomp_beta, precomp_a, precomp_b
+    end
     @assert isin(beta, I)
     @assert div(norm(beta), norm(I)) == BigInt(2)^ExponentForTorsion - a^2 - b^2
 
@@ -101,7 +106,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP0 = cdata.xP2e_short
     xQ0 = cdata.xQ2e_short
     xPQ0 = cdata.xPQ2e_short
-    if is_special # norm(I_2) = 2^e * ExtraDegree
+    if use_extdeg # norm(I_2) = 2^e * ExtraDegree
         xP0 = ladder(ExtraDegree, xP0, a24_0)
         xQ0 = ladder(ExtraDegree, xQ0, a24_0)
         xPQ0 = ladder(ExtraDegree, xPQ0, a24_0)
@@ -161,11 +166,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     O1Qd = CouplePoint(O1, xQd)
     O1PQd = CouplePoint(O1, xPQd)
     O1P2_I = CouplePoint(O1, xP2_I)
-    if strategy == nothing
-        Es, images = product_isogeny_sqrt_no_strategy(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd, O1P2_I], ExponentForTorsion)
-    else
-        Es, images = product_isogeny_sqrt(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd, O1P2_I], ExponentForTorsion, strategy)
-    end
+    Es, images = product_isogeny_sqrt(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd, O1P2_I], ExponentForTorsion, StrategyDim2)
 
     # isomorphism to A0
     if Es[1] == Proj1(cdata.A0) || Es[1] == Proj1(cdata.A0d) || Es[1] == Proj1(cdata.A0dd)
@@ -232,7 +233,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 end
 
 # isogeny E0 to E0/E0[I], where n(I) = ExtraDegree*2^e
-function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData, strategy::Union{Vector{Int}, Nothing}=nothing)
+function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
     a24 = cdata.a24_0
     xP0 = cdata.xP2e
     xQ0 = cdata.xQ2e
@@ -241,7 +242,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData, strate
 
     # the first isogeny is the special case
     I_d = larger_ideal(I, ExtraDegree * BigInt(2)^ExponentForIsogeny)
-    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, strategy)
+    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, Quoternion_0, 0, 0)
     I = ideal_transform(I, beta, ExtraDegree * BigInt(2)^ExponentForIsogeny)
     e -= ExponentForIsogeny
 
@@ -250,7 +251,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData, strate
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
         println(factor(ZZ(norm(I_d))))
-        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, strategy)
+        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, Quoternion_0, 0, 0)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new
