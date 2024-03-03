@@ -19,6 +19,7 @@ const KLPT_eichler_strong_approx_log_margin = 2
 const KLPT_eichler_num_equiv_ideal = 26
 const KLPT_eichler_number_strong_approx = 2540
 const SQISIGN_response_attempts = 64
+const SQISIGN_keygen_attempts = 64
 const SQISIGN_random_length = 0
 const SQISIGN_signing_total_length = 1050
 const SQISIGN_signing_length = 14
@@ -26,5 +27,6 @@ const SQISIGN_keygen_length = 9
 
 # constants only used in our implementation
 const KLPT_keygen_gamma_lengh = 272 # about ExponentForIsogeny * 2.5
+const IdealToIsogeny_2_e_good_attempts = 1000
 
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]

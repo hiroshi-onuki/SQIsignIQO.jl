@@ -38,12 +38,13 @@ end
 function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T},
     M::Matrix{BigInt}, D::Integer, e::Int, cdata::CurveData, use_extdeg::Bool,
     precomp_beta::QOrderElem, precomp_a::Integer, precomp_b::Integer) where T <: RingElem
+    Fp2 = parent(a24.X)
     xPd = xDBLe(xP, a24, ExponentFull - e)
     xQd = xDBLe(xQ, a24, ExponentFull - e)
     xPQd = xDBLe(xPQ, a24, ExponentFull - e)
 
     # 2^e-isogeny corresponding to I_2
-    alpha = primitive_element(I)
+    alpha = use_extdeg ? element_prime_to(I, 2 * ExtraDegree) : element_prime_to(I, 2)
     M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
     ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
     eval_points = [xP, xQ, xPQ]
@@ -77,8 +78,8 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     if precomp_beta == Quoternion_0
-        beta, a, b, found = two_e_good_element(I, ExponentForTorsion)
-        !found && throw(ArgumentError("No good element found"))
+        beta, a, b, found = two_e_good_element(I, ExponentForTorsion, IdealToIsogeny_2_e_good_attempts)
+        !found && return infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), BigInt[0 0; 0 0], Quoternion_0, BigInt(0), false
     else
         beta, a, b = precomp_beta, precomp_a, precomp_b
     end
@@ -161,7 +162,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     P1P2 = CouplePoint(xP1, xP2)
     Q1Q2 = CouplePoint(xQ1, xQ2)
     PQ1PQ2 = CouplePoint(xPQ1, xPQ2)
-    O1 = infinity_point(parent(a24_0.X))
+    O1 = infinity_point(Fp2)
     O1Pd = CouplePoint(O1, xPd)
     O1Qd = CouplePoint(O1, xQd)
     O1PQd = CouplePoint(O1, xPQd)
@@ -190,9 +191,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     M_beta = beta[1]*[1 0; 0 1] + beta[2]*cdata.Matrices_2e[1] + beta[3]*cdata.Matrices_2e[2] + beta[4]*cdata.Matrices_2e[3]
     beta_P0 = linear_comb_2_e(M_beta[1,1], M_beta[2,1], cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     if xP0beta == beta_P0
-        println("good isogeny")
     elseif xP0beta == -beta_P0
-        println("bad isogeny")
         # muliply by i
         xPdd = -xPdd
         xQdd = -xQdd
@@ -229,7 +228,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull)
 
-    return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - b^2
+    return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - b^2, true
 end
 
 # isogeny E0 to E0/E0[I], where n(I) = ExtraDegree*2^e
@@ -242,7 +241,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
 
     # the first isogeny is the special case
     I_d = larger_ideal(I, ExtraDegree * BigInt(2)^ExponentForIsogeny)
-    a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, Quoternion_0, 0, 0)
+    a24, xP, xQ, xPQ, M, beta, D, _ = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, Quoternion_0, 0, 0)
     I = ideal_transform(I, beta, ExtraDegree * BigInt(2)^ExponentForIsogeny)
     e -= ExponentForIsogeny
 
@@ -251,7 +250,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
         println(factor(ZZ(norm(I_d))))
-        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, Quoternion_0, 0, 0)
+        a24, xP, xQ, xPQ, M, beta, D_new, _ = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, Quoternion_0, 0, 0)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new

@@ -74,7 +74,7 @@ function larger_ideal(I::LeftIdeal, N::Integer)
 end
 
 # return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + b^2
-function two_e_good_element(I::LeftIdeal, e::Integer)
+function two_e_good_element(I::LeftIdeal, e::Integer, max_tries::Integer=100)
     q(x, y) = quadratic_form(QOrderElem(x), QOrderElem(y))
 
     # LLL reduction
@@ -100,7 +100,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
     x[i] = Integer(ceil(-Z-U[i]) - 1)
 
     counter = 0
-    while true
+    while counter < max_tries
         counter += 1
         x[i] += 1
         while x[i] > L[i]
@@ -124,7 +124,6 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
                 if newN % 2 == 1
                     a, b, found = sum_of_two_squares(BigInt(2)^e - div(norm(alpha), N))
                     if found
-                        println("counter: ", counter)
                         return alpha, a, b, true
                     end
                 end
@@ -133,6 +132,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer)
             end
         end
     end
+    return QOrderElem(0), 0, 0, false
 end
 
 # return coefficients q_i,j s.t. Nrd(x) = sum_i q_i,i*(x_i + sum_j q_i,j*x_j)^2, where x = sum_i x_iI[i].
@@ -163,6 +163,17 @@ function primitive_element(I::LeftIdeal)
     a = I[1]
     i = 1
     while gcd(a) != 1
+        a += I[i]
+        i = (i % 4) + 1
+    end
+    return a
+end
+
+# a in I s.t. a/l not in O0 for any l | n
+function element_prime_to(I::LeftIdeal, n::Integer)
+    a = I[1]
+    i = 1
+    while gcd(gcd(a), n) != 1
         a += I[i]
         i = (i % 4) + 1
     end

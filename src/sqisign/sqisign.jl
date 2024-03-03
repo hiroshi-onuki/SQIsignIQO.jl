@@ -41,12 +41,11 @@ function key_gen(cdata::CurveData)
     found = false
     counter = 0
     pk, sk = nothing, nothing
-    while !found && counter < SQISIGN_response_attempts
+    while !found && counter < SQISIGN_keygen_attempts
         counter += 1
 
         # compute a secret ideal
         D_sec = random_secret_prime()
-        println("D_sec: ", log(2, D_sec))
         I_sec = sample_random_ideal(D_sec)
         alpha, found = KeyGenKLPT(I_sec, D_sec)
         !found && continue
@@ -55,16 +54,14 @@ function key_gen(cdata::CurveData)
         alpha = div(alpha, g)
         J = ideal_transform(I_sec, alpha, D_sec)
         alpha = involution(alpha) # alpha in J
-        println(factor(ZZ(norm(J))))
-        @assert norm(J) == ExtraDegree * BigInt(2)^(KLPT_keygen_length - d)
 
         # find m s.t. m^2 * D_sec is 2^ExponentForTorsion-good
         m = -1
         a, b = 0, 0
-        found_2e_good = false
-        while !found_2e_good
+        found = false
+        while !found
             m += 2
-            a, b, found_2e_good = sum_of_two_squares(BigInt(2)^ExponentForTorsion - m^2 * D_sec)
+            a, b, found = sum_of_two_squares(BigInt(2)^ExponentForTorsion - m^2 * D_sec)
         end
         alpha = m * alpha
 
@@ -79,15 +76,20 @@ function key_gen(cdata::CurveData)
         while e > ExponentForIsogeny
             n_I_d = D * extdeg * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quoternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quoternion_0, 0, 0)
+            !found && break
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
             e -= ExponentForIsogeny
             is_first = false
             extdeg = 1
         end
-        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, cdata, false, alpha, a, b)
-
+        if found
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, cdata, false, alpha, a, b)
+        else
+            continue
+        end
+        !found && continue
         pk = Montgomery_coeff(a24)
         sk = (xP, xQ, xPQ, M, I_sec)
     end
