@@ -124,7 +124,7 @@ function two_e_good_element(I::LeftIdeal, e::Integer, max_tries::Integer=100)
                 alpha = QOrderElem(v[1], v[2], v[3], v[4])
                 newN = div(norm(alpha), N)
                 if newN % 2 == 1
-                    a, b, found = sum_of_two_squares(BigInt(2)^e - div(norm(alpha), N))
+                    a, b, found = sum_of_two_squares(BigInt(2)^e - newN)
                     if found
                         return alpha, a, b, true
                     end

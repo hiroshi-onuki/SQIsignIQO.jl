@@ -28,5 +28,6 @@ const SQISIGN_keygen_length = 9
 # constants only used in our implementation
 const KLPT_keygen_gamma_lengh = 272 # about ExponentForIsogeny * 2.5
 const IdealToIsogeny_2_e_good_attempts = 1000
+const SQISIGN_commitment_length = 256
 
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]

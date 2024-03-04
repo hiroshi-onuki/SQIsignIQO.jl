@@ -18,13 +18,9 @@ function sample_random_ideal_2e(e::Int)
             gamma = div(gamma * (Quoternion_1 - Quoternion_i), 2)
         end
     end
-    @assert gcd(gamma * (Quoternion_1 - Quoternion_i)) % 2 == 1
     I = LeftIdeal(gamma, BigInt(2)^e)
-    @assert !is_subset(I, LeftIdeal(Quoternion_1 + Quoternion_i, 2))
     a = rand(1:BigInt(2)^(e))
-    J =  pushforward((1 + a) * Quoternion_1 + a * Quoternion_j, I)
-    @assert !is_subset(J, LeftIdeal(Quoternion_1 + Quoternion_i, 2))
-    return J
+    return pushforward((1 + a) * Quoternion_1 + a * Quoternion_j, I)
 end
 
 # return a random prime <= 2^KLPT_secret_key_prime_size and = 3 mod 4
@@ -98,4 +94,32 @@ function key_gen(cdata::CurveData)
 end
 
 function commitment(cdata::CurveData)
+    # make a random ideal of norm ExtraDegree * 2^SQISIGN_commitment_length
+    I2 = sample_random_ideal_2e(SQISIGN_commitment_length)
+    gamma, found = FullRepresentInteger(ExtraDegree * BigInt(2)^Log2p)
+    !found && throw(ArgumentError("Could not find an ideal of norm ExtraDegree * 2^Log2p"))
+    Iex = LeftIdeal(gamma, ExtraDegree)
+    I = intersection(I2, Iex)
+
+    # ideal to isogeny
+    a24 = cdata.a24_0
+    xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+    M = BigInt[1 0; 0 1]
+    found = false
+    is_first = true
+    extdeg = ExtraDegree
+    D = 1
+    e = SQISIGN_commitment_length
+    while e > 0
+        ed = min(e, ExponentForIsogeny)
+        n_I_d = D * extdeg * BigInt(2)^ed
+        I_d = larger_ideal(I, n_I_d)
+        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quoternion_0, 0, 0)
+        !found && break
+        I = ideal_transform(I, beta, n_I_d)
+        e -= ed
+        is_first = false
+        extdeg = 1
+    end
+   return a24, (xP, xQ, xPQ, M, I), found
 end

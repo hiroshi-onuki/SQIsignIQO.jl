@@ -1,10 +1,19 @@
 using KaniSQIsign
 
 function keygen_test(param::Module, num::Int)
-    Fp2, Fp2_i, cdata = param.make_field_curve_torsions()
+    _, _, cdata = param.make_field_curve_torsions()
     println("Keygen test for $(param)")
     for _ in 1:num
         @time pk, sk, found = param.key_gen(cdata)
+        println("Found: $(found)")
+    end
+end
+
+function commitment_test(param::Module, num::Int)
+    _, _, cdata = param.make_field_curve_torsions()
+    println("Commitment test for $(param)")
+    for _ in 1:num
+        @time com, sk, found = param.commitment(cdata)
         println("Found: $(found)")
     end
 end
@@ -24,4 +33,5 @@ function gen_ideals(param::Module, e::Int)
 end
 
 keygen_test(KaniSQIsign.Level1, 10)
+commitment_test(KaniSQIsign.Level1, 10)
 #gen_ideals(KaniSQIsign.Level1, 5)
