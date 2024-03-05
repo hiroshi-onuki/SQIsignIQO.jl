@@ -10,9 +10,9 @@ function square_root(x::FinFieldElem)
     a, b = Fp(coeff(x, 0)), Fp(coeff(x, 1))
     if b == 0
         if a^div(p - 1, 2) == 1
-            return [a^div(p + 1, 4), 1]
+            return [a^div(p + 1, 4), Fp2(1)]
         else
-            return [(-a)^div(p + 1, 4)*i, 1]
+            return [(-a)^div(p + 1, 4)*i, Fp2(1)]
         end
     end
     d = (a^2 + b^2)^div(p + 1, 4)

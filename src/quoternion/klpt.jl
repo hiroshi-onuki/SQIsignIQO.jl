@@ -145,3 +145,30 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     end
     return gamma*mu, found
 end
+
+function KLPT(I::LeftIdeal, N_I::Integer)
+    counter = 0
+    found = false
+    n = Int(ceil(log(2, N_I)))
+    k = max(Log2p - n, 0)
+    N_gamma = BigInt(2)^k * ExtraDegree
+    N_mu = BigInt(2)^(Log2p + 3*n)
+
+    gamma = Quoternion_0
+    mu = Quoternion_0
+    while !found && counter < KLPT_keygen_num_gamma_trial
+        counter += 1
+
+        gamma, found_gamma = FullRepresentInteger(N_I*N_gamma)
+        !found_gamma && continue
+
+        C, D = EichlerModConstraint(I, N_I, gamma, QOrderElem(1), true)
+        N_CD = p * (C^2 + D^2)
+        N_mu_N_CD = (N_mu * invmod(N_CD, N_I)) % N_I
+        quadratic_residue_symbol(N_mu_N_CD, N_I) != 1 && continue
+        lambda = sqrt_mod(4*N_mu_N_CD, N_I)
+
+        mu, found = FullStrongApproximation(N_I, C, D, lambda, 4*N_mu, KLPT_signing_number_strong_approx)
+    end
+    return gamma*mu, found
+end
