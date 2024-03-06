@@ -157,6 +157,6 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
     I_cha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
     @assert norm(I_cha) == BigInt(2)^SQISIGN_challenge_length
 
-
+    I = intersection(I_com, I_cha)
 
 end

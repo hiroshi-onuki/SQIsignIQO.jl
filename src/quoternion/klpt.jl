@@ -146,6 +146,8 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     return gamma*mu, found
 end
 
+# KLPT algorihtm for an ideal I of prime norm N_I.
+# This algorihtm is for computing an isogeny between E0 and another curve whose endomorphism ring p-etremal.
 function KLPT(I::LeftIdeal, N_I::Integer)
     counter = 0
     found = false
