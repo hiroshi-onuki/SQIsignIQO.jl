@@ -1,3 +1,5 @@
+using SHA
+
 # Sample a random ideal of prime norm D
 function sample_random_ideal(D::Integer)
     @assert D % 4 == 3
@@ -122,4 +124,20 @@ function commitment(cdata::CurveData)
         extdeg = 1
     end
    return a24, (xP, xQ, xPQ, M, I), found
+end
+
+# challenge is the isogeny with kernel <P + [c]Q> from a commitment curve
+function challenge(com::Proj1{FqFieldElem}, m::String)
+    h = sha3_256(string * m)
+
+    c = BigInt(0)
+    for i in 1:div(SQISIGN_challenge_length,8)
+        c += BigInt(h[i]) << (8*(i-1))
+    end
+
+    return c
+end
+
+function response(pk, sk, com, sk_com, cha::BigInt, cdata::CurveData, m::String)
+
 end
