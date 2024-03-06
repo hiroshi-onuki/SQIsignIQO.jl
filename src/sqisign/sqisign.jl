@@ -48,7 +48,13 @@ function key_gen(cdata::CurveData)
         alpha, found = KeyGenKLPT(I_sec, D_sec)
         !found && continue
         g = gcd(alpha)
-        d = 2*Int(log(2, g))
+        t = g
+        d = 0
+        while t & 1 == 0
+            t >>= 1
+            d += 1
+        end
+        d *= 2
         alpha = div(alpha, g)
         J = ideal_transform(I_sec, alpha, D_sec)
         alpha = involution(alpha) # alpha in J
@@ -123,13 +129,13 @@ function commitment(cdata::CurveData)
         is_first = false
         extdeg = 1
     end
-   return a24, (xP, xQ, xPQ, M, I), found
+   return Montgomery_coeff(a24), (xP, xQ, xPQ, M, I), found
 end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
 # where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
-function challenge(com::Proj1{FqFieldElem}, m::String)
-    h = sha3_256(string * m)
+function challenge(com::FqFieldElem, m::String)
+    h = sha3_256(string(com) * m)
 
     c = BigInt(0)
     for i in 1:div(SQISIGN_challenge_length,8)
@@ -139,14 +145,18 @@ function challenge(com::Proj1{FqFieldElem}, m::String)
     return c
 end
 
-function response(pk::Proj1{FqFieldElem}, sk, com::Proj1{FqFieldElem}, sk_com, cha::BigInt, cdata::CurveData, m::String)
-    a24A = pk
+function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cdata::CurveData)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
-    a24com = com
     xP_com, xQ_com, xPQ_com, M_com, I_com = sk_com
 
+    # pull-back of the challenge ideal
     M_com_inv = [M_com[2,2] -M_com[1,2]; -M_com[2,1] M_com[1,1]] * invmod(M_com[1, 1] * M_com[2, 2] - M_com[1, 2] * M_com[2, 1], BigInt(2)^ExponentFull)
     a, b = M_com_inv * [1, cha]
-    
+    a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
+    alpha = QOrderElem(a, b, c, d)
+    I_cha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
+    @assert norm(I_cha) == BigInt(2)^SQISIGN_challenge_length
+
+
 
 end

@@ -18,6 +18,17 @@ function commitment_test(param::Module, num::Int)
     end
 end
 
+function response_test(param::Module, num::Int)
+    _, _, cdata = param.make_field_curve_torsions()
+    println("Response test for $(param)")
+    for _ in 1:num
+        pk, sk, found = param.key_gen(cdata)
+        com, sk_com, found = param.commitment(cdata)
+        cha = param.challenge(com, "message")
+        param.response(pk, sk, com, sk_com, cha, cdata)
+    end
+end
+
 function gen_ideals(param::Module, e::Int)
     S = param.LeftIdeal[]
     for _ in 1:(1000 * 2^e)
@@ -32,6 +43,6 @@ function gen_ideals(param::Module, e::Int)
     println("Generated $(length(S)) ideals of norm 2^$e")
 end
 
-keygen_test(KaniSQIsign.Level1, 10)
-commitment_test(KaniSQIsign.Level1, 10)
-#gen_ideals(KaniSQIsign.Level1, 5)
+keygen_test(KaniSQIsign.Level1, 1)
+commitment_test(KaniSQIsign.Level1, 1)
+response_test(KaniSQIsign.Level1, 10)
