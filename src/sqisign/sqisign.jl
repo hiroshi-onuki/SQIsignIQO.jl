@@ -139,6 +139,14 @@ function challenge(com::Proj1{FqFieldElem}, m::String)
     return c
 end
 
-function response(pk, sk, com, sk_com, cha::BigInt, cdata::CurveData, m::String)
+function response(pk::Proj1{FqFieldElem}, sk, com::Proj1{FqFieldElem}, sk_com, cha::BigInt, cdata::CurveData, m::String)
+    a24A = pk
+    xP_A, xQ_A, xPQ_A, M_A, I_A = sk
+    a24com = com
+    xP_com, xQ_com, xPQ_com, M_com, I_com = sk_com
+
+    M_com_inv = [M_com[2,2] -M_com[1,2]; -M_com[2,1] M_com[1,1]] * invmod(M_com[1, 1] * M_com[2, 2] - M_com[1, 2] * M_com[2, 1], BigInt(2)^ExponentFull)
+    a, b = M_com_inv * [1, cha]
+    
 
 end

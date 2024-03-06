@@ -23,6 +23,7 @@ function make_field_curve_torsions()
     M_i_2e = BigInt[74133 82715; 109618 56939]
     M_ij_2e = BigInt[119801 127723; 3501 11271]
     M_1k_2e = BigInt[78125 75652; 94193 52948]
+    M44inv = BigInt[212 124 15 301; 7 277 83 505; 93 187 296 419; 89 264 482 423]
     xP3 = Proj1(107897*Fp2_i + 11513)
     xQ3 = Proj1(23174*Fp2_i + 11513)
     xPQ3 = Proj1(23174*Fp2_i + 119558)
@@ -82,5 +83,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, Matrices_odd, isomorphism_to_A0)
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0)
 end

@@ -20,6 +20,7 @@ struct CurveData{T <: RingElem}
     ExponentsOddTorsionBases::Vector{Int}
     OddTorsionBases::Vector{Vector{Proj1{T}}}
     Matrices_2e::Vector{Matrix{BigInt}}
+    Matrix_2ed_inv::Matrix{BigInt}
     Matrices_odd::Vector{Vector{Matrix{Int}}}
     isomorphism_to_A0::Function
 end

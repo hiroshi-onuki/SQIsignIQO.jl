@@ -82,7 +82,7 @@ function check_1k_action(p::BigInt, basis::Vector{Proj1{T}}, M1k::Matrix{S}, a24
     return true
 end
 
-function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
+function check_matrices_actions(p::BigInt, e::Int, ed::Int, tdata::CurveData)
     a24 = tdata.a24_0
 
     # check actions on 2^e-torsion
@@ -90,6 +90,13 @@ function check_matrices_actions(p::BigInt, e::Int, tdata::CurveData)
     @test check_i_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[1], a24, BigInt(2)^e)
     @test check_ij_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[2], a24, BigInt(2)^e)
     @test check_1k_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
+
+    m11 = rand(1:BigInt(2)^ed)
+    m21 = rand(1:BigInt(2)^ed)
+    m12 = rand(1:BigInt(2)^ed)
+    m22 = rand(1:BigInt(2)^ed)
+    a, b, c, d = tdata.Matrix_2ed_inv * [m11, m21, m12, m22]
+    @test ([a 0; 0 a] + b * tdata.Matrices_2e[1] + c * tdata.Matrices_2e[2] + d * tdata.Matrices_2e[3]) .% BigInt(2)^ed == [m11 m12; m21 m22]
 
     # check actions on odd-torsion
     for i in 1:length(tdata.OddTorsionBases)
@@ -106,7 +113,7 @@ function param_check(param::Module)
     _, _, tdata = param.make_field_curve_torsions()
 
     check_torsion_orders(param.ExponentFull, tdata)
-    check_matrices_actions(param.p, param.ExponentFull, tdata)
+    check_matrices_actions(param.p, param.ExponentFull, param.SQISIGN_challenge_length, tdata)
 end
 
 param_check(KaniSQIsign.Toy17)
