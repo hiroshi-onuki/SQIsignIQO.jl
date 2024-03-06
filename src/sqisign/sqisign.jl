@@ -126,7 +126,8 @@ function commitment(cdata::CurveData)
    return a24, (xP, xQ, xPQ, M, I), found
 end
 
-# challenge is the isogeny with kernel <P + [c]Q> from a commitment curve
+# challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
+# where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
 function challenge(com::Proj1{FqFieldElem}, m::String)
     h = sha3_256(string * m)
 
