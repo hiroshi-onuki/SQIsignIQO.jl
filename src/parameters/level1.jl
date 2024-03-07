@@ -1,10 +1,10 @@
 include("level1/prime.jl")
 include("level1/klpt_constants.jl")
 
-include("../quoternion/order.jl")
-include("../quoternion/cornacchia.jl")
-include("../quoternion/ideal.jl")
-include("../quoternion/klpt.jl")
+include("../quaternion/order.jl")
+include("../quaternion/cornacchia.jl")
+include("../quaternion/ideal.jl")
+include("../quaternion/klpt.jl")
 
 include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
