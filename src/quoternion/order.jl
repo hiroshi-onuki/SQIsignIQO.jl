@@ -10,11 +10,11 @@ struct QOrderElem
 end
 
 const Div_p1_4 = div(p + 1, 4)
-const Quoternion_0 = QOrderElem(0, 0, 0, 0)
-const Quoternion_1 = QOrderElem(1, 0, 0, 0)
-const Quoternion_i = QOrderElem(0, 1, 0, 0)
-const Quoternion_j = QOrderElem(0, -1, 2, 0)
-const Quoternion_ij = QOrderElem(-1, 0, 0, 2)
+const Quaternion_0 = QOrderElem(0, 0, 0, 0)
+const Quaternion_1 = QOrderElem(1, 0, 0, 0)
+const Quaternion_i = QOrderElem(0, 1, 0, 0)
+const Quaternion_j = QOrderElem(0, -1, 2, 0)
+const Quaternion_ij = QOrderElem(-1, 0, 0, 2)
 
 function QOrderElem(v::Vector{T}) where T <: Integer
     return QOrderElem(v[1], v[2], v[3], v[4])

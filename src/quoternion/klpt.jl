@@ -1,5 +1,5 @@
 # Algorithm 10 in SQIsign documentation
-# return a quoternion in O0 of norm M
+# return a quaternion in O0 of norm M
 function FullRepresentInteger(M::Integer)
     counter = 0
     found = false
@@ -19,7 +19,7 @@ function FullRepresentInteger(M::Integer)
     if found
         return QOrderElem(div(x - w, 2), div(y - z, 2), z, w), found
     else
-        return Quoternion_0, found
+        return Quaternion_0, found
     end
 end
 
@@ -28,7 +28,7 @@ end
 function RandomEquivalentPrimeIdeal(I::LeftIdeal)
     counter = 0
     found = false
-    J = LeftIdeal([Quoternion_0, Quoternion_0, Quoternion_0, Quoternion_0])
+    J = LeftIdeal([Quaternion_0, Quaternion_0, Quaternion_0, Quaternion_0])
     nJ = 0
     N = norm(I)
 
@@ -57,8 +57,8 @@ end
 # return C, D s.t. gamma*j*(C + D*i)*delta in Z + I, where N = n(I), if divisible then N | norm(gamma).
 function EichlerModConstraint(I::LeftIdeal, N::Integer, gamma::QOrderElem, delta::QOrderElem, divisible::Bool)
     M = HNFmod(ideal_to_matrix(I), N)
-    v1 = to_vector(gamma * Quoternion_j)
-    v2 = to_vector(-gamma * Quoternion_ij * delta)
+    v1 = to_vector(gamma * Quaternion_j)
+    v2 = to_vector(-gamma * Quaternion_ij * delta)
 
     if divisible
         # gamma*j*(C + D*i)*delta in I
@@ -115,7 +115,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
             end
         end
     end
-    return Quoternion_0, false
+    return Quaternion_0, false
 end
 
 # Algorithm 14 in SQIsign documentation
@@ -127,8 +127,8 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 
-    gamma = Quoternion_0
-    mu = Quoternion_0
+    gamma = Quaternion_0
+    mu = Quaternion_0
     while !found && counter < KLPT_keygen_num_gamma_trial
         counter += 1
 
@@ -156,8 +156,8 @@ function KLPT(I::LeftIdeal, N_I::Integer)
     N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(Log2p + 3*n)
 
-    gamma = Quoternion_0
-    mu = Quoternion_0
+    gamma = Quaternion_0
+    mu = Quaternion_0
     while !found && counter < KLPT_keygen_num_gamma_trial
         counter += 1
 

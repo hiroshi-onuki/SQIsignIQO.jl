@@ -77,9 +77,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     a24d, images = Montgomery_normalize(a24d, images)
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
-    if precomp_beta == Quoternion_0
+    if precomp_beta == Quaternion_0
         beta, a, b, found = two_e_good_element(I, ExponentForTorsion, IdealToIsogeny_2_e_good_attempts)
-        !found && return infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), BigInt[0 0; 0 0], Quoternion_0, BigInt(0), false
+        !found && return infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), BigInt[0 0; 0 0], Quaternion_0, BigInt(0), false
     else
         beta, a, b = precomp_beta, precomp_a, precomp_b
     end
@@ -241,7 +241,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
 
     # the first isogeny is the special case
     I_d = larger_ideal(I, ExtraDegree * BigInt(2)^ExponentForIsogeny)
-    a24, xP, xQ, xPQ, M, beta, D, _ = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, Quoternion_0, 0, 0)
+    a24, xP, xQ, xPQ, M, beta, D, _ = short_ideal_to_isogeny(I_d, a24, xP0, xQ0, xPQ0, M, 1, ExponentForIsogeny, cdata, true, Quaternion_0, 0, 0)
     I = ideal_transform(I, beta, ExtraDegree * BigInt(2)^ExponentForIsogeny)
     e -= ExponentForIsogeny
 
@@ -250,7 +250,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, cdata::CurveData)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
         println(factor(ZZ(norm(I_d))))
-        a24, xP, xQ, xPQ, M, beta, D_new, _ = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, Quoternion_0, 0, 0)
+        a24, xP, xQ, xPQ, M, beta, D_new, _ = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, cdata, false, Quaternion_0, 0, 0)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new

@@ -6,23 +6,23 @@ function sample_random_ideal(D::Integer)
     gamma, found = FullRepresentInteger(D * BigInt(2)^Log2p)
     !found && throw(ArgumentError("Could not find a random ideal"))
     a = rand(1:D-1)
-    return LeftIdeal(gamma * (QOrderElem(a)  + Quoternion_i), D)
+    return LeftIdeal(gamma * (QOrderElem(a)  + Quaternion_i), D)
 end
 
 # Sample a random ideal of prime norm 2^e
 function sample_random_ideal_2e(e::Int)
-    gamma = Quoternion_1
+    gamma = Quaternion_1
     while norm(gamma) % BigInt(2)^e != 0
         gamma, found = FullRepresentInteger(BigInt(2)^(Log2p + e))
         !found && continue
         gamma = div(gamma, gcd(gamma))
-        if gcd(gamma * (Quoternion_1 - Quoternion_i)) % 2 == 0
-            gamma = div(gamma * (Quoternion_1 - Quoternion_i), 2)
+        if gcd(gamma * (Quaternion_1 - Quaternion_i)) % 2 == 0
+            gamma = div(gamma * (Quaternion_1 - Quaternion_i), 2)
         end
     end
     I = LeftIdeal(gamma, BigInt(2)^e)
     a = rand(1:BigInt(2)^(e))
-    return pushforward((1 + a) * Quoternion_1 + a * Quoternion_j, I)
+    return pushforward((1 + a) * Quaternion_1 + a * Quaternion_j, I)
 end
 
 # return a random prime <= 2^KLPT_secret_key_prime_size and = 3 mod 4
@@ -80,7 +80,7 @@ function key_gen(cdata::CurveData)
         while e > ExponentForIsogeny
             n_I_d = D * extdeg * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quoternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quaternion_0, 0, 0)
             !found && break
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
@@ -122,7 +122,7 @@ function commitment(cdata::CurveData)
         ed = min(e, ExponentForIsogeny)
         n_I_d = D * extdeg * BigInt(2)^ed
         I_d = larger_ideal(I, n_I_d)
-        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quoternion_0, 0, 0)
+        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quaternion_0, 0, 0)
         !found && break
         I = ideal_transform(I, beta, n_I_d)
         e -= ed
