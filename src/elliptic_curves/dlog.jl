@@ -1,4 +1,4 @@
-export ec_dlog_power_of_2, make_dlog_table
+export ec_dlog_power_of_2, make_dlog_table, fq_dlog_power_of_2_opt
 
 # return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
 function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T}, 
@@ -68,4 +68,54 @@ function make_dlog_table(base::FqFieldElem, e::Int, window_size::Int)
     end
 
     return T1, T2
+end
+
+function fq_dlog_subtree(e::Int, h::FqFieldElem, window_size::Int,
+        strategy::Vector{Int}, table::Vector{Vector{FqFieldElem}})
+    t = length(strategy)
+    l = 2^window_size
+    @assert h^(BigInt(l)^e) == 1
+    if t == 0
+        h == 1 && return [0]
+        @assert h^l == 1
+        for j in 1:l-1
+            if h == table[end][j+1]
+                return [l - j]
+            end
+        end 
+    end
+    n = strategy[1]
+    L = strategy[2:t-n+1]
+    R = strategy[t-n+2:t]
+
+    hL = h^(l^n)
+    xL = fq_dlog_subtree(e - n, hL, window_size, L, table)
+
+    hR = h
+    for i in 1:e-n
+        hR *= table[end-e+i][xL[i]+1]
+    end
+    xR = fq_dlog_subtree(n, hR, window_size, R, table)
+
+    return vcat(xL, xR)
+end
+
+function fq_dlog_power_of_2_opt(h::FqFieldElem, e::Int, window_size::Int,
+        strategy::Vector{Int}, T1::Vector{Vector{FqFieldElem}}, T2::Vector{Vector{FqFieldElem}})
+    l = 2^window_size
+    f, r = divrem(e, window_size)
+    xw = fq_dlog_subtree(f, h^(2^r), window_size, strategy, T2)
+
+    hr = h
+    for i in 1:f
+        hr *= T1[i][xw[i]]
+    end
+    xr = 0
+    for j in 0:2^r-1
+        if hr == T1[end][2^r-j+1]
+            xr = j+1
+        end
+    end
+    x += xr * l^f
+    return x
 end
