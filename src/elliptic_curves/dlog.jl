@@ -1,4 +1,4 @@
-export ec_dlog_power_of_2
+export ec_dlog_power_of_2, make_dlog_table
 
 # return n1, n2, n3, n4 such that P = [n1]R + [n1]S, Q = [n3]R + [n4]S
 function ec_dlog_power_of_2(P::Point{T}, Q::Point{T}, R::Point{T}, S::Point{T}, 
@@ -30,7 +30,7 @@ function ec_dlog_power_of_2(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, R::Point{
     return ec_dlog_power_of_2(P, Q, R, S, A, e)
 end
 
-# return n such that x = base^n
+# return n such that x = base^e
 function fq_dlog_power_of_2(x::FqFieldElem, base::FqFieldElem, e::Integer)
     n = BigInt(0)
     t = x
@@ -41,4 +41,31 @@ function fq_dlog_power_of_2(x::FqFieldElem, base::FqFieldElem, e::Integer)
         end
     end
     return n
+end
+
+# make a precomputed table for dlog with base of order 2^e
+function make_dlog_table(base::FqFieldElem, e::Int, window_size::Int)
+    F = parent(base)
+    l = 2^window_size
+    f, r = divrem(e, window_size)
+    T1 = [[F(1) for _ in 1:l] for _ in 1:(f+1)]
+    T2 = [[F(1) for _ in 1:l] for _ in 1:f]
+
+    T1[1][2] = 1/base
+    for j in 2:l-1
+        T1[1][j+1] = (T1[1][2])^j
+    end
+    for i in 1:f
+        for j in 1:l-1
+            T1[i+1][j+1] = (T1[i][j+1])^l
+        end
+    end
+
+    for i in 1:f
+        for j in 2:l
+            T2[i][j] = T1[i][j]^(2^r)
+        end
+    end
+
+    return T1, T2
 end

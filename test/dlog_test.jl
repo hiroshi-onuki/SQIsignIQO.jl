@@ -1,5 +1,5 @@
 using Nemo
-import KaniSQIsign: Proj1, ec_dlog_power_of_2, random_point_order_2power, add, mult
+import KaniSQIsign: Proj1, ec_dlog_power_of_2, random_point_order_2power, add, mult, make_dlog_table
 
 p = BigInt(2)^247*79 - 1
 R, T = polynomial_ring(GF(p), "T")
@@ -22,3 +22,5 @@ n3R = mult(n3, R, Proj1(A))
 n4S = mult(n4, S, Proj1(A))
 @test P == add(n1R, n2S, Proj1(A)) || P == add(-n1R, -n2S, Proj1(A))
 @test Q == add(n3R, n4S, Proj1(A)) || Q == add(-n3R, -n4S, Proj1(A))
+
+T1, T2 = make_dlog_table(i, e, 3)
