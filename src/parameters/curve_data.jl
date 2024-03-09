@@ -1,4 +1,11 @@
-export CurveData
+export DlogData, CurveData
+
+struct DlogData
+    window_size::Int
+    T1::Vector{Vector{FqFieldElem}}
+    T2::Vector{Vector{FqFieldElem}}
+    strategy::Vector{Int}
+end
 
 # structure for precomputed values
 struct CurveData{T <: RingElem}
@@ -15,7 +22,6 @@ struct CurveData{T <: RingElem}
     xP2e_short::Proj1{T}
     xQ2e_short::Proj1{T}
     xPQ2e_short::Proj1{T}
-    wp_P2e_Q2e::T
     DegreesOddTorsionBases::Vector{Int}
     ExponentsOddTorsionBases::Vector{Int}
     OddTorsionBases::Vector{Vector{Proj1{T}}}
@@ -23,4 +29,5 @@ struct CurveData{T <: RingElem}
     Matrix_2ed_inv::Matrix{BigInt}
     Matrices_odd::Vector{Vector{Matrix{Int}}}
     isomorphism_to_A0::Function
+    dlog_data::DlogData
 end

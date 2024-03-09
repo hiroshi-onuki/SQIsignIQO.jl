@@ -6,6 +6,8 @@ include("../quaternion/cornacchia.jl")
 include("../quaternion/ideal.jl")
 include("../quaternion/klpt.jl")
 
+include("../elliptic_curves/dlog.jl")
+
 include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
 include("../sqisign/sqisign.jl")
@@ -51,7 +53,12 @@ function make_field_curve_torsions()
     xP2e_short = xDBLe(xP2e, a24_0, ExponentForIsogeny)
     xQ2e_short = xDBLe(xQ2e, a24_0, ExponentForIsogeny)
     xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogeny)
+
+    # precomputed values for discrete logarithm
     wp_P2e_Q2e = Weil_pairing_2power(A0, P2e, Q2e, ExponentFull)
+    window_size = 3
+    fq_dlog_table1, fq_dlog_table2 = make_dlog_table(wp_P2e_Q2e, ExponentForIsogeny, window_size)
+    strategy_dlog = compute_strategy(div(ExponentFull, window_size) - 1, window_size, 1)
 
     DegreesOddTorsionBases = Int[3, 5, 17]
     ExponentsOddTorsionBases = Int[1, 1, 1]
@@ -83,5 +90,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, wp_P2e_Q2e, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0)
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, DlogData(window_size, fq_dlog_table1, fq_dlog_table2, strategy_dlog))
 end
