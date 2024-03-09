@@ -73,11 +73,9 @@ end
 function fq_dlog_subtree(e::Int, h::FqFieldElem, window_size::Int,
         strategy::Vector{Int}, table::Vector{Vector{FqFieldElem}})
     t = length(strategy)
-    l = 2^window_size
-    @assert h^(BigInt(l)^e) == 1
+    l = BigInt(2^window_size)
     if t == 0
         h == 1 && return [0]
-        @assert h^l == 1
         for j in 1:l-1
             if h == table[end][j+1]
                 return [l - j]
@@ -102,19 +100,25 @@ end
 
 function fq_dlog_power_of_2_opt(h::FqFieldElem, e::Int, window_size::Int,
         strategy::Vector{Int}, T1::Vector{Vector{FqFieldElem}}, T2::Vector{Vector{FqFieldElem}})
-    l = 2^window_size
+    l = BigInt(2^window_size)
     f, r = divrem(e, window_size)
     xw = fq_dlog_subtree(f, h^(2^r), window_size, strategy, T2)
 
     hr = h
     for i in 1:f
-        hr *= T1[i][xw[i]]
+        hr *= T1[i][xw[i] + 1]
     end
     xr = 0
     for j in 0:2^r-1
         if hr == T1[end][2^r-j+1]
-            xr = j+1
+            xr = j
+            break
         end
+    end
+
+    x = BigInt(0)
+    for i in 0:f-1
+        x += xw[i+1] * l^i
     end
     x += xr * l^f
     return x

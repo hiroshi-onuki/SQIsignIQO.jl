@@ -27,8 +27,9 @@ n4S = mult(n4, S, Proj1(A))
 base = Weil_pairing_2power(A, R, S, e)
 @assert base^(BigInt(2)^e) == 1
 @assert base^(BigInt(2)^(e-1)) != 1
-x = rand(Fp2)^(79*(p - 1))
+x = Weil_pairing_2power(A, P, Q, e)
 @assert x^(BigInt(2)^e) == 1
+@assert x^(BigInt(2)^(e-1)) != 1
 w = 3
 T1, T2 = make_dlog_table(base, e, w)
 strategy = [30, 18, 12, 8, 5, 3, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 6, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 10, 8, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 4, 2, 1, 1, 1, 1, 1, 1, 1]
