@@ -159,4 +159,5 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
 
     I = intersection(I_com, I_cha)
 
+    mu, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
 end

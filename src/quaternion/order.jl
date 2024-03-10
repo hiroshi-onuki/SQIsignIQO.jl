@@ -98,6 +98,10 @@ function norm(x::QOrderElem)
     return div((2*x.a + x.d)^2 + (2*x.b + x.c)^2 + p*(x.c^2 + x.d^2), 4)
 end
 
+function trace(x::QOrderElem)
+    return 2*x.a + x.d
+end
+
 function quadratic_form(x::QOrderElem, y::QOrderElem)
     return norm(x + y) - norm(x) - norm(y)
 end

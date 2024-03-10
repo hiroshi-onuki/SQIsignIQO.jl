@@ -53,6 +53,41 @@ function RandomEquivalentPrimeIdeal(I::LeftIdeal)
     return J, nJ, found
 end
 
+# Isec: a left ideal of O0, I: a left ideal of O0 ofr norm N
+# return [Isec]^* L, where L ~ (\bar(Isec)I) and norm(L) is prime
+function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N::Integer)
+    counter = 0
+    found = false
+    J = LeftIdeal([Quaternion_0, Quaternion_0, Quaternion_0, Quaternion_0])
+    nJ = 0
+
+    # compute \var(Isec)I
+    invIsec = [involution(b) for b in [Isec.b1, Isec.b2, Isec.b3, Isec.b4]]
+    generator = [x * y for x in invIsec for y in [I.b1, I.b2, I.b3, I.b4]]
+    basis = get_basis([to_vector(b) for b in generator])
+    invIsecI = LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
+
+    # LLL reduction
+    Imatrix = ideal_to_matrix(invIsecI)
+    q(x, y) = quadratic_form(QOrderElem(x), QOrderElem(y))
+    H = integral_LLL([Imatrix[:, i] for i in 1:4], q)
+    LLLmat = Imatrix * H
+    red_basis = [LLLmat[:, i] for i in 1:4]
+
+    while !found && counter < KLPT_equiv_num_iter
+        counter += 1
+        c1, c2, c3, c4 = [rand(-KLPT_equiv_bound_coeff:KLPT_equiv_bound_coeff) for _ in 1:4]
+        beta = c1 * red_basis[1] + c2 * red_basis[2] + c3 * red_basis[3] + c4 * red_basis[4]
+        beta = QOrderElem(beta)
+        nJ = div(norm(beta), N)
+        if is_prime(nJ)
+            found = true
+            J = ideal_transform(I, beta, N)
+        end
+    end
+    return J, nJ, found
+end
+
 # Algorithm 11 in SQIsign documentation
 # return C, D s.t. gamma*j*(C + D*i)*delta in Z + I, where N = n(I), if divisible then N | norm(gamma).
 function EichlerModConstraint(I::LeftIdeal, N::Integer, gamma::QOrderElem, delta::QOrderElem, divisible::Bool)
@@ -104,7 +139,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
     v = [lambda*C, lambda*D + N*c1*c2]
     vd = closest_vector(b0, b1, v)
     B = BigInt(2) << Int(min(ceil(log(2, N_mu/p)), 3*ceil(log(2, N)) + 10))
-    vs =  enumerate_close_vector(b1, b0, v, vd, max_tries, B)
+    vs = enumerate_close_vector(b1, b0, v, vd, max_tries, B)
     for vdd in vs
         M = div(N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2), N^2)
         a, b, found = sum_of_two_squares(M)
@@ -171,6 +206,46 @@ function KLPT(I::LeftIdeal, N_I::Integer)
         lambda = sqrt_mod(4*N_mu_N_CD, N_I)
 
         mu, found = FullStrongApproximation(N_I, C, D, lambda, 4*N_mu, KLPT_signing_number_strong_approx)
+    end
+    return gamma*mu, found
+end
+
+# Algorithm 17 in SQIsign documentation
+function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
+    L, NL, _ = RandomEquivalentPrimeIdeal_for_signing(Isec, I, N_I)
+    k = Log2p - Int(floor(log(2, NL))) + KLPT_gamma_exponent_center_shift
+    N_gamma = BigInt(2)^k
+    N_mu = BigInt(2)^(KLPT_signing_klpt_length - k)
+
+    counter = 0
+    found = false
+    gamma = Quaternion_0
+    mu = Quaternion_0
+    while !found && counter < KLPT_signing_num_gamma_trial
+            counter += 1
+
+        gamma, found = FullRepresentInteger(NL * N_gamma)
+        !found && continue
+
+        C0, D0 = EichlerModConstraint(L, NL, gamma, QOrderElem(1), true)
+        N_CD = p * (C^2 + D^2)
+        N_mu_N_CD = (N_mu * invmod(N_CD, NL)) % NL
+        quadratic_residue_symbol(N_mu_N_CD, NL) != 1 && continue
+        lambda0 = sqrt_mod(N_mu_N_CD, NL)
+
+        C1, D1 = EichlerModConstraint(Isec, Nsec, gamma, QOrderElem(1), false)
+        N_CD = p * (C^2 + D^2)
+        N_mu_N_CD = (N_mu * invmod(N_CD, Nsec)) % Nsec
+        quadratic_residue_symbol(N_mu_N_CD, Nsec) != 1 && continue
+        lambda1 = sqrt_mod(N_mu_N_CD, Nsec)
+
+        lamnd = 2 * crt([lambda0, lambda1], [NL, Nsec])
+        N_mu *= 4
+        C = crt([C0, C1], [NL, Nsec])
+        D = crt([D0, D1], [NL, Nsec])
+
+        mu, found = FullStrongApproximation(Nsec*NL, C, D, lambda, N_mu, KLPT_signing_number_strong_approx)
+        trace(gamma*mu) % 2 == 0 && (found = false)
     end
     return gamma*mu, found
 end

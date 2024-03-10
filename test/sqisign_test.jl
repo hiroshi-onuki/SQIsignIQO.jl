@@ -25,7 +25,7 @@ function response_test(param::Module, num::Int)
         pk, sk, found = param.key_gen(cdata)
         com, sk_com, found = param.commitment(cdata)
         cha = param.challenge(com, "message")
-        param.response(pk, sk, com, sk_com, cha, cdata)
+        @time param.response(pk, sk, com, sk_com, cha, cdata)
     end
 end
 
