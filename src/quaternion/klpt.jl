@@ -55,11 +55,12 @@ end
 
 # Isec: a left ideal of O0, I: a left ideal of O0 ofr norm N
 # return [Isec]^* L, where L ~ (\bar(Isec)I) and norm(L) is prime
-function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N::Integer)
+function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, NI::BigInt)
     counter = 0
     found = false
     J = LeftIdeal([Quaternion_0, Quaternion_0, Quaternion_0, Quaternion_0])
     nJ = 0
+    N = Nsec * NI
 
     # compute \var(Isec)I
     invIsec = [involution(b) for b in [Isec.b1, Isec.b2, Isec.b3, Isec.b4]]
@@ -82,7 +83,8 @@ function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N
         nJ = div(norm(beta), N)
         if is_prime(nJ)
             found = true
-            J = ideal_transform(I, beta, N)
+            J = ideal_transform(I, beta, NI) # Isec * L
+            J = larger_ideal(J, nJ) # [Isec]^* L
         end
     end
     return J, nJ, found
@@ -108,16 +110,16 @@ function EichlerModConstraint(I::LeftIdeal, N::Integer, gamma::QOrderElem, delta
     elseif M[2, 2] == 0
         C, D = 0, 1
     elseif M[3, 3] == 0
-        i = findfirst(x!=0 for x in M[1, 3:end]) + 2
+        i = findfirst(x!=0 for x in M[1, 3:end])
         if i != nothing
-            C, D = M[1, i], M[2, i]
+            C, D = M[1, i + 2], M[2, i + 2]
         else
             C, D = 0, 1
         end
     elseif M[4, 4] == 0
-        i = findfirst(x!=0 for x in M[1, 4:end]) + 3
+        i = findfirst(x!=0 for x in M[1, 4:end])
         if i != nothing
-            C, D = M[1, i], M[2, i]
+            C, D = M[1, i + 3], M[2, i + 3]
         else
             C, D = 0, 1
         end
@@ -212,7 +214,9 @@ end
 
 # Algorithm 17 in SQIsign documentation
 function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
-    L, NL, _ = RandomEquivalentPrimeIdeal_for_signing(Isec, I, N_I)
+    L, NL, found = RandomEquivalentPrimeIdeal_for_signing(Isec, I, Nsec, N_I)
+    @assert found
+    @assert norm(L) == NL
     k = Log2p - Int(floor(log(2, NL))) + KLPT_gamma_exponent_center_shift
     N_gamma = BigInt(2)^k
     N_mu = BigInt(2)^(KLPT_signing_klpt_length - k)
@@ -228,23 +232,23 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
         !found && continue
 
         C0, D0 = EichlerModConstraint(L, NL, gamma, QOrderElem(1), true)
-        N_CD = p * (C^2 + D^2)
+        N_CD = p * (C0^2 + D0^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, NL)) % NL
         quadratic_residue_symbol(N_mu_N_CD, NL) != 1 && continue
         lambda0 = sqrt_mod(N_mu_N_CD, NL)
 
         C1, D1 = EichlerModConstraint(Isec, Nsec, gamma, QOrderElem(1), false)
-        N_CD = p * (C^2 + D^2)
+        N_CD = p * (C1^2 + D1^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, Nsec)) % Nsec
         quadratic_residue_symbol(N_mu_N_CD, Nsec) != 1 && continue
         lambda1 = sqrt_mod(N_mu_N_CD, Nsec)
 
-        lamnd = 2 * crt([lambda0, lambda1], [NL, Nsec])
+        lam = 2 * crt([lambda0, lambda1], [NL, Nsec])
         N_mu *= 4
         C = crt([C0, C1], [NL, Nsec])
         D = crt([D0, D1], [NL, Nsec])
 
-        mu, found = FullStrongApproximation(Nsec*NL, C, D, lambda, N_mu, KLPT_signing_number_strong_approx)
+        mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, N_mu, KLPT_signing_number_strong_approx)
         trace(gamma*mu) % 2 == 0 && (found = false)
     end
     return gamma*mu, found
