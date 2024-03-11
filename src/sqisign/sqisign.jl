@@ -158,10 +158,12 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
     I_cha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
     @assert norm(I_cha) == BigInt(2)^SQISIGN_challenge_length
 
+    # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
     I = intersection(I_com, I_cha)
     I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
     I = intersection(I_A, I)
 
+    # ideal to isogeny
     a24 = A_to_a24(pk)
     xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
     M = M_A
@@ -176,5 +178,19 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
         I = ideal_transform(I, beta, n_I_d)
         e -= ed
     end
+    !found && return a24, found
+
+    I = intersection(I, I_cha) # corresponds to E_0 -> E_cha -> E_com
+    I = larger_ideal(I, BigInt(2)^SQISIGN_challenge_length)
+    alpha = element_prime_to(I, 2)
+    M_cha = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_2e[1] + alpha[3] * cdata.Matrices_2e[2] + alpha[4] * cdata.Matrices_2e[3]
+    xP = xDBLe(xP, a24, ExponentFull - SQISIGN_challenge_length)
+    xQ = xDBLe(xQ, a24, ExponentFull - SQISIGN_challenge_length)
+    xPQ = xDBLe(xPQ, a24, ExponentFull - SQISIGN_challenge_length)
+    ker = kernel_gen_power_of_prime(xP, xQ, xPQ, a24, M_cha, M, 2, SQISIGN_challenge_length)
+    a24_com, _ = two_e_iso(a24, ker, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
+
+    @assert jInvariant_a24(a24_com) == jInvariant_A(com)
+
     return a24, found
 end
