@@ -141,7 +141,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
     v = [lambda*C, lambda*D + N*c1*c2]
     vd = closest_vector(b0, b1, v)
     B = BigInt(2) << Int(min(ceil(log(2, N_mu/p)), 3*ceil(log(2, N)) + 10))
-    vs = @time enumerate_close_vector(b1, b0, v, vd, max_tries, B)
+    vs = enumerate_close_vector(b1, b0, v, vd, max_tries, B)
     for vdd in vs
         M = div(N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2), N^2)
         a, b, found = sum_of_two_squares(M)
@@ -249,5 +249,5 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
         mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, 4*N_mu, KLPT_signing_number_strong_approx)
         trace(gamma*mu) % 2 == 0 && (found = false)
     end
-    return gamma*mu, found
+    return ideal_transform(L, gamma*mu, NL), found
 end

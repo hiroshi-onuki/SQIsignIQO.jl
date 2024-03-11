@@ -96,6 +96,7 @@ function key_gen(cdata::CurveData)
         end
         !found && continue
         pk = Montgomery_coeff(a24)
+        M = (M * m) .% BigInt(2)^ExponentFull   # M corresponds to (m * phi_I_sec^-1)^-1, so we need to multiply m
         sk = (xP, xQ, xPQ, M, I_sec)
     end
     return pk, sk, found
@@ -158,6 +159,22 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
     @assert norm(I_cha) == BigInt(2)^SQISIGN_challenge_length
 
     I = intersection(I_com, I_cha)
+    I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+    I = intersection(I_A, I)
 
-    mu, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+    a24 = A_to_a24(pk)
+    xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
+    M = M_A
+    D = norm(I_A)
+    e = KLPT_signing_klpt_length
+    while e > 0
+        ed = min(e, ExponentForIsogeny)
+        n_I_d = D * BigInt(2)^ed
+        I_d = larger_ideal(I, n_I_d)
+        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
+        !found && break
+        I = ideal_transform(I, beta, n_I_d)
+        e -= ed
+    end
+    return a24, found
 end
