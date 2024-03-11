@@ -141,7 +141,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
     v = [lambda*C, lambda*D + N*c1*c2]
     vd = closest_vector(b0, b1, v)
     B = BigInt(2) << Int(min(ceil(log(2, N_mu/p)), 3*ceil(log(2, N)) + 10))
-    vs = enumerate_close_vector(b1, b0, v, vd, max_tries, B)
+    vs = @time enumerate_close_vector(b1, b0, v, vd, max_tries, B)
     for vdd in vs
         M = div(N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2), N^2)
         a, b, found = sum_of_two_squares(M)
@@ -216,7 +216,6 @@ end
 function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
     L, NL, found = RandomEquivalentPrimeIdeal_for_signing(Isec, I, Nsec, N_I)
     @assert found
-    @assert norm(L) == NL
     k = Log2p - Int(floor(log(2, NL))) + KLPT_gamma_exponent_center_shift
     N_gamma = BigInt(2)^k
     N_mu = BigInt(2)^(KLPT_signing_klpt_length - k)
@@ -226,10 +225,10 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
     gamma = Quaternion_0
     mu = Quaternion_0
     while !found && counter < KLPT_signing_num_gamma_trial
-            counter += 1
+        counter += 1
 
-        gamma, found = FullRepresentInteger(NL * N_gamma)
-        !found && continue
+        gamma, gamma_found = FullRepresentInteger(NL * N_gamma)
+        !gamma_found && continue
 
         C0, D0 = EichlerModConstraint(L, NL, gamma, QOrderElem(1), true)
         N_CD = p * (C0^2 + D0^2)
@@ -244,11 +243,10 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
         lambda1 = sqrt_mod(N_mu_N_CD, Nsec)
 
         lam = 2 * crt([lambda0, lambda1], [NL, Nsec])
-        N_mu *= 4
         C = crt([C0, C1], [NL, Nsec])
         D = crt([D0, D1], [NL, Nsec])
 
-        mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, N_mu, KLPT_signing_number_strong_approx)
+        mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, 4*N_mu, KLPT_signing_number_strong_approx)
         trace(gamma*mu) % 2 == 0 && (found = false)
     end
     return gamma*mu, found
