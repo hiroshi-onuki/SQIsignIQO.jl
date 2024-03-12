@@ -130,25 +130,37 @@ function commitment(cdata::CurveData)
         is_first = false
         extdeg = 1
     end
-   return Montgomery_coeff(a24), (xP, xQ, xPQ, M, I), found
+   return (Montgomery_coeff(a24), xP, xQ, xPQ), (M, I), found
 end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
 # where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
-function challenge(com::FqFieldElem, m::String)
-    h = sha3_256(string(com) * m)
+function challenge(com, m::String)
+    A, xP, xQ, xPQ = com
+    h = sha3_256(string(A) * m)
 
     c = BigInt(0)
     for i in 1:div(SQISIGN_challenge_length,8)
         c += BigInt(h[i]) << (8*(i-1))
     end
 
-    return c
+    a24 = A_to_a24(A)
+    xP = xDBLe(xP, a24, ExponentFull - SQISIGN_challenge_length)
+    xQ = xDBLe(xQ, a24, ExponentFull - SQISIGN_challenge_length)
+    xPQ = xDBLe(xPQ, a24, ExponentFull - SQISIGN_challenge_length)
+    ker = ladder3pt(c, xP, xQ, xPQ, a24)
+
+    a24, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
+    a24, im = Montgomery_normalize(a24, im)
+
+    return c, a24, im[1]
 end
 
-function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cdata::CurveData)
+function response(pk::FqFieldElem, sk, com, sk_com, challenge, cdata::CurveData)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
-    xP_com, xQ_com, xPQ_com, M_com, I_com = sk_com
+    M_com, I_com = sk_com
+
+    cha, a24cha, K = challenge
 
     # pull-back of the challenge ideal
     M_com_inv = [M_com[2,2] -M_com[1,2]; -M_com[2,1] M_com[1,1]] * invmod(M_com[1, 1] * M_com[2, 2] - M_com[1, 2] * M_com[2, 1], BigInt(2)^ExponentFull)
@@ -180,17 +192,11 @@ function response(pk::FqFieldElem, sk, com::FqFieldElem, sk_com, cha::BigInt, cd
     end
     !found && return a24, found
 
-    I = intersection(I, I_cha) # corresponds to E_0 -> E_cha -> E_com
-    I = larger_ideal(I, BigInt(2)^SQISIGN_challenge_length)
-    alpha = element_prime_to(I, 2)
-    M_cha = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_2e[1] + alpha[3] * cdata.Matrices_2e[2] + alpha[4] * cdata.Matrices_2e[3]
-    xP = xDBLe(xP, a24, ExponentFull - SQISIGN_challenge_length)
-    xQ = xDBLe(xQ, a24, ExponentFull - SQISIGN_challenge_length)
-    xPQ = xDBLe(xPQ, a24, ExponentFull - SQISIGN_challenge_length)
-    ker = kernel_gen_power_of_prime(xP, xQ, xPQ, a24, M_cha, M, 2, SQISIGN_challenge_length)
-    a24_com, _ = two_e_iso(a24, ker, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
+    @assert a24 == a24cha
 
-    @assert jInvariant_a24(a24_com) == jInvariant_A(com)
+    a24com, _ = two_e_iso(a24, K, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
+    a24com, _ = Montgomery_normalize(a24com, Proj1{FqFieldElem}[])
+    @assert Montgomery_coeff(a24com) == com[1]
 
     return a24, found
 end
