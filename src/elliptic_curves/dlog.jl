@@ -25,10 +25,10 @@ function ec_dlog_power_of_2_E0(P::Point{T}, Q::Point{T}, cdata::CurveData) where
     w3 = Weil_pairing_2power(A0, Q, Q0, e)
     w4 = Weil_pairing_2power(A0, Q, P0, e)
 
-    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data)
-    n2 = -fq_dlog_power_of_2_opt(w2, cdata.dlog_data)
-    n3 = fq_dlog_power_of_2_opt(w3, cdata.dlog_data)
-    n4 = -fq_dlog_power_of_2_opt(w4, cdata.dlog_data)
+    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_full)
+    n2 = -fq_dlog_power_of_2_opt(w2, cdata.dlog_data_full)
+    n3 = fq_dlog_power_of_2_opt(w3, cdata.dlog_data_full)
+    n4 = -fq_dlog_power_of_2_opt(w4, cdata.dlog_data_full)
 
     return n1, n2, n3, n4
 end
@@ -139,8 +139,7 @@ end
 
 # return n such that h = g^n, where g is a fixed base of order 2^e
 function fq_dlog_power_of_2_opt(h::FqFieldElem, dlog_data::DlogData)
-    window_size, T1, T2, strategy = dlog_data.window_size, dlog_data.T1, dlog_data.T2, dlog_data.strategy
-    e = ExponentFull
+    e, window_size, T1, T2, strategy = dlog_data.e, dlog_data.window_size, dlog_data.T1, dlog_data.T2, dlog_data.strategy
     l = BigInt(2^window_size)
     f, r = divrem(e, window_size)
     xw = fq_dlog_subtree(f, square_e(h, r), window_size, strategy, T2)

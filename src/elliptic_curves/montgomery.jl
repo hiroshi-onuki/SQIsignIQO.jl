@@ -2,7 +2,7 @@ export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
     linear_comb_2_e, random_point, random_point_order_2power,
     Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
     two_e_iso, odd_isogeny, torsion_basis, isomorphism_Montgomery,
-    Montgomery_normalize
+    Montgomery_normalize, complete_baisis
 
 # random point on a Montgomery curve: y^2 = x^3 + Ax^2 + x
 function random_point(A::T) where T <: RingElem

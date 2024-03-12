@@ -150,13 +150,15 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     ker = ladder3pt(c, xP, xQ, xPQ, a24)
 
     a24d, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
-    a24d, im = Montgomery_normalize(a24, im)
+    a24d, im = Montgomery_normalize(a24d, im)
 
     K = im[1]
-    P = complete_baisis(a24d, K, xDBLe(K, a24d, SQISIGN_challenge_length - 1), parent(A)(1), SQISIGN_challenge_length)
+    @assert is_infinity(xDBLe(K, a24d, SQISIGN_challenge_length))
+    @assert !is_infinity(xDBLe(K, a24d, SQISIGN_challenge_length - 1))
+    _, P, _ = complete_baisis(a24d, K, xDBLe(K, a24d, SQISIGN_challenge_length - 1), parent(A)(1), SQISIGN_challenge_length)
     a24dd, im = two_e_iso(a24d, K, SQISIGN_challenge_length, [P])
+    a24dd, im = Montgomery_normalize(a24dd, im)
     @assert a24dd == a24
-    
 
     return c, a24d, K
 end

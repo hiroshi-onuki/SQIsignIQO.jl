@@ -61,6 +61,11 @@ function make_field_curve_torsions()
     window_size = 3
     fq_dlog_table1, fq_dlog_table2 = make_dlog_table(wp_P2e_Q2e, ExponentFull, window_size)
     strategy_dlog = compute_strategy(div(ExponentFull, window_size) - 1, window_size, 1)
+    dlog_data_full = DlogData(ExponentFull, window_size, fq_dlog_table1, fq_dlog_table2, strategy_dlog)
+    base = wp_P2e_Q2e^(BigInt(2)^(ExponentFull - SQISIGN_challenge_length))
+    fq_dlog_table1_c, fq_dlog_table2_c = make_dlog_table(base, SQISIGN_challenge_length, window_size)
+    strategy_dlog_c = compute_strategy(div(SQISIGN_challenge_length, window_size) - 1, window_size, 1)
+    dlog_data_chall = DlogData(SQISIGN_challenge_length, window_size, fq_dlog_table1_c, fq_dlog_table2_c, strategy_dlog_c)
 
     DegreesOddTorsionBases = [3, 5, 79]
     ExponentsOddTorsionBases = [1, 1, 1]
@@ -92,5 +97,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, DlogData(window_size, fq_dlog_table1, fq_dlog_table2, strategy_dlog))
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall)
 end

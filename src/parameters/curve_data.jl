@@ -1,6 +1,7 @@
 export DlogData, CurveData
 
 struct DlogData
+    e::Int
     window_size::Int
     T1::Vector{Vector{FqFieldElem}}
     T2::Vector{Vector{FqFieldElem}}
@@ -29,5 +30,6 @@ struct CurveData{T <: RingElem}
     Matrix_2ed_inv::Matrix{BigInt}
     Matrices_odd::Vector{Vector{Matrix{Int}}}
     isomorphism_to_A0::Function
-    dlog_data::DlogData
+    dlog_data_full::DlogData
+    dlog_data_chall::DlogData
 end
