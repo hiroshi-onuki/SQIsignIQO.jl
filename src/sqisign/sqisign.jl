@@ -149,55 +149,16 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     xPQ = xDBLe(xPQ, a24, ExponentFull - SQISIGN_challenge_length)
     ker = ladder3pt(c, xP, xQ, xPQ, a24)
 
-    a24, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
-    a24, im = Montgomery_normalize(a24, im)
+    a24d, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
+    a24d, im = Montgomery_normalize(a24, im)
 
-    return c, a24, im[1]
-end
+    K = im[1]
+    P = complete_baisis(a24d, K, xDBLe(K, a24d, SQISIGN_challenge_length - 1), parent(A)(1), SQISIGN_challenge_length)
+    a24dd, im = two_e_iso(a24d, K, SQISIGN_challenge_length, [P])
+    @assert a24dd == a24
+    
 
-function response(pk::FqFieldElem, sk, com, sk_com, challenge, cdata::CurveData)
-    xP_A, xQ_A, xPQ_A, M_A, I_A = sk
-    M_com, I_com = sk_com
-
-    cha, a24cha, K = challenge
-
-    # pull-back of the challenge ideal
-    M_com_inv = [M_com[2,2] -M_com[1,2]; -M_com[2,1] M_com[1,1]] * invmod(M_com[1, 1] * M_com[2, 2] - M_com[1, 2] * M_com[2, 1], BigInt(2)^ExponentFull)
-    a, b = M_com_inv * [1, cha]
-    a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
-    alpha = QOrderElem(a, b, c, d)
-    I_cha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
-    @assert norm(I_cha) == BigInt(2)^SQISIGN_challenge_length
-
-    # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
-    I = intersection(I_com, I_cha)
-    I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
-    I = intersection(I_A, I)
-
-    # ideal to isogeny
-    a24 = A_to_a24(pk)
-    xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
-    M = M_A
-    D = norm(I_A)
-    e = KLPT_signing_klpt_length
-    while e > 0
-        ed = min(e, ExponentForIsogeny)
-        n_I_d = D * BigInt(2)^ed
-        I_d = larger_ideal(I, n_I_d)
-        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
-        !found && break
-        I = ideal_transform(I, beta, n_I_d)
-        e -= ed
-    end
-    !found && return a24, found
-
-    @assert a24 == a24cha
-
-    a24com, _ = two_e_iso(a24, K, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
-    a24com, _ = Montgomery_normalize(a24com, Proj1{FqFieldElem}[])
-    @assert Montgomery_coeff(a24com) == com[1]
-
-    return a24, found
+    return c, a24d, K
 end
 
 function signing(pk, sk, m::String, cdata::CurveData)
