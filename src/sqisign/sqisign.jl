@@ -130,13 +130,12 @@ function commitment(cdata::CurveData)
         is_first = false
         extdeg = 1
     end
-   return (Montgomery_coeff(a24), xP, xQ, xPQ), (M, I), found
+   return Montgomery_coeff(a24), xP, xQ, xPQ, M, I, found
 end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
 # where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
-function challenge(com, m::String)
-    A, xP, xQ, xPQ = com
+function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, m::String)
     h = sha3_256(string(A) * m)
 
     c = BigInt(0)
@@ -199,4 +198,48 @@ function response(pk::FqFieldElem, sk, com, sk_com, challenge, cdata::CurveData)
     @assert Montgomery_coeff(a24com) == com[1]
 
     return a24, found
+end
+
+function signing(pk, sk, m::String, cdata::CurveData)
+    xP_A, xQ_A, xPQ_A, M_A, I_A = sk
+
+    Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
+    !found && return nothing, nothing, false
+    cha, a24cha, Kcha = challenge(Acom, xP, xQ, xPQ, m)
+
+    # pull-back of the challenge ideal
+    Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
+    a, b = Mcom_inv * [1, cha]
+    a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
+    alpha = QOrderElem(a, b, c, d)
+    Icha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
+
+    # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
+    I = intersection(Icom, Icha)
+    I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+    I = intersection(I_A, I)
+
+    # ideal to isogeny
+    a24 = A_to_a24(pk)
+    xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
+    M = M_A
+    D = norm(I_A)
+    e = KLPT_signing_klpt_length
+    while e > 0
+        ed = min(e, ExponentForIsogeny)
+        n_I_d = D * BigInt(2)^ed
+        I_d = larger_ideal(I, n_I_d)
+        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
+        !found && break
+        I = ideal_transform(I, beta, n_I_d)
+        e -= ed
+    end
+
+    @assert a24 == a24cha
+
+    a24com, _ = two_e_iso(a24, Kcha, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
+    a24com, _ = Montgomery_normalize(a24com, Proj1{FqFieldElem}[])
+    @assert Montgomery_coeff(a24com) == Acom
+
+    return a24, true
 end

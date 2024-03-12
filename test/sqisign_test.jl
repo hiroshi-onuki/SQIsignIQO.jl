@@ -9,23 +9,13 @@ function keygen_test(param::Module, num::Int)
     end
 end
 
-function commitment_test(param::Module, num::Int)
+function signing_test(param::Module, num::Int)
     _, _, cdata = param.make_field_curve_torsions()
-    println("Commitment test for $(param)")
-    for _ in 1:num
-        @time com, sk, found = param.commitment(cdata)
-        println("Found: $(found)")
-    end
-end
-
-function response_test(param::Module, num::Int)
-    _, _, cdata = param.make_field_curve_torsions()
-    println("Response test for $(param)")
+    println("Signing test for $(param)")
     for _ in 1:num
         pk, sk, found = param.key_gen(cdata)
-        com, sk_com, found = param.commitment(cdata)
-        cha = param.challenge(com, "message")
-        a24, found = @time param.response(pk, sk, com, sk_com, cha, cdata)
+        m = "message to sign"
+        a24, found = @time param.signing(pk, sk, m, cdata)
         println("Found: $(found)")
     end
 end
@@ -45,5 +35,4 @@ function gen_ideals(param::Module, e::Int)
 end
 
 keygen_test(KaniSQIsign.Level1, 1)
-commitment_test(KaniSQIsign.Level1, 1)
-response_test(KaniSQIsign.Level1, 10)
+signing_test(KaniSQIsign.Level1, 1)
