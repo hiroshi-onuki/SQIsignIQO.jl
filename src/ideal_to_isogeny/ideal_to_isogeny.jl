@@ -222,7 +222,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # end of pairing check
 
     # compute the matrix M' s.t. phi_J(P0, Q0) = norm(J)*(Pd, Qd)M'
-    c11, c21, c12, c22 = ec_dlog_power_of_2_E0(xPdd, xQdd, xPQdd, cdata)
+    c11, c21, c12, c22 = ec_bi_dlog_E0(xPdd, xQdd, xPQdd, cdata)
     @assert xPdd == linear_comb_2_e(c11, c21, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     @assert xQdd == linear_comb_2_e(c12, c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
