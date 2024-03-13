@@ -159,7 +159,6 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
     @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length) || xK == linear_comb_2_e(s1, -s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
 
-    println("s1, s2 = ", s1, ", ", s2)
     ker_d = s1 % 2 == 0 ? xPd : xQd
     @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
     @assert is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length))
@@ -173,7 +172,7 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     return c, s1, s2, r
 end
 
-function signing(pk, sk, m::String, cdata::CurveData)
+function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
 
     Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
@@ -201,7 +200,7 @@ function signing(pk, sk, m::String, cdata::CurveData)
     M = M_A
     D = norm(I_A)
 
-    sign = []
+    sign = Vector{BigInt}[]
     e = KLPT_signing_klpt_length
     compute_coeff = true
     while e > 0
@@ -223,24 +222,46 @@ function signing(pk, sk, m::String, cdata::CurveData)
         I = ideal_transform(I, beta, n_I_d)
         e -= ed
     end
-    println(sign)
 
-    # check signature
-    a24d = A_to_a24(pk)
+    return sign, s1, s2, r, true
+end
+
+function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::BigInt, s2::BigInt, r::BigInt, cdata::CurveData)
+    # challenge ellitpic curve
+    a24 = A_to_a24(pk)
+    xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
     e = KLPT_signing_klpt_length
     for (a, b) in sign
         ed = min(2*ExponentForIsogeny, e)
-        xP, xQ, xPQ = torsion_basis(a24d, ExponentFull)
-        xP = xDBLe(xP, a24d, ExponentFull - ed)
-        xQ = xDBLe(xQ, a24d, ExponentFull - ed)
-        xPQ = xDBLe(xPQ, a24d, ExponentFull - ed)
-        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24d, ed)
-        a24d, _ = two_e_iso(a24d, ker, ed, Proj1{FqFieldElem}[])
-        a24d, _ = Montgomery_normalize(a24d, Proj1{FqFieldElem}[])
+        xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
+        xP = xDBLe(xP, a24, ExponentFull - ed)
+        xQ = xDBLe(xQ, a24, ExponentFull - ed)
+        xPQ = xDBLe(xPQ, a24, ExponentFull - ed)
+        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24, ed)
+        a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[])
+        a24, _ = Montgomery_normalize(a24, Proj1{FqFieldElem}[])
         e -= ed
     end
 
-    @assert a24d == a24
+    # commitment elliptic curve
+    xP, xQ, xPQ = torsion_basis(a24, SQISIGN_challenge_length)
+    ker = linear_comb_2_e(s1, s2, xP, xQ, xPQ, a24, SQISIGN_challenge_length)
+    xR = s1 % 2 == 0 ? xP : xQ
+    a24com, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR])
+    a24com, im = Montgomery_normalize(a24com, im)
+    Acom = Montgomery_coeff(a24com)
+    xP, xQ, xPQ = torsion_basis(a24com, ExponentFull)
+    xP = xDBLe(xP, a24com, ExponentFull - SQISIGN_challenge_length)
+    xQ = xDBLe(xQ, a24com, ExponentFull - SQISIGN_challenge_length)
+    xPQ = xDBLe(xPQ, a24com, ExponentFull - SQISIGN_challenge_length)
 
-    return a24, true
+    # recover challenge
+    h = sha3_256(string(Acom) * m)
+    c = BigInt(0)
+    for i in 1:div(SQISIGN_challenge_length,8)
+        c += BigInt(h[i]) << (8*(i-1))
+    end
+    xK = ladder3pt(c, xP, xQ, xPQ, a24com)
+
+    return xK == ladder(r, im[1], a24com)
 end

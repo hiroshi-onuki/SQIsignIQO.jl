@@ -1,38 +1,21 @@
 using KaniSQIsign
 
-function keygen_test(param::Module, num::Int)
-    _, _, cdata = param.make_field_curve_torsions()
-    println("Keygen test for $(param)")
-    for _ in 1:num
-        @time pk, sk, found = param.key_gen(cdata)
-        println("Found: $(found)")
-    end
-end
-
 function signing_test(param::Module, num::Int)
     _, _, cdata = param.make_field_curve_torsions()
     println("Signing test for $(param)")
     for _ in 1:num
-        pk, sk, found = param.key_gen(cdata)
+        println("Generate keys")
+        pk, sk, found = @time param.key_gen(cdata)
+
+        println("Sign message")
         m = "message to sign"
-        a24, found = @time param.signing(pk, sk, m, cdata)
+        sign, s1, s2, r, found = @time param.signing(pk, sk, m, cdata)
         println("Found: $(found)")
+
+        println("Verify signature")
+        verif = @time param.verify(pk, m, sign, s1, s2, r, cdata)
+        println("Verified: $(verif)")
     end
 end
 
-function gen_ideals(param::Module, e::Int)
-    S = param.LeftIdeal[]
-    for _ in 1:(1000 * 2^e)
-        I = param.sample_random_ideal_2e(e)
-        @assert gcd(I) == 1
-        @assert param.norm(I) == BigInt(2)^e
-        if !(I in S)
-            push!(S, I)
-        end
-        println(length(S))
-    end
-    println("Generated $(length(S)) ideals of norm 2^$e")
-end
-
-keygen_test(KaniSQIsign.Level1, 1)
 signing_test(KaniSQIsign.Level1, 1)
