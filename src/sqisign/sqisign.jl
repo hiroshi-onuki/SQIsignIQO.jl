@@ -151,18 +151,24 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
 
     a24d, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
     a24d, im = Montgomery_normalize(a24d, im)
+    Ad = Montgomery_coeff(a24d)
+    xK = im[1]
+    xPd, xQd, xPQd = torsion_basis(a24d, SQISIGN_challenge_length)
+    Pd = Point(Ad, xPd)
+    Qd = Point(Ad, xQd)
+    s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
+    @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length) || xK == linear_comb_2_e(s1, -s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
 
-    K = im[1]
-    @assert is_infinity(xDBLe(K, a24d, SQISIGN_challenge_length))
-    @assert !is_infinity(xDBLe(K, a24d, SQISIGN_challenge_length - 1))
-    _, P, _ = complete_baisis(a24d, K, xDBLe(K, a24d, SQISIGN_challenge_length - 1), parent(A)(1), SQISIGN_challenge_length)
-    a24dd, im = two_e_iso(a24d, K, SQISIGN_challenge_length, [P])
+    ker_d = s1 == 0 ? xPd : xQd
+    @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
+    a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d])
     a24dd, im = Montgomery_normalize(a24dd, im)
+    @assert !is_infinity(xDBLe(im[1], a24, SQISIGN_challenge_length - 1))
     @assert a24dd == a24
     r = ec_dlog(A, ker, im[1], xQ, cdata)
     @assert ladder(r, im[1], a24) == ker
 
-    return c, a24d, K
+    return c, s1, s2, r
 end
 
 function signing(pk, sk, m::String, cdata::CurveData)
@@ -170,7 +176,7 @@ function signing(pk, sk, m::String, cdata::CurveData)
 
     Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
     !found && return nothing, nothing, false
-    cha, a24cha, Kcha = challenge(Acom, xP, xQ, xPQ, m, cdata)
+    cha, s1, s2, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
 
     # pull-back of the challenge ideal
     Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
@@ -184,28 +190,23 @@ function signing(pk, sk, m::String, cdata::CurveData)
     I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
     I = intersection(I_A, I)
     @assert gcd(I) == 1
+    @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
 
     # ideal to isogeny
     a24 = A_to_a24(pk)
     xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
     M = M_A
     D = norm(I_A)
-    e = KLPT_signing_klpt_length
-    while e > 0
-        ed = min(e, ExponentForIsogeny)
+    num = div(KLPT_signing_klpt_length, ExponentForIsogeny)
+
+    for i in 0:num-1
+        ed = ExponentForIsogeny
         n_I_d = D * BigInt(2)^ed
         I_d = larger_ideal(I, n_I_d)
         a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
         !found && break
         I = ideal_transform(I, beta, n_I_d)
-        e -= ed
     end
-
-    @assert a24 == a24cha
-
-    a24com, _ = two_e_iso(a24, Kcha, SQISIGN_challenge_length, Proj1{FqFieldElem}[])
-    a24com, _ = Montgomery_normalize(a24com, Proj1{FqFieldElem}[])
-    @assert Montgomery_coeff(a24com) == Acom
 
     return a24, true
 end

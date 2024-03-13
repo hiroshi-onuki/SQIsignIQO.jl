@@ -29,6 +29,21 @@ function ec_bi_dlog_E0(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, cdata::CurveDa
     return ec_bi_dlog_E0(P, Q, cdata)
 end
 
+# return n1, n2 such that P = [n1]P0 + [n2]Q0
+function ec_bi_dlog_challenge(A::T, xP::Proj1{T}, P0::Point{T}, Q0::Point{T}, cdata::CurveData) where T <: RingElem
+    P = Point(A, xP)
+    base = Weil_pairing_2power(A, P0, Q0, SQISIGN_challenge_length)
+    w1 = Weil_pairing_2power(A, P, Q0, SQISIGN_challenge_length)
+    w2 = Weil_pairing_2power(A, P0, P, SQISIGN_challenge_length)
+
+    n0 = fq_dlog_power_of_2_opt(base, cdata.dlog_data_chall)
+    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_chall)
+    n2 = fq_dlog_power_of_2_opt(w2, cdata.dlog_data_chall)
+    n0inv = invmod(n0, BigInt(2)^SQISIGN_challenge_length)
+
+    return (n1 * n0inv) % BigInt(2)^SQISIGN_challenge_length, (n2 * n0inv) % BigInt(2)^SQISIGN_challenge_length
+end 
+
 # return n s.t. P = [n]Q, where P, Q is a fixed point of order 2^SQISIGN_challenge_length and R is a point s.t. (P, R) is a basis of E_A[2^SQISIGN_challenge_length]
 function ec_dlog(A::T, xP::Proj1{T}, xQ::Proj1{T}, xR::Proj1{T}, cdata::CurveData) where T <: RingElem
     P = Point(A, xP)
