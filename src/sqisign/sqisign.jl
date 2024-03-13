@@ -159,8 +159,10 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
     @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length) || xK == linear_comb_2_e(s1, -s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
 
-    ker_d = s1 == 0 ? xPd : xQd
+    println("s1, s2 = ", s1, ", ", s2)
+    ker_d = s1 % 2 == 0 ? xPd : xQd
     @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
+    @assert is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length))
     a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d])
     a24dd, im = Montgomery_normalize(a24dd, im)
     @assert !is_infinity(xDBLe(im[1], a24, SQISIGN_challenge_length - 1))
@@ -188,6 +190,7 @@ function signing(pk, sk, m::String, cdata::CurveData)
     # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
     I = intersection(Icom, Icha)
     I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+    !found && return nothing, nothing, false
     I = intersection(I_A, I)
     @assert gcd(I) == 1
     @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
@@ -197,16 +200,47 @@ function signing(pk, sk, m::String, cdata::CurveData)
     xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
     M = M_A
     D = norm(I_A)
-    num = div(KLPT_signing_klpt_length, ExponentForIsogeny)
 
-    for i in 0:num-1
-        ed = ExponentForIsogeny
+    sign = []
+    e = KLPT_signing_klpt_length
+    compute_coeff = true
+    while e > 0
+        # compute the kernel coefficients for signature once every two times
+        if compute_coeff
+            ed2 = min(e, 2*ExponentForIsogeny)
+            a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
+            push!(sign, [a, b])
+            compute_coeff = false
+        else
+            compute_coeff = true
+        end
+        
+        ed = min(ExponentForIsogeny, e)
         n_I_d = D * BigInt(2)^ed
         I_d = larger_ideal(I, n_I_d)
         a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
         !found && break
         I = ideal_transform(I, beta, n_I_d)
+        e -= ed
     end
+    println(sign)
+
+    # check signature
+    a24d = A_to_a24(pk)
+    e = KLPT_signing_klpt_length
+    for (a, b) in sign
+        ed = min(2*ExponentForIsogeny, e)
+        xP, xQ, xPQ = torsion_basis(a24d, ExponentFull)
+        xP = xDBLe(xP, a24d, ExponentFull - ed)
+        xQ = xDBLe(xQ, a24d, ExponentFull - ed)
+        xPQ = xDBLe(xPQ, a24d, ExponentFull - ed)
+        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24d, ed)
+        a24d, _ = two_e_iso(a24d, ker, ed, Proj1{FqFieldElem}[])
+        a24d, _ = Montgomery_normalize(a24d, Proj1{FqFieldElem}[])
+        e -= ed
+    end
+
+    @assert a24d == a24
 
     return a24, true
 end
