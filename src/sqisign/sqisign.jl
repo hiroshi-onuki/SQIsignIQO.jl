@@ -135,7 +135,7 @@ end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
 # where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
-function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, m::String)
+function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, m::String, cdata::CurveData)
     h = sha3_256(string(A) * m)
 
     c = BigInt(0)
@@ -159,6 +159,8 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     a24dd, im = two_e_iso(a24d, K, SQISIGN_challenge_length, [P])
     a24dd, im = Montgomery_normalize(a24dd, im)
     @assert a24dd == a24
+    r = ec_dlog(A, ker, im[1], xQ, cdata)
+    @assert ladder(r, im[1], a24) == ker
 
     return c, a24d, K
 end
@@ -168,7 +170,7 @@ function signing(pk, sk, m::String, cdata::CurveData)
 
     Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
     !found && return nothing, nothing, false
-    cha, a24cha, Kcha = challenge(Acom, xP, xQ, xPQ, m)
+    cha, a24cha, Kcha = challenge(Acom, xP, xQ, xPQ, m, cdata)
 
     # pull-back of the challenge ideal
     Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
@@ -181,6 +183,7 @@ function signing(pk, sk, m::String, cdata::CurveData)
     I = intersection(Icom, Icha)
     I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
     I = intersection(I_A, I)
+    @assert gcd(I) == 1
 
     # ideal to isogeny
     a24 = A_to_a24(pk)

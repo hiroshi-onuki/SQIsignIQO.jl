@@ -29,6 +29,19 @@ function ec_bi_dlog_E0(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, cdata::CurveDa
     return ec_bi_dlog_E0(P, Q, cdata)
 end
 
+# return n s.t. P = [n]Q, where P, Q is a fixed point of order 2^SQISIGN_challenge_length and R is a point s.t. (P, R) is a basis of E_A[2^SQISIGN_challenge_length]
+function ec_dlog(A::T, xP::Proj1{T}, xQ::Proj1{T}, xR::Proj1{T}, cdata::CurveData) where T <: RingElem
+    P = Point(A, xP)
+    Q = Point(A, xQ)
+    R = Point(A, xR)
+    w1 = Weil_pairing_2power(A, P, R, SQISIGN_challenge_length)
+    w2 = Weil_pairing_2power(A, Q, R, SQISIGN_challenge_length)
+    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_chall)
+    n2 = fq_dlog_power_of_2_opt(w2, cdata.dlog_data_chall)
+
+    return (n1 * invmod(n2, BigInt(2)^SQISIGN_challenge_length)) % BigInt(2)^SQISIGN_challenge_length
+end
+
 # x^(2^e)
 function square_e(x::FqFieldElem, e::Int)
     y = x
