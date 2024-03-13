@@ -1,30 +1,40 @@
-
-# return (a, b) s.t. M(a, b)^t = 0 mod l^e
-function kernel_coefficients(M::Matrix{T}, l::Int, e::Int) where T <: Integer
-    N = T(l)^e
-    if M[1, 1] % l != 0
-        return (M[1, 2] *  invmod(-M[1, 1], N)) % N, 1
-    elseif M[2, 1] % l != 0
-        return (M[2, 2] *  invmod(-M[2, 1], N)) % N, 1
-    elseif M[1, 2] % l != 0
-        return 1, (M[1, 1] *  invmod(-M[1, 2], N)) % N
+# return (a, b) s.t. E[phi_*I] = <[a]P, [b]Q>, where (P, Q) = (phi(P0), phi(Q0))M
+function kernel_coefficients(I::LeftIdeal, M::Matrix{BigInt}, l::Int, e::Int, Ms::Vector{Matrix{T}}) where T <: Integer
+    N = BigInt(l)^e
+    a, b = kernel_coefficients_E0(I, l, e, Ms)
+    a, b = M * [a, b]
+    if a % l != 0
+        b = (b * invmod(a, N)) % N
+        b < 0 && (b += N)
+        return 1, b
     else
-        return 1, (M[2, 1] *  invmod(-M[2, 2], N)) % N
+        a = (a * invmod(b, N)) % N
+        a < 0 && (a += N)
+        return a, 1
     end
 end
 
-# return the kernel of the l^e-isogeny determined by the kernel matrix Mker
-function kernel_gen_power_of_prime(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, a24::Proj1{T},
-    Mker::Matrix{S}, Mimage::Matrix{S}, l::Int, e::Int) where T <: RingElem where S <: Integer
-    a, b = kernel_coefficients(Mker, l, e)
-    a, b = Mimage * [a, b]
-    if a % l != 0
-        b = (b * invmod(a, S(l)^e)) % S(l)^e
-        b < 0 && (b += S(l)^e)
+# return (a, b) s.t. E0[I] = <[a]P0, [b]Q0>
+function kernel_coefficients_E0(I::LeftIdeal, l::Int, e::Int, Ms::Vector{Matrix{T}}) where T <: Integer
+    alpha = element_prime_to(I, l)
+    M = alpha[1]*[1 0; 0 1] + alpha[2]*Ms[1] + alpha[3]*Ms[2] + alpha[4]*Ms[3]
+    N = BigInt(l)^e
+    if M[1, 1] % l != 0 || M[1, 2] % l != 0
+        @assert M * [M[1, 2], -M[1, 1]] .% N == [0, 0]
+        return M[1, 2], -M[1, 1]
+    else
+        @assert M * [M[2, 2], -M[2, 1]] .% N == [0, 0]
+        return M[2, 2], -M[2, 1]
+    end
+end
+
+# return a generator of E[I]
+function kernel_generator(xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, a24::Proj1{FqFieldElem},
+        I::LeftIdeal, M::Matrix{BigInt}, l::Int, e::Int, Ms::Vector{Matrix{T}}) where T <: Integer
+    a, b = kernel_coefficients(I, M, l, e, Ms)
+    if a == 1
         return ladder3pt(b, xP, xQ, xPQ, a24)
     else
-        a = (a * invmod(b, S(l)^e)) % S(l)^e
-        a < 0 && (a += S(l)^e)
         return ladder3pt(a, xQ, xP, xPQ, a24)
     end
 end
@@ -44,9 +54,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQd = xDBLe(xPQ, a24, ExponentFull - e)
 
     # 2^e-isogeny corresponding to I_2
-    alpha = use_extdeg ? element_prime_to(I, 2 * ExtraDegree) : element_prime_to(I, 2)
-    M0 = alpha[1]*[1 0; 0 1] + alpha[2]*cdata.Matrices_2e[1] + alpha[3]*cdata.Matrices_2e[2] + alpha[4]*cdata.Matrices_2e[3]
-    ker = kernel_gen_power_of_prime(xPd, xQd, xPQd, a24, M0, M, 2, e)
+    ker = kernel_generator(xPd, xQd, xPQd, a24, I, M, 2, e, cdata.Matrices_2e)
     eval_points = [xP, xQ, xPQ]
     if use_extdeg
         push!(eval_points, ker)
@@ -56,8 +64,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             el = cdata.ExponentsOddTorsionBases[i]
             push!(degs, [l, el])
             xPl, xQl, xPQl = cdata.OddTorsionBases[i]
-            Ml = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_odd[i][1] + alpha[3] * cdata.Matrices_odd[i][2] + alpha[4] * cdata.Matrices_odd[i][3]
-            ker_l = kernel_gen_power_of_prime(xPl, xQl, xPQl, a24, Ml, M, l, el)
+            ker_l = kernel_generator(xPl, xQl, xPQl, a24, I, M, l, el, cdata.Matrices_odd[i])
             push!(eval_points, ker_l)
         end
         while length(degs) > 0
