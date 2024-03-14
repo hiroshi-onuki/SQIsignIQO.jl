@@ -156,8 +156,12 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     xPd, xQd, xPQd = torsion_basis(a24d, SQISIGN_challenge_length)
     Pd = Point(Ad, xPd)
     Qd = Point(Ad, xQd)
+    PQ = add(Pd, -Qd, Proj1(Ad))
+    if !(xPQd == Proj1(PQ.X, PQ.Z))
+        Qd = -Qd
+    end
     s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
-    @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length) || xK == linear_comb_2_e(s1, -s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
+    @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
 
     ker_d = s1 % 2 == 0 ? xPd : xQd
     @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
@@ -223,13 +227,28 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
         e -= ed
     end
 
+    # challenge ellitpic curve
+    a24d = A_to_a24(pk)
+    e = KLPT_signing_klpt_length
+    for (a, b) in sign
+        ed = min(2*ExponentForIsogeny, e)
+        xP, xQ, xPQ = torsion_basis(a24d, ExponentFull)
+        xP = xDBLe(xP, a24d, ExponentFull - ed)
+        xQ = xDBLe(xQ, a24d, ExponentFull - ed)
+        xPQ = xDBLe(xPQ, a24d, ExponentFull - ed)
+        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24d, ed)
+        a24d, _ = two_e_iso(a24d, ker, ed, Proj1{FqFieldElem}[])
+        a24d, _ = Montgomery_normalize(a24d, Proj1{FqFieldElem}[])
+        e -= ed
+    end
+    @assert a24d == a24
+
     return sign, s1, s2, r, true
 end
 
-function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::BigInt, s2::BigInt, r::BigInt, cdata::CurveData)
+function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::BigInt, s2::BigInt, r::BigInt)
     # challenge ellitpic curve
     a24 = A_to_a24(pk)
-    xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
     e = KLPT_signing_klpt_length
     for (a, b) in sign
         ed = min(2*ExponentForIsogeny, e)

@@ -13,9 +13,9 @@ function signing_test(param::Module, num::Int)
         println("Found: $(found)")
 
         println("Verify signature")
-        verif = @time param.verify(pk, m, sign, s1, s2, r, cdata)
+        verif = @time param.verify(pk, m, sign, s1, s2, r)
         println("Verified: $(verif)")
     end
 end
 
-signing_test(KaniSQIsign.Level1, 1)
+signing_test(KaniSQIsign.Level1, 10)
