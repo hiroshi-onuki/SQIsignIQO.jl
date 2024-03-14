@@ -44,6 +44,7 @@ function Cornacchia_Smith(q::Integer)
     while b > c
         a, b = b, a % b
     end
+    @assert b^2 + integer_square_root(q - b^2)^2 == q
     return b, integer_square_root(q - b^2)
 end
 
