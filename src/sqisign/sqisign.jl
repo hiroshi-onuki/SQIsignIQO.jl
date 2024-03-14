@@ -103,34 +103,36 @@ function key_gen(cdata::CurveData)
 end
 
 function commitment(cdata::CurveData)
-    # make a random ideal of norm ExtraDegree * 2^SQISIGN_commitment_length
-    I2 = sample_random_ideal_2e(SQISIGN_commitment_length)
-    gamma, found = FullRepresentInteger(ExtraDegree * BigInt(2)^Log2p)
-    !found && throw(ArgumentError("Could not find an ideal of norm ExtraDegree * 2^Log2p"))
-    Iex = LeftIdeal(gamma, ExtraDegree)
-    I = intersection(I2, Iex)
+    while true
+        # make a random ideal of norm ExtraDegree * 2^SQISIGN_commitment_length
+        I2 = sample_random_ideal_2e(SQISIGN_commitment_length)
+        gamma, found = FullRepresentInteger(ExtraDegree * BigInt(2)^Log2p)
+        !found && throw(ArgumentError("Could not find an ideal of norm ExtraDegree * 2^Log2p"))
+        Iex = LeftIdeal(gamma, ExtraDegree)
+        I = intersection(I2, Iex)
 
-    # ideal to isogeny
-    a24 = cdata.a24_0
-    xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
-    M = BigInt[1 0; 0 1]
-    found = false
-    is_first = true
-    extdeg = ExtraDegree
-    D = 1
-    e = SQISIGN_commitment_length
-    while e > 0
-        ed = min(e, ExponentForIsogeny)
-        n_I_d = D * extdeg * BigInt(2)^ed
-        I_d = larger_ideal(I, n_I_d)
-        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quaternion_0, 0, 0)
-        !found && break
-        I = ideal_transform(I, beta, n_I_d)
-        e -= ed
-        is_first = false
-        extdeg = 1
+        # ideal to isogeny
+        a24 = cdata.a24_0
+        xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+        M = BigInt[1 0; 0 1]
+        found = false
+        is_first = true
+        extdeg = ExtraDegree
+        D = 1
+        e = SQISIGN_commitment_length
+        while e > 0
+            ed = min(e, ExponentForIsogeny)
+            n_I_d = D * extdeg * BigInt(2)^ed
+            I_d = larger_ideal(I, n_I_d)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quaternion_0, 0, 0)
+            !found && break
+            I = ideal_transform(I, beta, n_I_d)
+            e -= ed
+            is_first = false
+            extdeg = 1
+        end
+        found && return Montgomery_coeff(a24), xP, xQ, xPQ, M, I, found
     end
-   return Montgomery_coeff(a24), xP, xQ, xPQ, M, I, found
 end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
@@ -179,71 +181,58 @@ end
 function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
 
-    Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
-    !found && return nothing, nothing, false
-    cha, s1, s2, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
+    while true
+        Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
+        !found && continue
+        cha, s1, s2, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
 
-    # pull-back of the challenge ideal
-    Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
-    a, b = Mcom_inv * [1, cha]
-    a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
-    alpha = QOrderElem(a, b, c, d)
-    Icha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
+        # pull-back of the challenge ideal
+        Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
+        a, b = Mcom_inv * [1, cha]
+        a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
+        alpha = QOrderElem(a, b, c, d)
+        Icha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
 
-    # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
-    I = intersection(Icom, Icha)
-    I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
-    !found && return nothing, nothing, false
-    I = intersection(I_A, I)
-    @assert gcd(I) == 1
-    @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
+        # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
+        I = intersection(Icom, Icha)
+        I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+        !found && continue
+        @assert norm(I) == BigInt(2)^KLPT_signing_klpt_length
+        I = intersection(I_A, I)
+        @assert gcd(I) == 1
+        @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
 
-    # ideal to isogeny
-    a24 = A_to_a24(pk)
-    xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
-    M = M_A
-    D = norm(I_A)
+        # ideal to isogeny
+        a24 = A_to_a24(pk)
+        xP, xQ, xPQ = xP_A, xQ_A, xPQ_A
+        M = M_A
+        D = norm(I_A)
 
-    sign = Vector{BigInt}[]
-    e = KLPT_signing_klpt_length
-    compute_coeff = true
-    while e > 0
-        # compute the kernel coefficients for signature once every two times
-        if compute_coeff
-            ed2 = min(e, 2*ExponentForIsogeny)
-            a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
-            push!(sign, [a, b])
-            compute_coeff = false
-        else
-            compute_coeff = true
+        sign = Vector{BigInt}[]
+        e = KLPT_signing_klpt_length
+        compute_coeff = true
+        while e > 0
+            # compute the kernel coefficients for signature once every two times
+            if compute_coeff
+                ed2 = min(e, 2*ExponentForIsogeny)
+                a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
+                push!(sign, [a, b])
+                compute_coeff = false
+            else
+                compute_coeff = true
+            end
+            
+            ed = min(ExponentForIsogeny, e)
+            n_I_d = D * BigInt(2)^ed
+            I_d = larger_ideal(I, n_I_d)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
+            !found && break
+            I = ideal_transform(I, beta, n_I_d)
+            e -= ed
         end
-        
-        ed = min(ExponentForIsogeny, e)
-        n_I_d = D * BigInt(2)^ed
-        I_d = larger_ideal(I, n_I_d)
-        a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
-        !found && break
-        I = ideal_transform(I, beta, n_I_d)
-        e -= ed
-    end
 
-    # challenge ellitpic curve
-    a24d = A_to_a24(pk)
-    e = KLPT_signing_klpt_length
-    for (a, b) in sign
-        ed = min(2*ExponentForIsogeny, e)
-        xP, xQ, xPQ = torsion_basis(a24d, ExponentFull)
-        xP = xDBLe(xP, a24d, ExponentFull - ed)
-        xQ = xDBLe(xQ, a24d, ExponentFull - ed)
-        xPQ = xDBLe(xPQ, a24d, ExponentFull - ed)
-        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24d, ed)
-        a24d, _ = two_e_iso(a24d, ker, ed, Proj1{FqFieldElem}[])
-        a24d, _ = Montgomery_normalize(a24d, Proj1{FqFieldElem}[])
-        e -= ed
+        found && return sign, s1, s2, r
     end
-    @assert a24d == a24
-
-    return sign, s1, s2, r, true
 end
 
 function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::BigInt, s2::BigInt, r::BigInt)

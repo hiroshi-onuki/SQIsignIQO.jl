@@ -11,6 +11,7 @@ function FullRepresentInteger(M::Integer)
         w = rand(-md:md)
         Md = 4*M - p*(z^2 + w^2)
         x, y, found = sum_of_two_squares(Md)
+        @assert !found || x^2 + y^2 == Md
         if !found || (x - w) % 2 != 0 || (y - z) % 2 != 0
             found = false
             counter += 1
@@ -133,6 +134,7 @@ end
 function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Integer, N_mu::Integer, max_tries::Int)
     c0 = 2*p*lambda*C
     c1 = invmod(2*p*lambda*D, N)
+    @assert (N_mu - lambda^2*p*(C^2 + D^2)) % N == 0
     c2 = div(N_mu - lambda^2*p*(C^2 + D^2), N)
     c3 = (-c0*c1) % N
     b0 = [0, N^2]
@@ -143,6 +145,7 @@ function FullStrongApproximation(N::Integer, C::Integer, D::Integer, lambda::Int
     B = BigInt(2) << Int(min(ceil(log(2, N_mu/p)), 3*ceil(log(2, N)) + 10))
     vs = enumerate_close_vector(b1, b0, v, vd, max_tries, B)
     for vdd in vs
+        @assert (N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2)) % N^2 == 0
         M = div(N_mu - p*((lambda*C - vdd[1])^2 + (lambda*D + N*c1*c2 - vdd[2])^2), N^2)
         a, b, found = sum_of_two_squares(M)
         if found
@@ -229,24 +232,35 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
 
         gamma, gamma_found = FullRepresentInteger(NL * N_gamma)
         !gamma_found && continue
+        if norm(gamma) != NL * N_gamma
+            println(factor(ZZ(norm(gamma))))
+            println(factor(ZZ(N_gamma)))
+            @assert false
+        end
 
         C0, D0 = EichlerModConstraint(L, NL, gamma, QOrderElem(1), true)
         N_CD = p * (C0^2 + D0^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, NL)) % NL
         quadratic_residue_symbol(N_mu_N_CD, NL) != 1 && continue
         lambda0 = sqrt_mod(N_mu_N_CD, NL)
+        if (lambda0^2 * N_CD - N_mu) % NL != 0
+            println(NL % 8)
+            @assert false
+        end
 
         C1, D1 = EichlerModConstraint(Isec, Nsec, gamma, QOrderElem(1), false)
         N_CD = p * (C1^2 + D1^2)
         N_mu_N_CD = (N_mu * invmod(N_CD, Nsec)) % Nsec
         quadratic_residue_symbol(N_mu_N_CD, Nsec) != 1 && continue
         lambda1 = sqrt_mod(N_mu_N_CD, Nsec)
+        @assert (lambda1^2 * N_CD - N_mu) % Nsec == 0
 
         lam = 2 * crt([lambda0, lambda1], [NL, Nsec])
         C = crt([C0, C1], [NL, Nsec])
         D = crt([D0, D1], [NL, Nsec])
 
         mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, 4*N_mu, KLPT_signing_number_strong_approx)
+        @assert !found || norm(mu) == N_mu
         trace(gamma*mu) % 2 == 0 && (found = false)
     end
     return ideal_transform(L, gamma*mu, NL), found

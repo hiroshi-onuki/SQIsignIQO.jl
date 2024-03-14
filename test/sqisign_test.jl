@@ -9,8 +9,7 @@ function signing_test(param::Module, num::Int)
 
         println("Sign message")
         m = "message to sign"
-        sign, s1, s2, r, found = @time param.signing(pk, sk, m, cdata)
-        println("Found: $(found)")
+        sign, s1, s2, r = @time param.signing(pk, sk, m, cdata)
 
         println("Verify signature")
         verif = @time param.verify(pk, m, sign, s1, s2, r)
@@ -18,4 +17,4 @@ function signing_test(param::Module, num::Int)
     end
 end
 
-signing_test(KaniSQIsign.Level1, 10)
+signing_test(KaniSQIsign.Level1, 100)
