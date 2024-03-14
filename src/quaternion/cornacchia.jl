@@ -26,7 +26,7 @@ function sqrt_mod(a::Integer, q::Integer)
         D = powermod(d, t, q)
         m = 0
         for i in 0:e-1
-            (powermod(A * powermod(D, m, p), 2^(e-1-i), q) + 1) % q == 0 && (m += 2^i)
+            (powermod(A * powermod(D, m, q), 2^(e-1-i), q) + 1) % q == 0 && (m += 2^i)
         end
         x = powermod(a, div(t+1, 2), q) * powermod(D, div(m, 2), q)
         return x % q
