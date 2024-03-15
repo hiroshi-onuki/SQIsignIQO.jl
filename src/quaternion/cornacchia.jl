@@ -25,8 +25,8 @@ function sqrt_mod(a::Integer, q::Integer)
         A = powermod(a, t, q)
         D = powermod(d, t, q)
         m = 0
-        for i in 0:e-1
-            (powermod(A * powermod(D, m, q), 2^(e-1-i), q) + 1) % q == 0 && (m += 2^i)
+        for i in 1:e-1
+            (powermod(A * powermod(D, m, q), 2^(e-1-i), q) + 1) % q == 0 && (m += BigInt(2)^i)
         end
         x = powermod(a, div(t+1, 2), q) * powermod(D, div(m, 2), q)
         return x % q
@@ -44,7 +44,6 @@ function Cornacchia_Smith(q::Integer)
     while b > c
         a, b = b, a % b
     end
-    @assert b^2 + integer_square_root(q - b^2)^2 == q
     return b, integer_square_root(q - b^2)
 end
 
