@@ -91,7 +91,6 @@ function key_gen(cdata::CurveData)
         if found
             a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, cdata, false, alpha, a, b)
         else
-            println("Failed in e = $e")
             continue
         end
         !found && continue
