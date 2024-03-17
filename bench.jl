@@ -37,4 +37,4 @@ function benchmark_test(param::Module, num::Int)
     println("Average time for verification: ", t_verif / num)
 end
 
-benchmark_test(KaniSQIsign.Level1, 10)
+benchmark_test(KaniSQIsign.Level1, 100)

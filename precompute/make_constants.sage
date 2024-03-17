@@ -20,9 +20,7 @@ def make_constants(p, e, ed, degs, degs_d, file_name):
     out_file = open(file_name, "w")
 
     # 2^e-torsion in E(Fp2)
-    P, Q = tp.basis(E0, Fp2, False, 2, e)
-    while not (2^(e-2)*P).xy()[0]^2 == 1:
-        P, Q = tp.basis(E0, Fp2, False, 2, e)
+    P, Q = tp.basis_2e_special(E0, Fp2, zeta4, e)
     Ms = end.action_matrices([P, Q], 2^e, zeta4, Fp4)
     Px, Py = [tp.Fp2ToFp2d(v, zeta4, Fp2_i) for v in P.xy()]
     Qx, Qy = [tp.Fp2ToFp2d(v, zeta4, Fp2_i) for v in Q.xy()]

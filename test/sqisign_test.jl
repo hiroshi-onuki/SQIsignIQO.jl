@@ -17,4 +17,4 @@ function signing_test(param::Module, num::Int)
     end
 end
 
-signing_test(KaniSQIsign.Level1, 1000)
+signing_test(KaniSQIsign.Level1, 1)

@@ -57,6 +57,14 @@ def basis(E, Fp2, is_twist, l, e):
         Q = point_ord(E, Fp2, is_twist, l, e)
     return P, Q
 
+def basis_2e_special(E, Fp2, zeta4, e):
+    P = point_ord(E, Fp2, False, 2, e)
+    while (2**(e-1)*P).xy()[0] == 0:
+        P = point_ord(E, Fp2, False, 2, e)
+    Q = E([-P.xy()[0], zeta4*P.xy()[1]])
+    assert (2**(e-1)*P).weil_pairing(2**(e-1)*Q, 2) == -1
+    return P, Q
+
 # transform an element x in Fp(zeta4) to an element in Fp2(zeta4d)
 def Fp2ToFp2d(x, zeta4, zeta4d):
     p = x.base_ring().characteristic()

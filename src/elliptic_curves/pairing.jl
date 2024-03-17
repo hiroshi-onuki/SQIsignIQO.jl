@@ -1,4 +1,4 @@
-export Weil_pairing_2power
+export Weil_pairing_2power, Tate_pairing_P0, Tate_pairing_iP0, make_pairing_table
 
 # Miller function f_{P}(Q)
 function Miller_function(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T <: RingElem
@@ -41,4 +41,63 @@ function Weil_pairing_2power(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T
     end
     fQP1, fQP2 = Miller_function(A, Q, P, e)
     return (fPQ1*fQP2) / (fPQ2*fQP1)
+end
+
+function make_pairing_table(A::FqFieldElem, P::Point{FqFieldElem}, zeta4::FqFieldElem, e::Integer)
+    R = P
+    x, y = R.X/R.Z, R.Y/R.Z
+    table = [[x, y, zeta4]]
+    for i in 1:e-1
+        lam = (3*x^2 + A*x + 1) / (2*y)
+        R = double(R, Proj1(A))
+        x = R.X/R.Z
+        y = R.Y/R.Z
+        push!(table, [x, y, lam])
+    end
+    return table
+end
+
+# Tate pairing t_{e^e}(P0, P) using precomputed table for P0
+function Tate_pairing_P0(P::Point{FqFieldElem}, table::Vector{Vector{FqFieldElem}}, f::Integer)
+    x, y = P.X/P.Z, P.Y/P.Z
+    x_frob = frobenius(x)
+    x0, y0 = table[1][1], table[1][2]
+    f0 = 1
+    for (xt, yt, lam) in table[2:end]
+        t0 = x - x0
+        t1 = y - y0
+        t0 *= lam
+        g = t0 - t1
+        h = x_frob - xt
+        g *= h
+        f0 = f0^2 * g
+        x0, y0 = xt, yt
+    end
+    g = x - x0
+    f0 = f0^2 * g
+    f0 = frobenius(f0) / f0
+    f0 = f0^f
+    return f0
+end
+
+function Tate_pairing_iP0(P::Point{FqFieldElem}, table::Vector{Vector{FqFieldElem}}, f::Integer)
+    x, y = P.X/P.Z, P.Y/P.Z
+    x_frob = frobenius(x)
+    x0, y0 = table[1][1], table[1][2]
+    f0 = 1
+    for (xt, yt, lam) in table[2:end]
+        t0 = x - x0
+        t1 = y - y0
+        t0 *= lam
+        g = t0 - t1
+        h = x_frob - xt
+        g *= h
+        f0 = f0^2 * g
+        x0, y0 = xt, yt
+    end
+    g = x - x0
+    f0 = f0^2 * g
+    f0 = frobenius(f0) / f0
+    f0 = f0^f
+    return f0
 end
