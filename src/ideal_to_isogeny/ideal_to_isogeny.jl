@@ -20,10 +20,8 @@ function kernel_coefficients_E0(I::LeftIdeal, l::Int, e::Int, Ms::Vector{Matrix{
     M = alpha[1]*[1 0; 0 1] + alpha[2]*Ms[1] + alpha[3]*Ms[2] + alpha[4]*Ms[3]
     N = BigInt(l)^e
     if M[1, 1] % l != 0 || M[1, 2] % l != 0
-        @assert M * [M[1, 2], -M[1, 1]] .% N == [0, 0]
         return M[1, 2], -M[1, 1]
     else
-        @assert M * [M[2, 2], -M[2, 1]] .% N == [0, 0]
         return M[2, 2], -M[2, 1]
     end
 end

@@ -10,8 +10,8 @@ function benchmark_test(param::Module, num::Int)
     # for compilation
     pk, sk, found = param.key_gen(cdata)
     m = "message to sign"
-    sign, s1, s2, r = param.signing(pk, sk, m, cdata)
-    verif = param.verify(pk, m, sign, s1, s2, r)
+    sign = param.signing(pk, sk, m, cdata)
+    verif = param.verify(pk, m, sign)
 
     t_gen = 0
     t_sign = 0
@@ -22,10 +22,10 @@ function benchmark_test(param::Module, num::Int)
         t_gen += t
 
         m = "message to sign"
-        (sign, s1, s2, r), t, _, _, _ = @timed param.signing(pk, sk, m, cdata)
+        sign, t, _, _, _ = @timed param.signing(pk, sk, m, cdata)
         t_sign += t
 
-        verif, t, _, _, _ = @timed param.verify(pk, m, sign, s1, s2, r)
+        verif, t, _, _, _ = @timed param.verify(pk, m, sign)
         t_verif += t
 
         @assert verif

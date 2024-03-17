@@ -1,4 +1,4 @@
-export integer_square_root
+export integer_square_root, integer_to_bytes, bytes_to_integer
 
 # floor(sqrt(n))
 function integer_square_root(n::T) where T <: Integer
@@ -18,4 +18,13 @@ function integer_to_bytes(n::Integer, length::Integer)
         bytes[i] = n >> (8*(length - i)) & 0xff
     end
     return bytes
+end
+
+# the inverse of the above function
+function bytes_to_integer(bytes::Vector{UInt8})
+    n = BigInt(0)
+    for byte in bytes
+        n = (n << 8) | byte
+    end
+    return n
 end

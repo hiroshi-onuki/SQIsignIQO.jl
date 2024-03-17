@@ -165,9 +165,9 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
     is_one_P = s1 % 2 != 0
     if is_one_P
-        s = s2 * invmod(s1, BigInt(2)^SQISIGN_challenge_length)
+        s = (s2 * invmod(s1, BigInt(2)^SQISIGN_challenge_length)) % BigInt(2)^SQISIGN_challenge_length
     else
-        s = s1 * invmod(s2, BigInt(2)^SQISIGN_challenge_length)
+        s = (s1 * invmod(s2, BigInt(2)^SQISIGN_challenge_length)) % BigInt(2)^SQISIGN_challenge_length
     end
 
     ker_d = is_one_P ? xQd : xPd
@@ -213,20 +213,24 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
         M = M_A
         D = norm(I_A)
 
-        sign = []
+        sign = Vector{UInt8}(undef, SQISIGN_sign_bytes)
         e = KLPT_signing_klpt_length
         compute_coeff = true
+        idx = 1
         while e > 0
             # compute the kernel coefficients for signature once every two times
             if compute_coeff
                 ed2 = min(e, 2*ExponentForIsogeny)
                 a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
                 if a == 1
-                    push!(sign, [true, b])
+                    sign[idx] = 0x01
+                    sign[idx+1:idx+SQISIGN_sign_isogeny_bytes] = integer_to_bytes(b, SQISIGN_sign_isogeny_bytes)
                 else
-                    push!(sign, [false, a])
+                    sign[idx] = 0x00
+                    sign[idx+1:idx+SQISIGN_sign_isogeny_bytes] = integer_to_bytes(a, SQISIGN_sign_isogeny_bytes)
                 end
                 compute_coeff = false
+                idx += 1 + SQISIGN_sign_isogeny_bytes
             else
                 compute_coeff = true
             end
@@ -240,21 +244,44 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             e -= ed
         end
 
-        found && return sign, is_one_P, s, r
+        if is_one_P
+            sign[idx] = 0x01
+            sign[idx+1:idx+SQISIGN_challenge_bytes] = integer_to_bytes(s, SQISIGN_challenge_bytes)
+        else
+            sign[idx] = 0x00
+            sign[idx+1:idx+SQISIGN_challenge_bytes] = integer_to_bytes(s, SQISIGN_challenge_bytes)
+        end
+        idx += 1 + SQISIGN_challenge_bytes
+        sign[idx:idx-1+SQISIGN_challenge_bytes] = integer_to_bytes(r, SQISIGN_challenge_bytes)
+
+        found && return sign
     end
 end
 
-function verify(pk::FqFieldElem, m::String, sign::Vector{Any}, is_one_P::Bool, s::BigInt, r::BigInt)
+function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
+    # decompress signature
+    sign_coeffs = []
+    idx = 1
+    for i in 0:SQISIGN_signing_length-1
+        bit = sign[idx]
+        coeff = bytes_to_integer(sign[idx + 1:idx + SQISIGN_sign_isogeny_bytes])
+        push!(sign_coeffs, (bit, coeff))
+        idx += 1 + SQISIGN_sign_isogeny_bytes
+    end
+    bit_s = sign[idx]
+    s = bytes_to_integer(sign[idx + 1:idx + SQISIGN_challenge_bytes])
+    r = bytes_to_integer(sign[idx + 1 + SQISIGN_challenge_bytes:idx + 2*SQISIGN_challenge_bytes])
+
     # challenge ellitpic curve
     a24 = A_to_a24(pk)
     e = KLPT_signing_klpt_length
-    for (is_one_P_s, a) in sign
+    for (bit, a) in sign_coeffs
         ed = min(2*ExponentForIsogeny, e)
         xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
         xP = xDBLe(xP, a24, ExponentFull - ed)
         xQ = xDBLe(xQ, a24, ExponentFull - ed)
         xPQ = xDBLe(xPQ, a24, ExponentFull - ed)
-        if is_one_P_s == 1
+        if bit == 1
             ker = ladder3pt(a, xP, xQ, xPQ, a24)
         else
             ker = ladder3pt(a, xQ, xP, xPQ, a24)
@@ -266,7 +293,7 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{Any}, is_one_P::Bool, s
 
     # commitment elliptic curve
     xP, xQ, xPQ = torsion_basis(a24, SQISIGN_challenge_length)
-    if is_one_P
+    if bit_s == 1
         ker = ladder3pt(s, xP, xQ, xPQ, a24)
         xR = xQ
     else

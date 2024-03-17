@@ -22,7 +22,7 @@ const SQISIGN_response_attempts = 64
 const SQISIGN_keygen_attempts = 64
 const SQISIGN_random_length = 0
 const SQISIGN_signing_total_length = 1050
-const SQISIGN_signing_length = 14
+const SQISIGN_signing_length = 5
 const SQISIGN_keygen_length = 9
 
 # constants only used in our implementation
@@ -30,5 +30,9 @@ const KLPT_keygen_gamma_lengh = 272 # about ExponentForIsogeny * 2.5
 const IdealToIsogeny_2_e_good_attempts = 1000
 const SQISIGN_commitment_length = 256
 const SQISIGN_challenge_length = 128
+const SQISIGN_sign_isogeny_bytes = 28
+const SQISIGN_challenge_bytes = 16
+const SQISIGN_sign_bytes = (SQISIGN_sign_isogeny_bytes + 1) * SQISIGN_signing_length + 2 * SQISIGN_challenge_bytes + 1
+
 
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
