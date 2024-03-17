@@ -1,4 +1,14 @@
-export square_root
+export Frob, mult_by_i, square_root
+
+# p-th power Frobenius map
+function Frob(x::FinFieldElem)
+    return coeff(x, 0) - coeff(x, 1)*gen(parent(x))
+end
+
+# multiplication by i in Fp2
+function mult_by_i(x::FinFieldElem)
+    return -coeff(x, 1) + coeff(x, 0)*gen(parent(x))
+end
 
 # square root of x in Fp2
 function square_root(x::FinFieldElem)

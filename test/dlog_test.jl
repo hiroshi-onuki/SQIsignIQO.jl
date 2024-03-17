@@ -24,9 +24,14 @@ n4Q0 = mult(n4, Q0, Proj1(A))
 @test P == add(n1P0, n2Q0, Proj1(A)) || P == add(-n1P0, -n2Q0, Proj1(A))
 @test Q == add(n3P0, n4Q0, Proj1(A)) || Q == add(-n3P0, -n4Q0, Proj1(A))
 
-table = make_pairing_table(A, P0, zeta4, e)
+table = make_pairing_table(A, P0, e)
 e = Tate_pairing_P0(Q0, table, KaniSQIsign.Level1.Cofactor)
 ed = Tate_pairing_P0(mult(5, Q0, Proj1(A)), table, KaniSQIsign.Level1.Cofactor)
+@assert ed^(BigInt(2)^KaniSQIsign.Level1.ExponentFull) == 1
+@assert ed^(BigInt(2)^(KaniSQIsign.Level1.ExponentFull - 1)) != 1
+@assert e^5 == ed
+e = Tate_pairing_iP0(P0, table, KaniSQIsign.Level1.Cofactor)
+ed = Tate_pairing_iP0(mult(5, P0, Proj1(A)), table, KaniSQIsign.Level1.Cofactor)
 @assert ed^(BigInt(2)^KaniSQIsign.Level1.ExponentFull) == 1
 @assert ed^(BigInt(2)^(KaniSQIsign.Level1.ExponentFull - 1)) != 1
 @assert e^5 == ed
