@@ -32,4 +32,5 @@ struct CurveData{T <: RingElem}
     isomorphism_to_A0::Function
     dlog_data_full::DlogData
     dlog_data_chall::DlogData
+    tate_table::Vector{Vector{FqFieldElem}}
 end

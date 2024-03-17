@@ -57,12 +57,13 @@ function make_field_curve_torsions()
     xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogeny)
 
     # precomputed values for discrete logarithm
-    wp_P2e_Q2e = Weil_pairing_2power(A0, P2e, Q2e, ExponentFull)
+    tp_table = make_pairing_table(A0, P2e, ExponentFull)
+    tp_P2e_Q2e = Tate_pairing_P0(Q2e, tp_table, Cofactor)
     window_size = 3
-    fq_dlog_table1, fq_dlog_table2 = make_dlog_table(wp_P2e_Q2e, ExponentFull, window_size)
+    fq_dlog_table1, fq_dlog_table2 = make_dlog_table(tp_P2e_Q2e, ExponentFull, window_size)
     strategy_dlog = compute_strategy(div(ExponentFull, window_size) - 1, window_size, 1)
     dlog_data_full = DlogData(ExponentFull, window_size, fq_dlog_table1, fq_dlog_table2, strategy_dlog)
-    base = wp_P2e_Q2e^(BigInt(2)^(ExponentFull - SQISIGN_challenge_length))
+    base = tp_P2e_Q2e^(BigInt(2)^(ExponentFull - SQISIGN_challenge_length))
     fq_dlog_table1_c, fq_dlog_table2_c = make_dlog_table(base, SQISIGN_challenge_length, window_size)
     strategy_dlog_c = compute_strategy(div(SQISIGN_challenge_length, window_size) - 1, window_size, 1)
     dlog_data_chall = DlogData(SQISIGN_challenge_length, window_size, fq_dlog_table1_c, fq_dlog_table2_c, strategy_dlog_c)
@@ -97,5 +98,5 @@ function make_field_curve_torsions()
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall)
+    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
 end

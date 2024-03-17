@@ -1,17 +1,14 @@
 # return n1, n2, n3, n4 such that P = [n1]P0 + [n1]Q0, Q = [n3]P0 + [n4]Q0, where (P0, Q0) is a fixed basis of E0[2^ExponentFull]
-function ec_bi_dlog_E0(P::Point{T}, Q::Point{T}, cdata::CurveData) where T <: RingElem
-    A0 = cdata.A0
-    P0, Q0 = cdata.P2e, cdata.Q2e
-    e = ExponentFull
-    w1 = Weil_pairing_2power(A0, P, Q0, e)
-    w2 = Weil_pairing_2power(A0, P, P0, e)
-    w3 = Weil_pairing_2power(A0, Q, Q0, e)
-    w4 = Weil_pairing_2power(A0, Q, P0, e)
+function ec_bi_dlog_E0(P::Point{FqFieldElem}, Q::Point{FqFieldElem}, cdata::CurveData)
+    t1 = Tate_pairing_iP0(P, cdata.tate_table, Cofactor)
+    t2 = Tate_pairing_P0(P, cdata.tate_table, Cofactor)
+    t3 = Tate_pairing_iP0(Q, cdata.tate_table, Cofactor)
+    t4 = Tate_pairing_P0(Q, cdata.tate_table, Cofactor)
 
-    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_full)
-    n2 = -fq_dlog_power_of_2_opt(w2, cdata.dlog_data_full)
-    n3 = fq_dlog_power_of_2_opt(w3, cdata.dlog_data_full)
-    n4 = -fq_dlog_power_of_2_opt(w4, cdata.dlog_data_full)
+    n1 = -fq_dlog_power_of_2_opt(t1, cdata.dlog_data_full)
+    n2 = fq_dlog_power_of_2_opt(t2, cdata.dlog_data_full)
+    n3 = -fq_dlog_power_of_2_opt(t3, cdata.dlog_data_full)
+    n4 = fq_dlog_power_of_2_opt(t4, cdata.dlog_data_full)
 
     return n1, n2, n3, n4
 end

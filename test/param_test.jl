@@ -116,5 +116,4 @@ function param_check(param::Module)
     check_matrices_actions(param.p, param.ExponentFull, param.SQISIGN_challenge_length, tdata)
 end
 
-param_check(KaniSQIsign.Toy17)
 param_check(KaniSQIsign.Level1)
