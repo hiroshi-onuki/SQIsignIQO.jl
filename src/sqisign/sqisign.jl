@@ -163,8 +163,14 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     end
     s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
     @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
+    is_one_P = s1 % 2 != 0
+    if is_one_P
+        s = s2 * invmod(s1, BigInt(2)^SQISIGN_challenge_length)
+    else
+        s = s1 * invmod(s2, BigInt(2)^SQISIGN_challenge_length)
+    end
 
-    ker_d = s1 % 2 == 0 ? xPd : xQd
+    ker_d = is_one_P ? xQd : xPd
     @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
     @assert is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length))
     a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d])
@@ -174,7 +180,7 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     r = ec_dlog(A, ker, im[1], xQ, cdata)
     @assert ladder(r, im[1], a24) == ker
 
-    return c, s1, s2, r
+    return c, is_one_P, s, r
 end
 
 function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
@@ -183,7 +189,7 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
     while true
         Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
         !found && continue
-        cha, s1, s2, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
+        cha, is_one_P, s, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
 
         # pull-back of the challenge ideal
         Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
@@ -207,7 +213,7 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
         M = M_A
         D = norm(I_A)
 
-        sign = Vector{BigInt}[]
+        sign = []
         e = KLPT_signing_klpt_length
         compute_coeff = true
         while e > 0
@@ -215,7 +221,11 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             if compute_coeff
                 ed2 = min(e, 2*ExponentForIsogeny)
                 a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
-                push!(sign, [a, b])
+                if a == 1
+                    push!(sign, [true, b])
+                else
+                    push!(sign, [false, a])
+                end
                 compute_coeff = false
             else
                 compute_coeff = true
@@ -230,21 +240,25 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             e -= ed
         end
 
-        found && return sign, s1, s2, r
+        found && return sign, is_one_P, s, r
     end
 end
 
-function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::BigInt, s2::BigInt, r::BigInt)
+function verify(pk::FqFieldElem, m::String, sign::Vector{Any}, is_one_P::Bool, s::BigInt, r::BigInt)
     # challenge ellitpic curve
     a24 = A_to_a24(pk)
     e = KLPT_signing_klpt_length
-    for (a, b) in sign
+    for (is_one_P_s, a) in sign
         ed = min(2*ExponentForIsogeny, e)
         xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
         xP = xDBLe(xP, a24, ExponentFull - ed)
         xQ = xDBLe(xQ, a24, ExponentFull - ed)
         xPQ = xDBLe(xPQ, a24, ExponentFull - ed)
-        ker = linear_comb_2_e(a, b, xP, xQ, xPQ, a24, ed)
+        if is_one_P_s == 1
+            ker = ladder3pt(a, xP, xQ, xPQ, a24)
+        else
+            ker = ladder3pt(a, xQ, xP, xPQ, a24)
+        end
         a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[])
         a24, _ = Montgomery_normalize(a24, Proj1{FqFieldElem}[])
         e -= ed
@@ -252,8 +266,13 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{Vector{BigInt}}, s1::Bi
 
     # commitment elliptic curve
     xP, xQ, xPQ = torsion_basis(a24, SQISIGN_challenge_length)
-    ker = linear_comb_2_e(s1, s2, xP, xQ, xPQ, a24, SQISIGN_challenge_length)
-    xR = s1 % 2 == 0 ? xP : xQ
+    if is_one_P
+        ker = ladder3pt(s, xP, xQ, xPQ, a24)
+        xR = xQ
+    else
+        ker = ladder3pt(s, xQ, xP, xPQ, a24)
+        xR = xP
+    end
     a24com, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR])
     a24com, im = Montgomery_normalize(a24com, im)
     Acom = Montgomery_coeff(a24com)
