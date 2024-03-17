@@ -1,4 +1,4 @@
-export Weil_pairing_2power, Tate_pairing_P0, Tate_pairing_iP0, make_pairing_table
+export Weil_pairing_2power, Tate_pairing_P0, Tate_pairing_iP0, make_pairing_table, Tate_pairings
 
 # Miller function f_{P}(Q)
 function Miller_function(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T <: RingElem
@@ -57,59 +57,61 @@ function make_pairing_table(A::FqFieldElem, P::Point{FqFieldElem}, e::Integer)
     return table
 end
 
-# Tate pairing t_{e^e}(P0, P) using precomputed table for P0
+# Tate pairing t_{2^e}(P0, P) using precomputed table for P0
 function Tate_pairing_P0(P::Point{FqFieldElem}, table::Vector{Vector{FqFieldElem}}, f::Integer)
-    R = P
-    if R.Z == 1
-        x, y = R.X, R.Y
-    else
-        invZ = R.Z^(-1)
-        x, y = R.X*invZ, R.Y*invZ
-    end
+    x, y, z = P.X, P.Y, P.Z
     x_frob = Frob(x)
+    z_frob = Frob(z)
     x0, y0 = table[1][1], table[1][2]
     f0 = 1
+    h0 = 1
     for (xt, yt, lam) in table[2:end]
-        t0 = x - x0
-        t1 = y - y0
+        t0 = x - x0 * z
+        t1 = y - y0 * z
         t0 *= lam
         g = t0 - t1
-        h = x_frob - Frob(xt)
+        h = x_frob - Frob(xt) * z_frob
         g *= h
         f0 = f0^2 * g
+        h0 = h0^2 * z * z_frob
         x0, y0 = xt, yt
     end
-    g = x - x0
+    g = x - x0 * z
     f0 = f0^2 * g
-    f0 = Frob(f0) / f0
+    h0 = h0^2 * z
+    f0 = Frob(f0) * h0 / (f0 * Frob(h0))
     f0 = f0^f
     return f0
 end
 
+# Tate pairing t_{2^e}(iP0, P) using precomputed table for P0
 function Tate_pairing_iP0(P::Point{FqFieldElem}, table::Vector{Vector{FqFieldElem}}, f::Integer)
-    R = P
-    if R.Z == 1
-        x, y = R.X, R.Y
-    else
-        invZ = R.Z^(-1)
-        x, y = R.X*invZ, R.Y*invZ
-    end
+    x, y, z = P.X, P.Y, P.Z
     x_frob = Frob(x)
+    z_frob = Frob(z)
     x0, y0 = table[1][1], table[1][2]
     f0 = 1
+    h0 = 1
     for (xt, yt, lam) in table[2:end]
-        t0 = x + x0
-        t1 = y - mult_by_i(y0)
+        t0 = x + x0 * z
+        t1 = y - mult_by_i(y0) * z
         t0 *= -mult_by_i(lam)
         g = t0 - t1
-        h = x_frob + Frob(xt)
+        h = x_frob + Frob(xt) * z_frob
         g *= h
         f0 = f0^2 * g
+        h0 = h0^2 * z * z_frob
         x0, y0 = xt, yt
     end
-    g = x + x0
+    g = x + x0 * z
     f0 = f0^2 * g
-    f0 = Frob(f0) / f0
+    h0 = h0^2 * z
+    f0 = Frob(f0) * h0 / (f0 * Frob(h0))
     f0 = f0^f
     return f0
+end
+
+# Tate pairing t_{2^e}(P, Q) for Q in Qs
+function Tate_pairings(A::FqFieldElem, P::Point{FqFieldElem}, Qs::Vector{Point{FqFieldElem}}, e::Integer)
+    return 1
 end

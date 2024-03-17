@@ -24,3 +24,10 @@ n4Q0 = mult(n4, Q0, Proj1(A))
 @test P == add(n1P0, n2Q0, Proj1(A)) || P == add(-n1P0, -n2Q0, Proj1(A))
 @test Q == add(n3P0, n4Q0, Proj1(A)) || Q == add(-n3P0, -n4Q0, Proj1(A))
 
+es = Tate_pairings(A, P0, [Q0], e)
+e = es[1]
+table = make_pairing_table(A, P0, KaniSQIsign.Level1.ExponentFull)
+ed = Tate_pairing_P0(Q0, table, 79)
+@assert e == ed
+@assert e^(BigInt(2)^KaniSQIsign.Level1.ExponentFull) == 1
+@assert e^(BigInt(2)^(KaniSQIsign.Level1.ExponentFull - 1)) != 1
