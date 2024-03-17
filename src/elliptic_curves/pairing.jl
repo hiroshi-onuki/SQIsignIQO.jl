@@ -110,8 +110,3 @@ function Tate_pairing_iP0(P::Point{FqFieldElem}, table::Vector{Vector{FqFieldEle
     f0 = f0^f
     return f0
 end
-
-# Tate pairing t_{2^e}(P, Q) for Q in Qs
-function Tate_pairings(A::FqFieldElem, P::Point{FqFieldElem}, Qs::Vector{Point{FqFieldElem}}, e::Integer)
-    return 1
-end
