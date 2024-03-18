@@ -45,7 +45,7 @@ function RandomEquivalentPrimeIdeal(I::LeftIdeal)
         beta = c1 * red_basis[1] + c2 * red_basis[2] + c3 * red_basis[3] + c4 * red_basis[4]
         beta = QOrderElem(beta)
         nJ = div(norm(beta), N)
-        if is_prime(nJ)
+        if is_probable_prime(nJ)
             found = true
             J = ideal_transform(I, beta, N)
         end
@@ -81,7 +81,7 @@ function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N
         beta = c1 * red_basis[1] + c2 * red_basis[2] + c3 * red_basis[3] + c4 * red_basis[4]
         beta = QOrderElem(beta)
         nJ = div(norm(beta), N)
-        if is_prime(nJ)
+        if is_probable_prime(nJ)
             found = true
             J = ideal_transform(I, beta, NI) # Isec * L
             J = larger_ideal(J, nJ) # [Isec]^* L
