@@ -355,7 +355,29 @@ function four_iso_eval_neg_one(a24::Proj1{T}, P::Proj1{T}) where T <: RingElem
     return Proj1(-Q.X, Q.Z)
 end
 
-# 2^e-isogey with kernel <K>. A = (a + 2)/4.
+# 4-isogeny with kernel <ker>
+function four_iso(a24::Proj1{T}, ker::Proj1{T}, Qs::Vector{Proj1{T}}) where T <: RingElem
+    imQs = Vector{Proj1{T}}(undef, length(Qs))
+    if ker.X == ker.Z
+        for i in 1:length(Qs)
+            imQs[i] = four_iso_eval_one(a24, Qs[i])
+        end
+        a24 = four_iso_curve_one(a24)
+    elseif ker.X == -ker.Z
+        for i in 1:length(Qs)
+            imQs[i] = four_iso_eval_neg_one(a24, Qs[i])
+        end
+        a24 = four_iso_curve_neg_one(a24)
+    else
+        a24, K1, K2, K3 = four_iso_curve(ker)
+        for i in 1:length(Qs)
+            imQs[i] = four_iso_eval(K1, K2, K3, Qs[i])
+        end
+    end
+    return a24, imQs
+end
+
+# 2^e-isogeny with kernel <K>. A = (a + 2)/4.
 function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) where T <: RingElem
     k = e-2
     while k >= 0
@@ -393,6 +415,29 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) whe
     end
 
     return a24, Qs
+end
+
+# 2^e-isogeny using strategy. A = (a + 2)/4.
+function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}, strategy::Vector{Int}) where T <: RingElem
+    S = [div(e, 2)]
+    Ps = vcat(Qs, [P])
+    i = 1
+    while length(S) > 0
+        h = pop!(S)
+        K = pop!(Ps)
+        if h == 1
+            a24, Ps = four_iso(a24, K, Ps)
+            S = [h - 1 for h in S]
+        else
+            push!(S, h)
+            push!(Ps, K)
+            K = xDBLe(K, a24, 2*strategy[i])
+            push!(S, h - strategy[i])
+            push!(Ps, K)
+            i += 1
+        end
+    end
+    return a24, Ps
 end
 
 # isogeny of odd degree d
