@@ -78,7 +78,12 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         end
         ker = pop!(eval_points)
     end
-    a24d, images = two_e_iso(a24, ker, e, eval_points)
+    if haskey(StrategiesDim1, e)
+        a24d, images = two_e_iso(a24, ker, e, eval_points, StrategiesDim1[e])
+    else
+        strategy = compute_strategy(div(e, 2)-1, 1, 1)
+        a24d, images = two_e_iso(a24, ker, e, eval_points, strategy)
+    end
     a24d, images = Montgomery_normalize(a24d, images)
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2

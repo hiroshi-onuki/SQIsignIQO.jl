@@ -13,6 +13,15 @@ include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 include("../sqisign/sqisign.jl")
 
 const StrategyDim2 = compute_strategy(ExponentForTorsion - 4, 2, 1)
+const StrategiesDim1 = Dict(
+    ExponentForIsogeny - 2 => compute_strategy(div(ExponentForIsogeny - 2,2) - 1, 1, 1),
+    ExponentForIsogeny => compute_strategy(div(ExponentForIsogeny,2) - 1, 1, 1),
+    2*ExponentForIsogeny => compute_strategy(div(2*ExponentForIsogeny,2) - 1, 1, 1),
+    ExponentForSignLastIsogeny => compute_strategy(div(ExponentForSignLastIsogeny, 2) - 1, 1, 1),
+    ExponentForVerifyLastIsogeny => compute_strategy(div(ExponentForVerifyLastIsogeny, 2) - 1, 1, 1),
+    SQISIGN_challenge_length => compute_strategy(div(SQISIGN_challenge_length, 2) - 1, 1, 1),
+    ExponentForCommitmentLastIsogeny => compute_strategy(div(ExponentForCommitmentLastIsogeny, 2) - 1, 1, 1)
+)
 
 # Fp2 and values in Fp2
 function make_field_curve_torsions()

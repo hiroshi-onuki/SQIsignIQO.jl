@@ -33,6 +33,9 @@ const SQISIGN_challenge_length = 128
 const SQISIGN_sign_isogeny_bytes = 28
 const SQISIGN_challenge_bytes = 16
 const SQISIGN_sign_bytes = (SQISIGN_sign_isogeny_bytes + 1) * SQISIGN_signing_length + 2 * SQISIGN_challenge_bytes + 1
+const ExponentForSignLastIsogeny = SQISIGN_signing_total_length % ExponentForIsogeny
+const ExponentForVerifyLastIsogeny = SQISIGN_signing_total_length % (2*ExponentForIsogeny)
+const ExponentForCommitmentLastIsogeny = SQISIGN_commitment_length % ExponentForIsogeny
 
 
 const SmallPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]

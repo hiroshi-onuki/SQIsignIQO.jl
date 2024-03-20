@@ -29,7 +29,7 @@ end
 function random_secret_prime()
     B = BigInt(2)^((KLPT_secret_key_prime_size) - 2) - 1
     n = rand(1:B)
-    while !is_prime(4*n + 3)
+    while !is_probable_prime(4*n + 3)
         n = rand(1:B)
     end
     return 4*n + 3
@@ -150,7 +150,7 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     xPQ = xDBLe(xPQ, a24, ExponentFull - SQISIGN_challenge_length)
     ker = ladder3pt(c, xP, xQ, xPQ, a24)
 
-    a24d, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ])
+    a24d, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xQ], StrategiesDim1[SQISIGN_challenge_length])
     a24d, im = Montgomery_normalize(a24d, im)
     Ad = Montgomery_coeff(a24d)
     xK = im[1]
@@ -173,7 +173,7 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     ker_d = is_one_P ? xQd : xPd
     @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
     @assert is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length))
-    a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d])
+    a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d], StrategiesDim1[SQISIGN_challenge_length])
     a24dd, im = Montgomery_normalize(a24dd, im)
     @assert !is_infinity(xDBLe(im[1], a24, SQISIGN_challenge_length - 1))
     @assert a24dd == a24
@@ -234,7 +234,7 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             else
                 compute_coeff = true
             end
-            
+
             ed = min(ExponentForIsogeny, e)
             n_I_d = D * BigInt(2)^ed
             I_d = larger_ideal(I, n_I_d)
@@ -286,7 +286,7 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
         else
             ker = ladder3pt(a, xQ, xP, xPQ, a24)
         end
-        a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[])
+        a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[], StrategiesDim1[ed])
         a24, _ = Montgomery_normalize(a24, Proj1{FqFieldElem}[])
         e -= ed
     end
@@ -300,7 +300,7 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
         ker = ladder3pt(s, xQ, xP, xPQ, a24)
         xR = xP
     end
-    a24com, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR])
+    a24com, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR], StrategiesDim1[SQISIGN_challenge_length])
     a24com, im = Montgomery_normalize(a24com, im)
     Acom = Montgomery_coeff(a24com)
     xP, xQ, xPQ = torsion_basis(a24com, ExponentFull)
