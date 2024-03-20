@@ -63,10 +63,7 @@ function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N
     N = Nsec * NI
 
     # compute \bar(Isec)I
-    invIsec = [involution(b) for b in [Isec.b1, Isec.b2, Isec.b3, Isec.b4]]
-    generator = [x * y for x in invIsec for y in [I.b1, I.b2, I.b3, I.b4]]
-    basis = get_basis([to_vector(b) for b in generator])
-    invIsecI = LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
+    invIsecI = involution_product(Isec, I)
 
     # LLL reduction
     Imatrix = ideal_to_matrix(invIsecI)

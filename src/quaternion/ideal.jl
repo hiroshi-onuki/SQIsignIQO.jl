@@ -1,6 +1,3 @@
-export LeftIdeal, LeftIdeal, ideal_to_matrix, norm, LeftIdeal, larger_ideal, two_e_good_element,
-    make_quadratic_form_coeffs, primitive_element, ideal_transform, isin, valid_ideal
-
 # left ideal of the maximal order <1, i, (i + j)/2, (1 + ij)/2>
 struct LeftIdeal
     b1::QOrderElem
@@ -227,4 +224,12 @@ function pushforward(alpha::QOrderElem, I::LeftIdeal)
     Oalpha = LeftIdeal(alpha, Na)
     L = intersection(I, Oalpha) 
     return ideal_transform(L, alpha, Na)
+end
+
+# return \bar(I) * J, a left ideal of the right order of I
+function involution_product(I::LeftIdeal, J::LeftIdeal)
+    invI = [involution(b) for b in [I.b1, I.b2, I.b3, I.b4]]
+    generator = [x * y for x in invI for y in [J.b1, J.b2, J.b3, J.b4]]
+    basis = get_basis([to_vector(b) for b in generator])
+    return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
 end
