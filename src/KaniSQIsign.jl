@@ -21,8 +21,6 @@ include("theta/theta_arithmetic.jl")
 include("theta/splitting.jl")
 include("theta/theta_isogeny.jl")
 
-include("parameters/curve_data.jl")
-
 module Level1
 using Nemo, KaniSQIsign
 include("parameters/level1.jl")

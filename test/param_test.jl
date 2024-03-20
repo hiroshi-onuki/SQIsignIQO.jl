@@ -1,20 +1,20 @@
 using Nemo
 using KaniSQIsign
 
-function check_torsion_orders(e::Int, tdata::CurveData)
-    A0 = tdata.A0
-    a24 = tdata.a24_0
-    P2e = tdata.P2e
-    Q2e = tdata.Q2e
+function check_torsion_orders(e::Int, E0)
+    A0 = E0.A0
+    a24 = E0.a24_0
+    P2e = E0.P2e
+    Q2e = E0.Q2e
 
     @test is_infinity(mult(BigInt(2)^e, P2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), P2e, Proj1(A0)))
     @test is_infinity(mult(BigInt(2)^e, Q2e, Proj1(A0)))
     @test !is_infinity(mult(BigInt(2)^(e-1), Q2e, Proj1(A0)))
-    for i in 1:length(tdata.OddTorsionBases)
-        l = tdata.DegreesOddTorsionBases[i]
-        el = tdata.ExponentsOddTorsionBases[i]
-        xP, xQ, xPQ = tdata.OddTorsionBases[i]
+    for i in 1:length(E0.OddTorsionBases)
+        l = E0.DegreesOddTorsionBases[i]
+        el = E0.ExponentsOddTorsionBases[i]
+        xP, xQ, xPQ = E0.OddTorsionBases[i]
         @test is_infinity(ladder(l^el, xP, a24))
         @test is_infinity(ladder(l^el, xQ, a24))
         @test is_infinity(ladder(l^el, xPQ, a24))
@@ -82,38 +82,39 @@ function check_1k_action(p::BigInt, basis::Vector{Proj1{T}}, M1k::Matrix{S}, a24
     return true
 end
 
-function check_matrices_actions(p::BigInt, e::Int, ed::Int, tdata::CurveData)
-    a24 = tdata.a24_0
+function check_matrices_actions(p::BigInt, e::Int, ed::Int, E0)
+    a24 = E0.a24_0
 
     # check actions on 2^e-torsion
-    xP2e, xQ2e, xPQ2e = tdata.xP2e, tdata.xQ2e, tdata.xPQ2e
-    @test check_i_action([xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[1], a24, BigInt(2)^e)
-    @test check_ij_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[2], a24, BigInt(2)^e)
-    @test check_1k_action(p, [xP2e, xQ2e, xPQ2e], tdata.Matrices_2e[3], a24, BigInt(2)^e)
+    xP2e, xQ2e, xPQ2e = E0.xP2e, E0.xQ2e, E0.xPQ2e
+    @test check_i_action([xP2e, xQ2e, xPQ2e], E0.Matrices_2e[1], a24, BigInt(2)^e)
+    @test check_ij_action(p, [xP2e, xQ2e, xPQ2e], E0.Matrices_2e[2], a24, BigInt(2)^e)
+    @test check_1k_action(p, [xP2e, xQ2e, xPQ2e], E0.Matrices_2e[3], a24, BigInt(2)^e)
 
     m11 = rand(1:BigInt(2)^ed)
     m21 = rand(1:BigInt(2)^ed)
     m12 = rand(1:BigInt(2)^ed)
     m22 = rand(1:BigInt(2)^ed)
-    a, b, c, d = tdata.Matrix_2ed_inv * [m11, m21, m12, m22]
-    @test ([a 0; 0 a] + b * tdata.Matrices_2e[1] + c * tdata.Matrices_2e[2] + d * tdata.Matrices_2e[3]) .% BigInt(2)^ed == [m11 m12; m21 m22]
+    a, b, c, d = E0.Matrix_2ed_inv * [m11, m21, m12, m22]
+    @test ([a 0; 0 a] + b * E0.Matrices_2e[1] + c * E0.Matrices_2e[2] + d * E0.Matrices_2e[3]) .% BigInt(2)^ed == [m11 m12; m21 m22]
 
     # check actions on odd-torsion
-    for i in 1:length(tdata.OddTorsionBases)
-        l = tdata.DegreesOddTorsionBases[i]
-        el = tdata.ExponentsOddTorsionBases[i]
-        xP, xQ, xPQ = tdata.OddTorsionBases[i]
-        @test check_i_action([xP, xQ, xPQ], tdata.Matrices_odd[i][1], a24, l^el)
-        @test check_ij_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][2], a24, l^el)
-        @test check_1k_action(p, [xP, xQ, xPQ], tdata.Matrices_odd[i][3], a24, l^el)
+    for i in 1:length(E0.OddTorsionBases)
+        l = E0.DegreesOddTorsionBases[i]
+        el = E0.ExponentsOddTorsionBases[i]
+        xP, xQ, xPQ = E0.OddTorsionBases[i]
+        @test check_i_action([xP, xQ, xPQ], E0.Matrices_odd[i][1], a24, l^el)
+        @test check_ij_action(p, [xP, xQ, xPQ], E0.Matrices_odd[i][2], a24, l^el)
+        @test check_1k_action(p, [xP, xQ, xPQ], E0.Matrices_odd[i][3], a24, l^el)
     end
 end
 
 function param_check(param::Module)
-    _, _, tdata = param.make_field_curve_torsions()
+    _, _, global_data = param.make_precomputed_values()
+    E0 = global_data.E0
 
-    check_torsion_orders(param.ExponentFull, tdata)
-    check_matrices_actions(param.p, param.ExponentFull, param.SQISIGN_challenge_length, tdata)
+    check_torsion_orders(param.ExponentFull, E0)
+    check_matrices_actions(param.p, param.ExponentFull, param.SQISIGN_challenge_length, E0)
 end
 
 param_check(KaniSQIsign.Level1)

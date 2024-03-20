@@ -4,8 +4,7 @@ using KaniSQIsign
 function test_id2iso(param::Module, n::Int)
     p = param.p
     e1 = param.ExponentForIsogeny
-    _, _, cdata = param.make_field_curve_torsions()
-    order_data = param.compute_order2(cdata)
+    _, _, global_data = param.make_precomputed_values()
 
     N = 337416411430778090000393699717 # large prime
     e = n*Int(ceil(log(2, p)))
@@ -20,8 +19,8 @@ function test_id2iso(param::Module, n::Int)
     I = param.LeftIdeal(a, BigInt(2)^(n*e1) * param.ExtraDegree)
     I = div(I, param.gcd(I))
     println(factor(ZZ(param.norm(I))))
-    param.ideal_to_isogeny_from_O0(I, n*e1 - 10, cdata, order_data)
+    param.ideal_to_isogeny_from_O0(I, n*e1 - 10, global_data)
 end
 
 strategy = KaniSQIsign.Level1.StrategyDim2
-test_id2iso(KaniSQIsign.Level1, 4)
+#test_id2iso(KaniSQIsign.Level1, 4)

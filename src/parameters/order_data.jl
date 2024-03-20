@@ -1,17 +1,4 @@
-struct OrderData
-    A::FqFieldElem
-    a24_0::Proj1{FqFieldElem}
-    xP2e::Proj1{FqFieldElem}
-    xQ2e::Proj1{FqFieldElem}
-    xPQ2e::Proj1{FqFieldElem}
-    xP2e_short::Proj1{FqFieldElem}
-    xQ2e_short::Proj1{FqFieldElem}
-    xPQ2e_short::Proj1{FqFieldElem}
-    I::LeftIdeal
-    M::Matrix{BigInt}
-    connecting_deg::BigInt
-    M_sqrt_d::Matrix{BigInt}
-end
+
 
 # return alpha = (ai + bj + cij)/N s.t. alpha^2 = -d
 function sqrt_in_quaternion(d::Integer)
@@ -27,13 +14,13 @@ function sqrt_in_quaternion(d::Integer)
     end
 end
 
-function compute_order2(cdata::CurveData)
+function compute_order2(E0::E0Data)
     order2e = BigInt(2)^Level1.ExponentFull
     d = 2
 
     found = false
-    a24 = cdata.a24_0
-    xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+    a24 = E0.a24_0
+    xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
     alpha = QOrderElem(0)
     I = LeftIdeal(Quaternion_0, Quaternion_0, Quaternion_0, Quaternion_0)
     M = BigInt[1 0; 0 1]
@@ -43,7 +30,7 @@ function compute_order2(cdata::CurveData)
     while !found
         a, b, c, N = sqrt_in_quaternion(d)
         alpha = Level1.order_elem_from_standard_basis(0, a, b, c)
-        Ma = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_2e[1] + alpha[3] * cdata.Matrices_2e[2] + alpha[4] * cdata.Matrices_2e[3]
+        Ma = alpha[1] * [1 0; 0 1] + alpha[2] * E0.Matrices_2e[1] + alpha[3] * E0.Matrices_2e[2] + alpha[4] * E0.Matrices_2e[3]
         @assert alpha * alpha == QOrderElem(-d * N^2)
 
         I = Level1.LeftIdeal(alpha, N)
@@ -54,8 +41,8 @@ function compute_order2(cdata::CurveData)
 
         e = Int(log(2, div(Level1.norm(J), ExtraDegree)))
         alpha = involution(alpha)
-        a24 = cdata.a24_0
-        xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+        a24 = E0.a24_0
+        xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
         M = BigInt[1 0; 0 1]
         is_first = true
         extdeg = ExtraDegree
@@ -64,7 +51,7 @@ function compute_order2(cdata::CurveData)
             ed = min(e, ExponentForIsogeny)
             n_I_d = D * extdeg * BigInt(2)^ed
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, is_first, Quaternion_0, 0, 0)
             !found && break
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
@@ -75,7 +62,7 @@ function compute_order2(cdata::CurveData)
     end
 
     alpha = involution(alpha)
-    Malpha = alpha[1] * [1 0; 0 1] + alpha[2] * cdata.Matrices_2e[1] + alpha[3] * cdata.Matrices_2e[2] + alpha[4] * cdata.Matrices_2e[3]
+    Malpha = alpha[1] * [1 0; 0 1] + alpha[2] * E0.Matrices_2e[1] + alpha[3] * E0.Matrices_2e[2] + alpha[4] * E0.Matrices_2e[3]
     M = (M * Malpha * invmod(D, order2e)) .% order2e
     Minv = [M[2, 2] -M[1, 2]; -M[2, 1] M[1, 1]] * invmod(M[1, 1]*M[2, 2] - M[1, 2]*M[2, 1], order2e)
     Mdual = (Minv * N) .% order2e
@@ -85,5 +72,5 @@ function compute_order2(cdata::CurveData)
     xQs = xDBLe(xQ, a24, ExponentFull - ExponentForTorsion)
     xPQs = xDBLe(xPQ, a24, ExponentFull - ExponentForTorsion)
 
-    return OrderData(Montgomery_coeff(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2)
+    return OrderData(Montgomery_coeff(a24), jInvariant_a24(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2)
 end

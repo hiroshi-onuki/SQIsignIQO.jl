@@ -5,6 +5,8 @@ include("../quaternion/order.jl")
 include("../quaternion/cornacchia.jl")
 include("../quaternion/ideal.jl")
 include("../quaternion/klpt.jl")
+
+include("global_data.jl")
 include("order_data.jl")
 
 include("../elliptic_curves/dlog.jl")
@@ -25,7 +27,7 @@ const StrategiesDim1 = Dict(
 )
 
 # Fp2 and values in Fp2
-function make_field_curve_torsions()
+function make_precomputed_values()
     _, T = polynomial_ring(GF(p), "T")
     Fp2, Fp2_i = finite_field(T^2 + 1, "i")
     
@@ -96,17 +98,20 @@ function make_field_curve_torsions()
     beta_d = -A0dd/3
     gamma_d = square_root(1 / (1 - 3*beta_d^2))
     gamma_d = gamma_d[1]/gamma_d[2]
-    function isomorphism_to_A0(A::Proj1{FqFieldElem}, P::Proj1{FqFieldElem})
+    function isomorphism_to_A0(A::Proj1{FqFieldElem}, Ps::Vector{Proj1{FqFieldElem}})
         if A == Proj1(A0)
-            return P
+            return Ps
         elseif A == Proj1(A0d)
-            return Proj1(gamma*(P.X - beta*P.Z), P.Z)
+            return [Proj1(gamma*(P.X - beta*P.Z), P.Z) for P in Ps]
         elseif A == Proj1(A0dd)
-            return Proj1(gamma_d*(P.X - beta_d*P.Z), P.Z)
+            return [Proj1(gamma_d*(P.X - beta_d*P.Z), P.Z) for P in Ps]
         else
             throw(ArgumentError("A is not A0d or A0dd"))
         end
     end
 
-    return Fp2, Fp2_i, CurveData(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
+    E0 = E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
+    orders_data = [compute_order2(E0)]
+
+    return Fp2, Fp2_i, GlobalData(E0, orders_data)
 end

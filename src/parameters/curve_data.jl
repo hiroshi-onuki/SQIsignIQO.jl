@@ -1,4 +1,4 @@
-export DlogData, CurveData, OrderData
+export DlogData, E0Data, OrderData
 
 struct DlogData
     e::Int
@@ -9,7 +9,7 @@ struct DlogData
 end
 
 # structure for precomputed values
-struct CurveData{T <: RingElem}
+struct E0Data{T <: RingElem}
     A0::T
     A0d::T
     A0dd::T

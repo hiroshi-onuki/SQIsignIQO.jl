@@ -1,21 +1,21 @@
 # return n1, n2, n3, n4 such that P = [n1]P0 + [n1]Q0, Q = [n3]P0 + [n4]Q0, where (P0, Q0) is a fixed basis of E0[2^ExponentFull]
-function ec_bi_dlog_E0(P::Point{FqFieldElem}, Q::Point{FqFieldElem}, cdata::CurveData)
-    t1 = Tate_pairing_iP0(P, cdata.tate_table, Cofactor)
-    t2 = Tate_pairing_P0(P, cdata.tate_table, Cofactor)
-    t3 = Tate_pairing_iP0(Q, cdata.tate_table, Cofactor)
-    t4 = Tate_pairing_P0(Q, cdata.tate_table, Cofactor)
+function ec_bi_dlog_E0(P::Point{FqFieldElem}, Q::Point{FqFieldElem}, E0::E0Data)
+    t1 = Tate_pairing_iP0(P, E0.tate_table, Cofactor)
+    t2 = Tate_pairing_P0(P, E0.tate_table, Cofactor)
+    t3 = Tate_pairing_iP0(Q, E0.tate_table, Cofactor)
+    t4 = Tate_pairing_P0(Q, E0.tate_table, Cofactor)
 
-    n1 = -fq_dlog_power_of_2_opt(t1, cdata.dlog_data_full)
-    n2 = fq_dlog_power_of_2_opt(t2, cdata.dlog_data_full)
-    n3 = -fq_dlog_power_of_2_opt(t3, cdata.dlog_data_full)
-    n4 = fq_dlog_power_of_2_opt(t4, cdata.dlog_data_full)
+    n1 = -fq_dlog_power_of_2_opt(t1, E0.dlog_data_full)
+    n2 = fq_dlog_power_of_2_opt(t2, E0.dlog_data_full)
+    n3 = -fq_dlog_power_of_2_opt(t3, E0.dlog_data_full)
+    n4 = fq_dlog_power_of_2_opt(t4, E0.dlog_data_full)
 
     return n1, n2, n3, n4
 end
 
 # return n1, n2, n3, n4 such that P = [n1]P0 + [n1]Q0, Q = [n3]P0 + [n4]Q0, where (P0, Q0) is a fixed basis of E0[2^ExponentFull]
-function ec_bi_dlog_E0(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, cdata::CurveData) where T <: RingElem
-    A0 = cdata.A0
+function ec_bi_dlog_E0(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, E0::E0Data) where T <: RingElem
+    A0 = E0.A0
     P = Point(A0, xP)
     Q = Point(A0, xQ)
     PQ = add(P, -Q, Proj1(A0))
@@ -23,33 +23,33 @@ function ec_bi_dlog_E0(xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T}, cdata::CurveDa
         Q = -Q
     end
 
-    return ec_bi_dlog_E0(P, Q, cdata)
+    return ec_bi_dlog_E0(P, Q, E0)
 end
 
 # return n1, n2 such that P = [n1]P0 + [n2]Q0
-function ec_bi_dlog_challenge(A::T, xP::Proj1{T}, P0::Point{T}, Q0::Point{T}, cdata::CurveData) where T <: RingElem
+function ec_bi_dlog_challenge(A::T, xP::Proj1{T}, P0::Point{T}, Q0::Point{T}, E0::E0Data) where T <: RingElem
     P = Point(A, xP)
     base = Weil_pairing_2power(A, P0, Q0, SQISIGN_challenge_length)
     w1 = Weil_pairing_2power(A, P, Q0, SQISIGN_challenge_length)
     w2 = Weil_pairing_2power(A, P0, P, SQISIGN_challenge_length)
 
-    n0 = fq_dlog_power_of_2_opt(base, cdata.dlog_data_chall)
-    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_chall)
-    n2 = fq_dlog_power_of_2_opt(w2, cdata.dlog_data_chall)
+    n0 = fq_dlog_power_of_2_opt(base, E0.dlog_data_chall)
+    n1 = fq_dlog_power_of_2_opt(w1, E0.dlog_data_chall)
+    n2 = fq_dlog_power_of_2_opt(w2, E0.dlog_data_chall)
     n0inv = invmod(n0, BigInt(2)^SQISIGN_challenge_length)
 
     return (n1 * n0inv) % BigInt(2)^SQISIGN_challenge_length, (n2 * n0inv) % BigInt(2)^SQISIGN_challenge_length
 end 
 
 # return n s.t. P = [n]Q, where P, Q is a fixed point of order 2^SQISIGN_challenge_length and R is a point s.t. (P, R) is a basis of E_A[2^SQISIGN_challenge_length]
-function ec_dlog(A::T, xP::Proj1{T}, xQ::Proj1{T}, xR::Proj1{T}, cdata::CurveData) where T <: RingElem
+function ec_dlog(A::T, xP::Proj1{T}, xQ::Proj1{T}, xR::Proj1{T}, E0::E0Data) where T <: RingElem
     P = Point(A, xP)
     Q = Point(A, xQ)
     R = Point(A, xR)
     w1 = Weil_pairing_2power(A, P, R, SQISIGN_challenge_length)
     w2 = Weil_pairing_2power(A, Q, R, SQISIGN_challenge_length)
-    n1 = fq_dlog_power_of_2_opt(w1, cdata.dlog_data_chall)
-    n2 = fq_dlog_power_of_2_opt(w2, cdata.dlog_data_chall)
+    n1 = fq_dlog_power_of_2_opt(w1, E0.dlog_data_chall)
+    n2 = fq_dlog_power_of_2_opt(w2, E0.dlog_data_chall)
 
     return (n1 * invmod(n2, BigInt(2)^SQISIGN_challenge_length)) % BigInt(2)^SQISIGN_challenge_length
 end

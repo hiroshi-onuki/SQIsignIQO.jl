@@ -35,7 +35,7 @@ function random_secret_prime()
     return 4*n + 3
 end
 
-function key_gen(cdata::CurveData)
+function key_gen(E0::E0Data)
     found = false
     counter = 0
     pk, sk = nothing, nothing
@@ -70,8 +70,8 @@ function key_gen(cdata::CurveData)
         alpha = m * alpha
 
         # ideal to isogeny
-        a24 = cdata.a24_0
-        xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+        a24 = E0.a24_0
+        xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
         M = BigInt[1 0; 0 1]
         is_first = true
         extdeg = ExtraDegree
@@ -80,7 +80,7 @@ function key_gen(cdata::CurveData)
         while e > ExponentForIsogeny
             n_I_d = D * extdeg * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, cdata, is_first, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, E0, is_first, Quaternion_0, 0, 0)
             !found && break
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
@@ -89,7 +89,7 @@ function key_gen(cdata::CurveData)
             extdeg = 1
         end
         if found
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, cdata, false, alpha, a, b)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, E0, false, alpha, a, b)
         else
             continue
         end
@@ -101,7 +101,7 @@ function key_gen(cdata::CurveData)
     return pk, sk, found
 end
 
-function commitment(cdata::CurveData)
+function commitment(E0::E0Data)
     while true
         # make a random ideal of norm ExtraDegree * 2^SQISIGN_commitment_length
         I2 = sample_random_ideal_2e(SQISIGN_commitment_length)
@@ -111,8 +111,8 @@ function commitment(cdata::CurveData)
         I = intersection(I2, Iex)
 
         # ideal to isogeny
-        a24 = cdata.a24_0
-        xP, xQ, xPQ = cdata.xP2e, cdata.xQ2e, cdata.xPQ2e
+        a24 = E0.a24_0
+        xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
         M = BigInt[1 0; 0 1]
         found = false
         is_first = true
@@ -123,7 +123,7 @@ function commitment(cdata::CurveData)
             ed = min(e, ExponentForIsogeny)
             n_I_d = D * extdeg * BigInt(2)^ed
             I_d = larger_ideal(I, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, is_first, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, is_first, Quaternion_0, 0, 0)
             !found && break
             I = ideal_transform(I, beta, n_I_d)
             e -= ed
@@ -136,7 +136,7 @@ end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
 # where (P, Q) is a basis of E_com[2^SQISIGN_challenge_length] determined by the fixed torsion basis
-function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, m::String, cdata::CurveData)
+function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem}, xPQ::Proj1{FqFieldElem}, m::String, E0::E0Data)
     h = sha3_256(string(A) * m)
 
     c = BigInt(0)
@@ -161,7 +161,7 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     if !(xPQd == Proj1(PQ.X, PQ.Z))
         Qd = -Qd
     end
-    s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, cdata)
+    s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, E0)
     @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
     is_one_P = s1 % 2 != 0
     if is_one_P
@@ -177,24 +177,24 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     a24dd, im = Montgomery_normalize(a24dd, im)
     @assert !is_infinity(xDBLe(im[1], a24, SQISIGN_challenge_length - 1))
     @assert a24dd == a24
-    r = ec_dlog(A, ker, im[1], xQ, cdata)
+    r = ec_dlog(A, ker, im[1], xQ, E0)
     @assert ladder(r, im[1], a24) == ker
 
     return c, is_one_P, s, r
 end
 
-function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
+function signing(pk::FqFieldElem, sk, m::String, E0::E0Data)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
 
     while true
-        Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(cdata)
+        Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(E0)
         !found && continue
-        cha, is_one_P, s, r = challenge(Acom, xP, xQ, xPQ, m, cdata)
+        cha, is_one_P, s, r = challenge(Acom, xP, xQ, xPQ, m, E0)
 
         # pull-back of the challenge ideal
         Mcom_inv = [Mcom[2,2] -Mcom[1,2]; -Mcom[2,1] Mcom[1,1]] * invmod(Mcom[1, 1] * Mcom[2, 2] - Mcom[1, 2] * Mcom[2, 1], BigInt(2)^ExponentFull)
         a, b = Mcom_inv * [1, cha]
-        a, b, c, d = cdata.Matrix_2ed_inv * [b, 0, -a, 0]
+        a, b, c, d = E0.Matrix_2ed_inv * [b, 0, -a, 0]
         alpha = QOrderElem(a, b, c, d)
         Icha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
 
@@ -221,7 +221,7 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             # compute the kernel coefficients for signature once every two times
             if compute_coeff
                 ed2 = min(e, 2*ExponentForIsogeny)
-                a, b = kernel_coefficients(I, M, 2, ed2, cdata.Matrices_2e)
+                a, b = kernel_coefficients(I, M, 2, ed2, E0.Matrices_2e)
                 if a == 1
                     sign[idx] = 0x01
                     sign[idx+1:idx+SQISIGN_sign_isogeny_bytes] = integer_to_bytes(b, SQISIGN_sign_isogeny_bytes)
@@ -238,7 +238,7 @@ function signing(pk::FqFieldElem, sk, m::String, cdata::CurveData)
             ed = min(ExponentForIsogeny, e)
             n_I_d = D * BigInt(2)^ed
             I_d = larger_ideal(I, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, cdata, false, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, false, Quaternion_0, 0, 0)
             !found && break
             I = ideal_transform(I, beta, n_I_d)
             e -= ed
