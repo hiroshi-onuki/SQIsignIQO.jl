@@ -95,7 +95,7 @@ function key_gen(cdata::CurveData)
         end
         !found && continue
         pk = Montgomery_coeff(a24)
-        M = (M * m) .% BigInt(2)^ExponentFull   # M corresponds to (m * phi_I_sec^-1)^-1, so we need to multiply m
+        M = (M * invmod(m, BigInt(2)^ExponentFull)) .% BigInt(2)^ExponentFull   # M corresponds to m * phi_I_sec, so we need to multiply m^-1
         sk = (xP, xQ, xPQ, M, I_sec)
     end
     return pk, sk, found

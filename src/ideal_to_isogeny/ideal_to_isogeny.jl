@@ -112,7 +112,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQ2 = xDBLe(xPQ2, a24d, ExponentFull - e - ExponentForTorsion)
 
     # compute the images of the basis of E_0[2^ExponentFull] under norm(I_2)(a + bi)
-    c11, c21, c12, c22 = [a 0; 0 a] + b * cdata.Matrices_2e[1]
+    c11, c21, c12, c22 = D * ([a 0; 0 a] + b * cdata.Matrices_2e[1])
     a24_0 = cdata.a24_0
     xP0 = cdata.xP2e_short
     xQ0 = cdata.xQ2e_short
@@ -156,7 +156,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
     @assert xPQ0 == Proj1(PQtmp.X, PQtmp.Z)
 
-    @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(a^2 + b^2)
+    @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(D^2 * (a^2 + b^2))
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) * Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion) == 1
@@ -164,7 +164,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # fixed basis of E'[2^ExponentFull]
     xPd, xQd, xPQd = torsion_basis(a24d, ExponentFull)
-    xP2_I = linear_comb_2_e(D*M[1,1], D*M[2,1], xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
+    xP2_I = linear_comb_2_e(M[1,1], M[2,1], xP2t, xQ2t, xPQ2t, a24d, ExponentFull)
     @assert is_infinity(xDBLe(xP2t, a24d, ExponentFull))
     @assert is_infinity(xDBLe(xP2_I, a24d, ExponentFull))
 
@@ -231,12 +231,12 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert Weil_pairing_2power(A0, P0, Q0, ExponentFull) == Weil_pairing_2power(A2, P2, Q2, ExponentFull)^(BigInt(2)^ExponentForTorsion - a^2 - b^2)
     # end of pairing check
 
-    # compute the matrix M' s.t. phi_J(P0, Q0) = norm(J)*(Pd, Qd)M'
+    # compute the matrix M' s.t. phi_J(P0, Q0) = (Pd, Qd)M'
     c11, c21, c12, c22 = ec_bi_dlog_E0(xPdd, xQdd, xPQdd, cdata)
     @assert xPdd == linear_comb_2_e(c11, c21, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     @assert xQdd == linear_comb_2_e(c12, c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
     @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, cdata.xP2e, cdata.xQ2e, cdata.xPQ2e, cdata.a24_0, ExponentFull)
-    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull)
+    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull) * (BigInt(2)^ExponentForTorsion - a^2 - b^2)
 
     return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - b^2, true
 end
