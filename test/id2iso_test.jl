@@ -23,4 +23,4 @@ function test_id2iso(param::Module, n::Int)
 end
 
 strategy = KaniSQIsign.Level1.StrategyDim2
-#test_id2iso(KaniSQIsign.Level1, 4)
+test_id2iso(KaniSQIsign.Level1, 4)

@@ -7,6 +7,7 @@ struct DlogData
 end
 
 struct OrderData
+    d::Int
     A::FqFieldElem
     j_inv::FqFieldElem
     a24_0::Proj1{FqFieldElem}

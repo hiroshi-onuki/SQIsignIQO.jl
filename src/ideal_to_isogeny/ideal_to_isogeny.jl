@@ -315,6 +315,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xPQ0 = E0.xPQ2e_short
     Mc = [1 0; 0 1]
     M_sqrt_d = E0.Matrices_2e[1]
+    d = 1
     order_id = 0
     if precomp_beta == Quaternion_0
         cor_func(argN) = sum_of_two_squares(BigInt(2)^ExponentForTorsion - argN)
@@ -323,20 +324,21 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         beta, a, b, found = two_e_good_element(I, nI, cor_func, bound, IdealToIsogeny_2_e_good_attempts)
         while !found && order_id < length(global_data.orders_data)
             order_id += 1
-            order_data = global_data.orders_data[order_id]
-            a24_0 = order_data.a24_0
-            xP0 = order_data.xP2e_short
-            xQ0 = order_data.xQ2e_short
-            xPQ0 = order_data.xPQ2e_short
-            D *= order_data.connecting_deg
-            M_sqrt_d = order_data.M_sqrt_d
+            E0d = global_data.orders_data[order_id]
+            d = E0d.d
+            a24_0 = E0d.a24_0
+            xP0 = E0d.xP2e_short
+            xQ0 = E0d.xQ2e_short
+            xPQ0 = E0d.xPQ2e_short
+            D *= E0d.connecting_deg
+            M_sqrt_d = E0d.M_sqrt_d
             cor_func2(argN) = sum_of_two_squares_2(BigInt(2)^ExponentForTorsion - argN)
             nI = BigInt(2)^e * D
-            Id = involution_product(order_data.I, I)
+            Id = involution_product(E0d.I, I)
             bound = nI << ExponentForTorsion
             beta, a, b, found = two_e_good_element(Id, nI, cor_func2, bound, IdealToIsogeny_2_e_good_attempts)
             @assert norm(beta) == nI * (BigInt(2)^ExponentForTorsion - a^2 - 2*b^2)
-            Mc = order_data.M
+            Mc = E0d.M
         end
         @assert found
     else
@@ -394,7 +396,6 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
     @assert xPQ0 == Proj1(PQtmp.X, PQtmp.Z)
 
-    d = order_id == 0 ? 1 : 2
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(D^2 * (a^2 + d * b^2))
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
@@ -415,37 +416,50 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     O1Pd = CouplePoint(O1, xPd)
     O1Qd = CouplePoint(O1, xQd)
     O1PQd = CouplePoint(O1, xPQd)
-    O1P2_I = CouplePoint(O1, xP2_I)
-    Es, images = product_isogeny_sqrt(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, [O1Pd, O1Qd, O1PQd, O1P2_I], ExponentForTorsion, StrategyDim2)
+    eval_points = [O1Pd, O1Qd, O1PQd]
+    order_id == 0 && push!(eval_points, CouplePoint(O1, xP2_I))
+    Es, images = product_isogeny_sqrt(a24_0, a24d, P1P2, Q1Q2, PQ1PQ2, eval_points, ExponentForTorsion, StrategyDim2)
 
-    # isomorphism to A0
-    println(jInvariant_A(Es[1]))
-    println(jInvariant_A(Es[2]))
-    if Es[1] == Proj1(E0.A0) || Es[1] == Proj1(E0.A0d) || Es[1] == Proj1(E0.A0dd)
-        idx = 1
+    # isomorphism to E0 or E0d
+    if order_id == 0
+        if Es[1] == Proj1(E0.A0) || Es[1] == Proj1(E0.A0d) || Es[1] == Proj1(E0.A0dd)
+            idx = 1
+        else
+            idx = 2
+        end
+        xPdd, xQdd, xPQdd, xP0beta = E0.isomorphism_to_A0(Es[idx], [cp[idx] for cp in images])
+
+        # adjust the post-composition by sqrt{-1}
+        M_beta = beta[1]*[1 0; 0 1] + beta[2]*E0.Matrices_2e[1] + beta[3]*E0.Matrices_2e[2] + beta[4]*E0.Matrices_2e[3]
+        beta_P0 = linear_comb_2_e(M_beta[1,1], M_beta[2,1], E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
+        if xP0beta == beta_P0
+        elseif xP0beta == -beta_P0
+            # muliply by i
+            xPdd = -xPdd
+            xQdd = -xQdd
+            xPQdd = -xPQdd
+        else
+            throw(ArgumentError("No good isogeny found"))
+        end
     else
-        idx = 2
+        E0d = global_data.orders_data[order_id]
+        if jInvariant_A(Es[1]) == E0d.j_inv
+            idx = 1
+        else
+            @assert jInvariant_A(Es[2]) == E0d.j_inv
+            idx = 2
+        end
+        a24_0d = A_to_a24(Es[idx])
+        if a24_0d != a24_0
+            _, (xPdd, xQdd, xPQdd) = Montgomery_normalize(a24_0d, [cp[idx] for cp in images])
+        end
     end
-    xPdd, xQdd, xPQdd, xP0beta = E0.isomorphism_to_A0(Es[idx], [cp[idx] for cp in images])
     @assert is_infinity(xDBLe(xPdd, a24_0, ExponentFull))
     @assert is_infinity(xDBLe(xQdd, a24_0, ExponentFull))
     @assert is_infinity(xDBLe(xPQdd, a24_0, ExponentFull))
-    @assert is_infinity(xDBLe(xP0beta, a24_0, ExponentFull))
-
-    M_beta = beta[1]*[1 0; 0 1] + beta[2]*E0.Matrices_2e[1] + beta[3]*E0.Matrices_2e[2] + beta[4]*E0.Matrices_2e[3]
-    beta_P0 = linear_comb_2_e(M_beta[1,1], M_beta[2,1], E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
-    if xP0beta == beta_P0
-    elseif xP0beta == -beta_P0
-        # muliply by i
-        xPdd = -xPdd
-        xQdd = -xQdd
-        xPQdd = -xPQdd
-    else
-        throw(ArgumentError("No good isogeny found"))
-    end
 
     # pairing check
-    A0 = E0.A0
+    A0 = order_id == 0 ? E0.A0 : global_data.orders_data[order_id].A
     P0 = Point(A0, xPdd)
     Q0 = Point(A0, xQdd)
     PQ0 = add(P0, -Q0, Proj1(A0))
@@ -462,7 +476,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     end
     PQ2 = add(P2, -Q2, Proj1(A2))
     @assert xPQd == Proj1(PQ2.X, PQ2.Z)
-    @assert Weil_pairing_2power(A0, P0, Q0, ExponentFull) == Weil_pairing_2power(A2, P2, Q2, ExponentFull)^(BigInt(2)^ExponentForTorsion - a^2 - b^2)
+    @assert Weil_pairing_2power(A0, P0, Q0, ExponentFull) == Weil_pairing_2power(A2, P2, Q2, ExponentFull)^(BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
     # end of pairing check
 
     # compute the matrix M' s.t. phi_J(P0, Q0) = (Pd, Qd)M'
@@ -470,7 +484,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     @assert xPdd == linear_comb_2_e(c11, c21, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
     @assert xQdd == linear_comb_2_e(c12, c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
     @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
-    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull) * (BigInt(2)^ExponentForTorsion - a^2 - b^2)
+    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull) * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
 
     return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - b^2, true
 end

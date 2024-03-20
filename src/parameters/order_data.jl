@@ -72,5 +72,5 @@ function compute_order2(E0::E0Data)
     xQs = xDBLe(xQ, a24, ExponentFull - ExponentForTorsion)
     xPQs = xDBLe(xPQ, a24, ExponentFull - ExponentForTorsion)
 
-    return OrderData(Montgomery_coeff(a24), jInvariant_a24(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2)
+    return OrderData(d, Montgomery_coeff(a24), jInvariant_a24(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2)
 end
