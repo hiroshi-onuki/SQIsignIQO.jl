@@ -72,8 +72,9 @@ function larger_ideal(I::LeftIdeal, N::Integer)
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
 end
 
-# return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + b^2
-function two_e_good_element(I::LeftIdeal, e::Integer, max_tries::Integer=100)
+# return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + d*b^2
+# a, b is given by cor_func in the argument
+function two_e_good_element(I::LeftIdeal, nI::BigInt, cor_func::Function, bound::BigInt, max_tries::Integer=100)
     q(x, y) = quadratic_form(QOrderElem(x), QOrderElem(y))
 
     # LLL reduction
@@ -82,15 +83,12 @@ function two_e_good_element(I::LeftIdeal, e::Integer, max_tries::Integer=100)
     LLLmat = Imatrix * H
     red_basis = [LLLmat[:, i] for i in 1:4]
 
-    N = norm(I)
-    C = BigInt(2)^e * N
-
     q = make_quadratic_form_coeffs(red_basis, q)
     S = zeros(Rational{Integer}, 4)
     U = zeros(Rational{Integer}, 4)
     L = zeros(Integer, 4)
     x = zeros(Integer, 4)
-    S[4] = C
+    S[4] = bound
 
     i = 4
     tmp = div(S[i] * denominator(U[i])^2, q[i,i])
@@ -119,9 +117,9 @@ function two_e_good_element(I::LeftIdeal, e::Integer, max_tries::Integer=100)
             if x != zeros(Integer, 4)
                 v = sum([x[i]*red_basis[i] for i in 1:4])
                 alpha = QOrderElem(v[1], v[2], v[3], v[4])
-                newN = div(norm(alpha), N)
+                newN = div(norm(alpha), nI)
                 if newN % 2 == 1
-                    a, b, found = sum_of_two_squares(BigInt(2)^e - newN)
+                    a, b, found = cor_func(newN)
                     if found
                         return alpha, a, b, true
                     end

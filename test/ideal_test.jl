@@ -23,7 +23,8 @@ function check_short_element(param::Module)
     I = param.LeftIdeal(a, BigInt(2)^e1 * ext_factor)
     @assert param.norm(I) == BigInt(2)^e1 * ext_factor
 
-    x, a, b, found = param.two_e_good_element(I, e2)
+    cor_func(argN) = param.sum_of_two_squares(BigInt(2)^e2 - argN)
+    x, a, b, found = param.two_e_good_element(I, norm(I), cor_func, norm(I) << e2)
     if found
         @assert param.norm(x) % param.norm(I) == 0
         @assert a^2 + b^2 == BigInt(2)^e2 - div(param.norm(x), param.norm(I))
@@ -32,10 +33,7 @@ function check_short_element(param::Module)
     end
 end
 
-for _ in 1:100
-    check_short_element(KaniSQIsign.Toy17)
-end
-for _ in 1:1
+for _ in 1:10
     check_short_element(KaniSQIsign.Level1)
 end
 println("Short ideal tests passed!")

@@ -88,7 +88,11 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     if precomp_beta == Quaternion_0
-        beta, a, b, found = two_e_good_element(I, ExponentForTorsion, IdealToIsogeny_2_e_good_attempts)
+        cor_func(argN) = sum_of_two_squares(BigInt(2)^ExponentForTorsion - argN)
+        nI = BigInt(2)^e * D
+        use_extdeg && (nI *= ExtraDegree)
+        bound = nI << ExponentForTorsion
+        beta, a, b, found = two_e_good_element(I, nI, cor_func, bound, IdealToIsogeny_2_e_good_attempts)
         !found && return infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), infinity_point(Fp2), BigInt[0 0; 0 0], Quaternion_0, BigInt(0), false
     else
         beta, a, b = precomp_beta, precomp_a, precomp_b
