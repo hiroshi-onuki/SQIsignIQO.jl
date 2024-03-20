@@ -187,8 +187,10 @@ function KLPT(I::LeftIdeal, N_I::Integer)
     found = false
     n = Int(ceil(log(2, N_I)))
     k = max(Log2p - n, 0)
+    (n + Log2p + k) % 2 == 1 && (k += 1)
     N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(Log2p + 3*n)
+    
 
     gamma = Quaternion_0
     mu = Quaternion_0

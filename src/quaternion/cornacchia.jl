@@ -47,6 +47,24 @@ function Cornacchia_Smith(q::Integer)
     return b, integer_square_root(q - b^2)
 end
 
+# return a, b such that a^2 + |D|b^2 = 4q, where D is a fundamental discriminant.
+function Cornacchia_Smith(q::Integer, D::Integer)
+    q == 2 && return [integer_square_root(D + 8), 1]
+    x = sqrt_mod(D, q)
+    (x - D) % 2 != 0 && (x = q - x)
+    a = 2*q
+    b = x
+    c = 2*integer_square_root(q)
+    while b > c
+        a, b = b, a % b
+    end
+    if b^2 - D * integer_square_root(div(4*q - b^2, -D))^2 != 4*q
+        println(b, " ", integer_square_root(div(4*q - b^2, -D)), " ", q)
+        @assert false
+    end
+    return b, integer_square_root(div(4*q - b^2, -D))
+end
+
 # Return a, b such that a^2 + b^2 = n and true or 0, 0, false if no such a, b are found.
 function sum_of_two_squares(n::Integer)
     n <= 0 && return 0, 0, false
@@ -67,9 +85,41 @@ function sum_of_two_squares(n::Integer)
             a, b = a*s - b*t, a*t + b*s
         end
     end
-    if n % 4 == 1 && is_prime(n)
+    if n % 4 == 1 && is_probable_prime(n)
         s, t = Cornacchia_Smith(n)
         a, b = a*s - b*t, a*t + b*s
+    elseif n > 1
+        return 0, 0, false
+    end
+    return a, b, true
+end
+
+# Return a, b such that a^2 + 2b^2 = n and true or 0, 0, false if no such a, b are found.
+function sum_of_two_squares_2(n::Integer)
+    n <= 0 && return 0, 0, false
+    n == 1 && return 1, 0, true
+    a, b = BigInt(1), BigInt(0)
+    for l in SmallPrimes
+        e = 0
+        while n % l == 0
+            n = div(n, l)
+            e += 1
+        end
+        s = BigInt(l)^(div(e, 2))
+        a *= s
+        b *= s
+        if e % 2 == 1
+            (l % 8 == 5 || l % 8 == 7) && return 0, 0, false
+            s, t = Cornacchia_Smith(l, -8)
+            s = div(s, 2)
+            a, b = a*s - 2*b*t, a*t + b*s
+        end
+    end
+    if (n % 8 == 1 || n % 8 == 3) && is_probable_prime(n)
+        s, t = Cornacchia_Smith(n, -8)
+        s = div(s, 2)
+        @assert s^2 + 2*t^2 == n
+        a, b = a*s - 2*b*t, a*t + b*s
     elseif n > 1
         return 0, 0, false
     end
