@@ -23,11 +23,6 @@ include("theta/theta_isogeny.jl")
 
 include("parameters/curve_data.jl")
 
-module Toy17
-using Nemo, KaniSQIsign
-include("parameters/toy17.jl")
-end # module toy17
-
 module Level1
 using Nemo, KaniSQIsign
 include("parameters/level1.jl")

@@ -5,6 +5,7 @@ include("../quaternion/order.jl")
 include("../quaternion/cornacchia.jl")
 include("../quaternion/ideal.jl")
 include("../quaternion/klpt.jl")
+include("order_data.jl")
 
 include("../elliptic_curves/dlog.jl")
 

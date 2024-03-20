@@ -1,4 +1,4 @@
-export DlogData, CurveData
+export DlogData, CurveData, OrderData
 
 struct DlogData
     e::Int

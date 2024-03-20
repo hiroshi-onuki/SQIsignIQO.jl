@@ -1,6 +1,6 @@
 export xDBL, xADD, xDBLADD, xDBLe, ladder, ladder3pt, x_add_sub,
     linear_comb_2_e, random_point, random_point_order_2power,
-    Montgomery_coeff, A_to_a24, jInvariant_a24, jInvariant_A,
+    Montgomery_coeff, A_to_a24, a24_to_A, jInvariant_a24, jInvariant_A,
     two_e_iso, odd_isogeny, torsion_basis, isomorphism_Montgomery,
     Montgomery_normalize, complete_baisis
 
