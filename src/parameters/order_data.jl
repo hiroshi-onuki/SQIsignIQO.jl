@@ -64,7 +64,7 @@ function compute_order2(E0::E0Data)
     alpha = involution(alpha)
     Malpha = alpha[1] * [1 0; 0 1] + alpha[2] * E0.Matrices_2e[1] + alpha[3] * E0.Matrices_2e[2] + alpha[4] * E0.Matrices_2e[3]
     M = (M * Malpha * invmod(D, order2e)) .% order2e
-    Minv = [M[2, 2] -M[1, 2]; -M[2, 1] M[1, 1]] * invmod(M[1, 1]*M[2, 2] - M[1, 2]*M[2, 1], order2e)
+    Minv = invmod_2x2(M, order2e)
     Mdual = (Minv * N) .% order2e
     Msqrt2 = (M * Ma * Minv * invmod(N, order2e)) .% order2e
 

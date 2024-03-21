@@ -278,8 +278,8 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, global_data::GlobalData)
         println("e = ", e)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
-        println(factor(ZZ(norm(I_d))))
-        a24, xP, xQ, xPQ, M, beta, D_new, _ = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, global_data, Quaternion_0, 0, 0)
+        #println(factor(ZZ(norm(I_d))))
+        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, global_data, Quaternion_0, 0, 0)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new
@@ -313,7 +313,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     xP0 = E0.xP2e_short
     xQ0 = E0.xQ2e_short
     xPQ0 = E0.xPQ2e_short
-    Mc = [1 0; 0 1]
+    Mc = BigInt[1 0; 0 1]
     M_sqrt_d = E0.Matrices_2e[1]
     d = 1
     order_id = 0
@@ -396,6 +396,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
     @assert xPQ0 == Proj1(PQtmp.X, PQtmp.Z)
 
+    println("d = $d")
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(D^2 * (a^2 + d * b^2))
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
@@ -483,19 +484,22 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
 
     # compute the matrix M' s.t. phi_J(P0, Q0) = (Pd, Qd)M'
     if order_id == 0
+        Dc = 1
         c11, c21, c12, c22 = ec_bi_dlog_E0(xPdd, xQdd, xPQdd, E0)
         @assert xPdd == linear_comb_2_e(c11, c21, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
         @assert xQdd == linear_comb_2_e(c12, c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
         @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
     else
+        Dc = E0d.connecting_deg
         c11, c21, c12, c22 = ec_bi_dlog_E0d(xPdd, xQdd, xPQdd, global_data, order_id)
         @assert xPdd == linear_comb_2_e(c11, c21, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
         @assert xQdd == linear_comb_2_e(c12, c22, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
         @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
     end
-    Md = invmod_2x2([c11 c12; c21 c22], BigInt(2)^ExponentForTorsion) * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
-    Md = Md * invmod_2x2(Mc, BigInt(2)^ExponentFull)
+    D = (BigInt(2)^ExponentForTorsion - a^2 - d * b^2) * Dc
+    Md = invmod_2x2([c11 c12; c21 c22], BigInt(2)^ExponentFull) * D
+    Md = (Md * invmod_2x2(Mc, BigInt(2)^ExponentFull)) .% BigInt(2)^ExponentFull
 
-    return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - d*b^2, true
+    return a24d, xPd, xQd, xPQd, Md, beta, D
 end
 
