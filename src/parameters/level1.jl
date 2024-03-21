@@ -111,7 +111,10 @@ function make_precomputed_values()
     end
 
     E0 = E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
-    orders_data = [compute_order2(E0)]
+    
+    orders_data = [compute_order_d(E0, 5), compute_order_d(E0, 2)]
+    @assert orders_data[2].j_inv == 8000
+    @assert orders_data[1].j_inv^2 - 1264000*orders_data[1].j_inv - 681472000 == 0
 
     return Fp2, Fp2_i, GlobalData(E0, orders_data)
 end

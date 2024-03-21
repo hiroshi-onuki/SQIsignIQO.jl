@@ -58,7 +58,9 @@ function Cornacchia_Smith(q::Integer, d::Integer)
     while b > c
         a, b = b, a % b
     end
-    return b, integer_square_root(div(q - b^2, d))
+    a = integer_square_root(div(q - b^2, d))
+    b^2 + d*a^2 == q && return b, a, true
+    return 0, 0, false
 end
 
 # Return a, b such that a^2 + b^2 = n and true or 0, 0, false if no such a, b are found.
@@ -123,12 +125,14 @@ function sum_of_two_squares_d(n::Integer, d::Integer)
         b *= s
         if e % 2 == 1
             !quadratic_residue_neg_d(d, l) && return 0, 0, false
-            s, t = Cornacchia_Smith(l, d)
+            s, t, found = Cornacchia_Smith(l, d)
+            !found && return 0, 0, false
             a, b = a*s - d*b*t, a*t + b*s
         end
     end
     if quadratic_residue_neg_d(d, n) && is_probable_prime(n)
-        s, t = Cornacchia_Smith(n, d)
+        s, t, found = Cornacchia_Smith(n, d)
+        !found && return 0, 0, false
         a, b = a*s - d*b*t, a*t + b*s
     elseif n > 1
         return 0, 0, false

@@ -14,9 +14,9 @@ function sqrt_in_quaternion(d::Integer)
     end
 end
 
-function compute_order2(E0::E0Data)
+# compute the information of the elliptic curve with CM by Z[\sqrt{-d}], wherd d is a small prime 
+function compute_order_d(E0::E0Data, d::Int)
     order2e = BigInt(2)^Level1.ExponentFull
-    d = 2
 
     found = false
     a24 = E0.a24_0
