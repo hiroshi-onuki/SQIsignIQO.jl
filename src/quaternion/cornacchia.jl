@@ -1,5 +1,6 @@
 # LegendreSymbol (a|q)
 function quadratic_residue_symbol(a::Integer, q::Integer)
+    a % q == 0 && return 0
     r = powermod(a, div(q-1, 2), q)
     (r - 1) % q == 0 ? (return 1) : return -1
 end
@@ -47,22 +48,17 @@ function Cornacchia_Smith(q::Integer)
     return b, integer_square_root(q - b^2)
 end
 
-# return a, b such that a^2 + |D|b^2 = 4q, where D is a fundamental discriminant.
-function Cornacchia_Smith(q::Integer, D::Integer)
-    q == 2 && return [integer_square_root(D + 8), 1]
-    x = sqrt_mod(D, q)
-    (x - D) % 2 != 0 && (x = q - x)
-    a = 2*q
+# return a, b such that a^2 + d*b^2 = 4q
+function Cornacchia_Smith(q::Integer, d::Integer)
+    q == 2 && return [0, 1] # d = 2
+    x = sqrt_mod(-d, q)
+    a = q
     b = x
-    c = 2*integer_square_root(q)
+    c = integer_square_root(q)
     while b > c
         a, b = b, a % b
     end
-    if b^2 - D * integer_square_root(div(4*q - b^2, -D))^2 != 4*q
-        println(b, " ", integer_square_root(div(4*q - b^2, -D)), " ", q)
-        @assert false
-    end
-    return b, integer_square_root(div(4*q - b^2, -D))
+    return b, integer_square_root(div(q - b^2, d))
 end
 
 # Return a, b such that a^2 + b^2 = n and true or 0, 0, false if no such a, b are found.
@@ -94,11 +90,28 @@ function sum_of_two_squares(n::Integer)
     return a, b, true
 end
 
-# Return a, b such that a^2 + 2b^2 = n and true or 0, 0, false if no such a, b are found.
-function sum_of_two_squares_2(n::Integer)
+# return (-d/l) = 0 or 1
+function quadratic_residue_neg_d(d::Integer, l::Integer)
+    l < d && return false
+    if d == 2
+        return l == 2 || l % 8 == 1 || l % 8 == 3
+    elseif d % 4 == 1
+        if l % 4 == 1
+            return quadratic_residue_symbol(l, d) != -1
+        else
+            return quadratic_residue_symbol(l, d) != 1
+        end
+    else
+        return quadratic_residue_symbol(l, d) != -1
+    end
+end
+
+# Return a, b such that a^2 + d*b^2 = n and true or 0, 0, false if no such a, b are found. d is a prime.
+function sum_of_two_squares_d(n::Integer, d::Integer)
     n <= 0 && return 0, 0, false
     n == 1 && return 1, 0, true
     a, b = BigInt(1), BigInt(0)
+    T = n
     for l in SmallPrimes
         e = 0
         while n % l == 0
@@ -109,17 +122,14 @@ function sum_of_two_squares_2(n::Integer)
         a *= s
         b *= s
         if e % 2 == 1
-            (l % 8 == 5 || l % 8 == 7) && return 0, 0, false
-            s, t = Cornacchia_Smith(l, -8)
-            s = div(s, 2)
-            a, b = a*s - 2*b*t, a*t + b*s
+            !quadratic_residue_neg_d(d, l) && return 0, 0, false
+            s, t = Cornacchia_Smith(l, d)
+            a, b = a*s - d*b*t, a*t + b*s
         end
     end
-    if (n % 8 == 1 || n % 8 == 3) && is_probable_prime(n)
-        s, t = Cornacchia_Smith(n, -8)
-        s = div(s, 2)
-        @assert s^2 + 2*t^2 == n
-        a, b = a*s - 2*b*t, a*t + b*s
+    if quadratic_residue_neg_d(d, n) && is_probable_prime(n)
+        s, t = Cornacchia_Smith(n, d)
+        a, b = a*s - d*b*t, a*t + b*s
     elseif n > 1
         return 0, 0, false
     end

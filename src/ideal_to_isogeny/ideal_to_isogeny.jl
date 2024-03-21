@@ -332,12 +332,12 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             xPQ0 = E0d.xPQ2e_short
             D *= E0d.connecting_deg
             M_sqrt_d = E0d.M_sqrt_d
-            cor_func2(argN) = sum_of_two_squares_2(BigInt(2)^ExponentForTorsion - argN)
+            cor_func_d(argN) = sum_of_two_squares_d(BigInt(2)^ExponentForTorsion - argN, d)
             nI = BigInt(2)^e * D
             Id = involution_product(E0d.I, I)
             bound = nI << ExponentForTorsion
-            beta, a, b, found = two_e_good_element(Id, nI, cor_func2, bound, IdealToIsogeny_2_e_good_attempts)
-            @assert norm(beta) == nI * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
+            beta, a, b, found = two_e_good_element(Id, nI, cor_func_d, bound, IdealToIsogeny_2_e_good_attempts)
+            @assert !found || norm(beta) == nI * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
             Mc = E0d.M
         end
         @assert found
