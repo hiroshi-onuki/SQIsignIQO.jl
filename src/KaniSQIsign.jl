@@ -7,6 +7,7 @@ include("utilities/finite_field.jl")
 include("utilities/batch_inv.jl")
 include("utilities/lattice.jl")
 include("utilities/strategy.jl")
+include("utilities/matrix.jl")
 
 include("elliptic_curves/proj1.jl")
 include("elliptic_curves/full_point.jl")

@@ -43,12 +43,13 @@ function Weil_pairing_2power(A::T, P::Point{T}, Q::Point{T}, e::Integer) where T
     return (fPQ1*fQP2) / (fPQ2*fQP1)
 end
 
+# precomputed table for Tate pairings
 function make_pairing_table(A::FqFieldElem, P::Point{FqFieldElem}, e::Integer)
     R = P
     x, y = R.X/R.Z, R.Y/R.Z
     table = [[x, y, parent(A)(0)]]
     for i in 1:e-1
-        lam = (3*x^2 + A*x + 1) / (2*y)
+        lam = (3*x^2 + 2*A*x + 1) / (2*y)
         R = double(R, Proj1(A))
         x = R.X/R.Z
         y = R.Y/R.Z

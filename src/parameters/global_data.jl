@@ -21,6 +21,9 @@ struct OrderData
     M::Matrix{BigInt}
     connecting_deg::BigInt
     M_sqrt_d::Matrix{BigInt}
+    tate_tableP::Vector{Vector{FqFieldElem}}
+    tate_tableQ::Vector{Vector{FqFieldElem}}
+    dlog_base::BigInt
 end
 
 # structure for precomputed values

@@ -25,3 +25,16 @@ n4Q0 = mult(n4, Q0, Proj1(A))
 @test P == add(n1P0, n2Q0, Proj1(A)) || P == add(-n1P0, -n2Q0, Proj1(A))
 @test Q == add(n3P0, n4Q0, Proj1(A)) || Q == add(-n3P0, -n4Q0, Proj1(A))
 
+E0d = global_data.orders_data[1]
+A = E0d.A
+e = KaniSQIsign.Level1.ExponentFull
+xP, xQ, xPQ = E0d.xP2e, E0d.xQ2e, E0d.xPQ2e
+P = Point(A, xP)
+Q = Point(A, xQ)
+tp_table = make_pairing_table(A, P, e)
+
+t1 = Tate_pairing_P0(Q, tp_table, KaniSQIsign.Level1.Cofactor)
+Q = mult(5, Q, Proj1(A))
+t2 = Tate_pairing_P0(Q, tp_table, KaniSQIsign.Level1.Cofactor)
+@assert t1^5 == t2
+

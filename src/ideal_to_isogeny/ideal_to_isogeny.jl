@@ -337,7 +337,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             Id = involution_product(E0d.I, I)
             bound = nI << ExponentForTorsion
             beta, a, b, found = two_e_good_element(Id, nI, cor_func2, bound, IdealToIsogeny_2_e_good_attempts)
-            @assert norm(beta) == nI * (BigInt(2)^ExponentForTorsion - a^2 - 2*b^2)
+            @assert norm(beta) == nI * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
             Mc = E0d.M
         end
         @assert found
@@ -452,6 +452,8 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         a24_0d = A_to_a24(Es[idx])
         if a24_0d != a24_0
             _, (xPdd, xQdd, xPQdd) = Montgomery_normalize(a24_0d, [cp[idx] for cp in images])
+        else
+            xPdd, xQdd, xPQdd = [cp[idx] for cp in images]
         end
     end
     @assert is_infinity(xDBLe(xPdd, a24_0, ExponentFull))
@@ -480,12 +482,20 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     # end of pairing check
 
     # compute the matrix M' s.t. phi_J(P0, Q0) = (Pd, Qd)M'
-    c11, c21, c12, c22 = ec_bi_dlog_E0(xPdd, xQdd, xPQdd, E0)
-    @assert xPdd == linear_comb_2_e(c11, c21, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
-    @assert xQdd == linear_comb_2_e(c12, c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
-    @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
-    Md = [c22 -c12; -c21 c11] * invmod((c11 * c22 - c12 * c21), BigInt(2)^ExponentFull) * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
+    if order_id == 0
+        c11, c21, c12, c22 = ec_bi_dlog_E0(xPdd, xQdd, xPQdd, E0)
+        @assert xPdd == linear_comb_2_e(c11, c21, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
+        @assert xQdd == linear_comb_2_e(c12, c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
+        @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0.xP2e, E0.xQ2e, E0.xPQ2e, E0.a24_0, ExponentFull)
+    else
+        c11, c21, c12, c22 = ec_bi_dlog_E0d(xPdd, xQdd, xPQdd, global_data, order_id)
+        @assert xPdd == linear_comb_2_e(c11, c21, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
+        @assert xQdd == linear_comb_2_e(c12, c22, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
+        @assert xPQdd == linear_comb_2_e(c11-c12, c21-c22, E0d.xP2e, E0d.xQ2e, E0d.xPQ2e, E0d.a24_0, ExponentFull)
+    end
+    Md = invmod_2x2([c11 c12; c21 c22], BigInt(2)^ExponentForTorsion) * (BigInt(2)^ExponentForTorsion - a^2 - d*b^2)
+    Md = Md * invmod_2x2(Mc, BigInt(2)^ExponentFull)
 
-    return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - b^2, true
+    return a24d, xPd, xQd, xPQd, Md, beta, BigInt(2)^ExponentForTorsion - a^2 - d*b^2, true
 end
 

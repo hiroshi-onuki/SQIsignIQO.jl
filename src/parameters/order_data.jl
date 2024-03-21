@@ -72,5 +72,18 @@ function compute_order2(E0::E0Data)
     xQs = xDBLe(xQ, a24, ExponentFull - ExponentForTorsion)
     xPQs = xDBLe(xPQ, a24, ExponentFull - ExponentForTorsion)
 
-    return OrderData(d, Montgomery_coeff(a24), jInvariant_a24(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2)
+    A = Montgomery_coeff(a24)
+    P = Point(A, xP)
+    Q = Point(A, xQ)
+    PQ = add(P, -Q, Proj1(A))
+    if !(xPQ == Proj1(PQ.X, PQ.Z))
+        Q = -Q
+    end
+    tp_table_P = make_pairing_table(A, P, ExponentFull)
+    tp_table_Q = make_pairing_table(A, Q, ExponentFull)
+    tp_PQ = Tate_pairing_P0(Q, tp_table_P, Cofactor)
+    base_dlog = fq_dlog_power_of_2_opt(tp_PQ, E0.dlog_data_full)
+    base_dlog = invmod(base_dlog, order2e)
+
+    return OrderData(d, A, jInvariant_a24(a24), a24, xP, xQ, xPQ, xPs, xQs, xPQs, I, Mdual, N, Msqrt2, tp_table_P, tp_table_Q, base_dlog)
 end
