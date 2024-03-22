@@ -396,7 +396,6 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     PQtmp = add(Ptmp, -Qtmp, Proj1(A1))
     @assert xPQ0 == Proj1(PQtmp.X, PQtmp.Z)
 
-    println("d = $d")
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion) == Weil_pairing_2power(A1, Ptmp, Qtmp, ExponentForTorsion)^(D^2 * (a^2 + d * b^2))
     @assert Weil_pairing_2power(A1, P1, Q1, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1
     @assert Weil_pairing_2power(A2, P2, Q2, ExponentForTorsion)^BigInt(2)^(ExponentForTorsion - 1) != 1

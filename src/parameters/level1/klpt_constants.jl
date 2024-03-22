@@ -26,7 +26,6 @@ const SQISIGN_signing_length = 5
 const SQISIGN_keygen_length = 9
 
 # constants only used in our implementation
-const KLPT_keygen_gamma_lengh = 272 # about ExponentForIsogeny * 2.5
 const IdealToIsogeny_2_e_good_attempts = 1000
 const SQISIGN_commitment_length = 256
 const SQISIGN_challenge_length = 128

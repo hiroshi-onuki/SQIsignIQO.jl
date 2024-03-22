@@ -35,10 +35,11 @@ function random_secret_prime()
     return 4*n + 3
 end
 
-function key_gen(E0::E0Data)
+function key_gen(global_data::GlobalData)
     found = false
     counter = 0
     pk, sk = nothing, nothing
+    E0 = global_data.E0
     while !found && counter < SQISIGN_keygen_attempts
         counter += 1
 
@@ -73,27 +74,17 @@ function key_gen(E0::E0Data)
         a24 = E0.a24_0
         xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
         M = BigInt[1 0; 0 1]
-        is_first = true
-        extdeg = ExtraDegree
         D = 1
         e = KLPT_keygen_length - d
         while e > ExponentForIsogeny
-            n_I_d = D * extdeg * BigInt(2)^ExponentForIsogeny
+            n_I_d = D * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, E0, is_first, Quaternion_0, 0, 0)
-            !found && break
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, global_data, Quaternion_0, 0, 0)
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
             e -= ExponentForIsogeny
-            is_first = false
-            extdeg = 1
         end
-        if found
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, E0, false, alpha, a, b)
-        else
-            continue
-        end
-        !found && continue
+        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, global_data, alpha, a, b)
         pk = Montgomery_coeff(a24)
         M = (M * invmod(m, BigInt(2)^ExponentFull)) .% BigInt(2)^ExponentFull   # M corresponds to m * phi_I_sec, so we need to multiply m^-1
         sk = (xP, xQ, xPQ, M, I_sec)
@@ -101,37 +92,26 @@ function key_gen(E0::E0Data)
     return pk, sk, found
 end
 
-function commitment(E0::E0Data)
-    while true
-        # make a random ideal of norm ExtraDegree * 2^SQISIGN_commitment_length
-        I2 = sample_random_ideal_2e(SQISIGN_commitment_length)
-        gamma, found = FullRepresentInteger(ExtraDegree * BigInt(2)^Log2p)
-        !found && throw(ArgumentError("Could not find an ideal of norm ExtraDegree * 2^Log2p"))
-        Iex = LeftIdeal(gamma, ExtraDegree)
-        I = intersection(I2, Iex)
+function commitment(global_data::GlobalData)
+    # make a random ideal of norm 2^SQISIGN_commitment_length
+    I = sample_random_ideal_2e(SQISIGN_commitment_length)
 
-        # ideal to isogeny
-        a24 = E0.a24_0
-        xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
-        M = BigInt[1 0; 0 1]
-        found = false
-        is_first = true
-        extdeg = ExtraDegree
-        D = 1
-        e = SQISIGN_commitment_length
-        while e > 0
-            ed = min(e, ExponentForIsogeny)
-            n_I_d = D * extdeg * BigInt(2)^ed
-            I_d = larger_ideal(I, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, is_first, Quaternion_0, 0, 0)
-            !found && break
-            I = ideal_transform(I, beta, n_I_d)
-            e -= ed
-            is_first = false
-            extdeg = 1
-        end
-        found && return Montgomery_coeff(a24), xP, xQ, xPQ, M, I, found
+    # ideal to isogeny
+    E0 = global_data.E0
+    a24 = E0.a24_0
+    xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
+    M = BigInt[1 0; 0 1]
+    D = 1
+    e = SQISIGN_commitment_length
+    while e > 0
+        ed = min(e, ExponentForIsogeny)
+        n_I_d = D * BigInt(2)^ed
+        I_d = larger_ideal(I, n_I_d)
+        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
+        I = ideal_transform(I, beta, n_I_d)
+        e -= ed
     end
+    return Montgomery_coeff(a24), xP, xQ, xPQ, M, I
 end
 
 # challenge is the isogeny with kernel <P + [c]Q> from a commitment curve E_com,
@@ -183,12 +163,12 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     return c, is_one_P, s, r
 end
 
-function signing(pk::FqFieldElem, sk, m::String, E0::E0Data)
+function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
     xP_A, xQ_A, xPQ_A, M_A, I_A = sk
 
+    E0 = global_data.E0
     while true
-        Acom, xP, xQ, xPQ, Mcom, Icom, found = commitment(E0)
-        !found && continue
+        Acom, xP, xQ, xPQ, Mcom, Icom = commitment(global_data)
         cha, is_one_P, s, r = challenge(Acom, xP, xQ, xPQ, m, E0)
 
         # pull-back of the challenge ideal
@@ -238,8 +218,7 @@ function signing(pk::FqFieldElem, sk, m::String, E0::E0Data)
             ed = min(ExponentForIsogeny, e)
             n_I_d = D * BigInt(2)^ed
             I_d = larger_ideal(I, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, false, Quaternion_0, 0, 0)
-            !found && break
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
             I = ideal_transform(I, beta, n_I_d)
             e -= ed
         end

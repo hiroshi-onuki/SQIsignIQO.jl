@@ -157,8 +157,9 @@ end
 function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     counter = 0
     found = false
-    k = KLPT_keygen_gamma_lengh
-    N_gamma = BigInt(2)^k * ExtraDegree
+    k = Log2p - Int(floor(log(2, N_I))) + KLPT_gamma_exponent_center_shift
+    println(k)
+    N_gamma = BigInt(2)^k
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 
     gamma = Quaternion_0
