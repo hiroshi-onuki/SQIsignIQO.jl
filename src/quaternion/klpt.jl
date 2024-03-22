@@ -158,7 +158,6 @@ function KeyGenKLPT(I::LeftIdeal, N_I::Integer)
     counter = 0
     found = false
     k = Log2p - Int(floor(log(2, N_I))) + KLPT_gamma_exponent_center_shift
-    println(k)
     N_gamma = BigInt(2)^k
     N_mu = BigInt(2)^(KLPT_keygen_length - k)
 
@@ -191,7 +190,6 @@ function KLPT(I::LeftIdeal, N_I::Integer)
     (n + Log2p + k) % 2 == 1 && (k += 1)
     N_gamma = BigInt(2)^k * ExtraDegree
     N_mu = BigInt(2)^(Log2p + 3*n)
-    
 
     gamma = Quaternion_0
     mu = Quaternion_0

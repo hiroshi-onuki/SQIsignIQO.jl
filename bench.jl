@@ -5,12 +5,12 @@ using KaniSQIsign
 using KaniSQIsign.Level1
 
 function benchmark_test(param::Module, num::Int)
-    _, _, E0 = param.make_field_curve_torsions()
+    _, _, global_data = param.make_precomputed_values()
 
     # for compilation
-    pk, sk, found = param.key_gen(E0)
+    pk, sk, found = param.key_gen(global_data)
     m = "message to sign"
-    sign = param.signing(pk, sk, m, E0)
+    sign = param.signing(pk, sk, m, global_data)
     verif = param.verify(pk, m, sign)
 
     t_gen = 0
@@ -18,11 +18,11 @@ function benchmark_test(param::Module, num::Int)
     t_verif = 0
     println("Benchmark test for $(param) start")
     for i in 1:num
-        (pk, sk, found), t, _, _, _ = @timed param.key_gen(E0)
+        (pk, sk, found), t, _, _, _ = @timed param.key_gen(global_data)
         t_gen += t
 
         m = "message to sign"
-        sign, t, _, _, _ = @timed param.signing(pk, sk, m, E0)
+        sign, t, _, _, _ = @timed param.signing(pk, sk, m, global_data)
         t_sign += t
 
         verif, t, _, _, _ = @timed param.verify(pk, m, sign)
