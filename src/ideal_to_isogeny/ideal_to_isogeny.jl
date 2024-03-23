@@ -330,10 +330,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
             xP0 = E0d.xP2e_short
             xQ0 = E0d.xQ2e_short
             xPQ0 = E0d.xPQ2e_short
-            D *= E0d.connecting_deg
             M_sqrt_d = E0d.M_sqrt_d
             cor_func_d(argN) = sum_of_two_squares_d(BigInt(2)^ExponentForTorsion - argN, d)
-            nI = BigInt(2)^e * D
+            nI = BigInt(2)^e * D * E0d.connecting_deg
             Id = involution_product(E0d.I, I)
             bound = nI << ExponentForTorsion
             beta, a, b, found = two_e_good_element(Id, nI, cor_func_d, bound, IdealToIsogeny_2_e_good_attempts)
@@ -344,6 +343,7 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
     else
         beta, a, b = precomp_beta, precomp_a, precomp_b
     end
+    order_id > 0 && (D *= global_data.orders_data[order_id].connecting_deg)
 
     # compute the images of the basis of E_0[2^ExponentFull] under the isogeny corresponding to J
     xP2t, xQ2t, xPQ2t = images
