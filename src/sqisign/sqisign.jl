@@ -215,12 +215,15 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
                 compute_coeff = true
             end
 
-            ed = min(ExponentForIsogeny, e)
-            n_I_d = D * BigInt(2)^ed
-            I_d = larger_ideal(I, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
-            I = ideal_transform(I, beta, n_I_d)
-            e -= ed
+            # we do not need to compute the last 2 isogenies
+            if e > 2 * ExponentForIsogeny
+                ed = min(ExponentForIsogeny, e)
+                n_I_d = D * BigInt(2)^ed
+                I_d = larger_ideal(I, n_I_d)
+                a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
+                I = ideal_transform(I, beta, n_I_d)
+            end
+            e -= ExponentForIsogeny
         end
 
         if is_one_P
