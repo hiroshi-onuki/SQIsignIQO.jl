@@ -79,12 +79,12 @@ function key_gen(global_data::GlobalData)
         while e > ExponentForIsogeny
             n_I_d = D * BigInt(2)^ExponentForIsogeny
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, global_data, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, global_data, false, Quaternion_0, 0, 0)
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
             e -= ExponentForIsogeny
         end
-        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, global_data, alpha, a, b)
+        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, global_data, true, alpha, a, b)
         pk = Montgomery_coeff(a24)
         M = (M * invmod(m, BigInt(2)^ExponentFull)) .% BigInt(2)^ExponentFull   # M corresponds to m * phi_I_sec, so we need to multiply m^-1
         sk = (xP, xQ, xPQ, M, I_sec)
@@ -105,9 +105,10 @@ function commitment(global_data::GlobalData)
     e = SQISIGN_commitment_length
     while e > 0
         ed = min(e, ExponentForIsogeny)
+        is_normalized = e <= ExponentForIsogeny
         n_I_d = D * BigInt(2)^ed
         I_d = larger_ideal(I, n_I_d)
-        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
+        a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, is_normalized, Quaternion_0, 0, 0)
         I = ideal_transform(I, beta, n_I_d)
         e -= ed
     end
@@ -220,7 +221,7 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
                 ed = min(ExponentForIsogeny, e)
                 n_I_d = D * BigInt(2)^ed
                 I_d = larger_ideal(I, n_I_d)
-                a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, Quaternion_0, 0, 0)
+                a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, compute_coeff, Quaternion_0, 0, 0)
                 I = ideal_transform(I, beta, n_I_d)
             end
             e -= ExponentForIsogeny

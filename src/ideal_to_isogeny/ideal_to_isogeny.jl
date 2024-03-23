@@ -44,7 +44,7 @@ end
 # the fixed basis (P', Q') of E'[2^ExponentFull], and M' s.t. phi_J(P_0, Q_0) = (P', Q')M'
 function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::Proj1{T}, xPQ::Proj1{T},
     M::Matrix{BigInt}, D::Integer, e::Int, global_data::GlobalData,
-    precomp_beta::QOrderElem, precomp_a::Integer, precomp_b::Integer) where T <: RingElem
+    is_normalized::Bool, precomp_beta::QOrderElem, precomp_a::Integer, precomp_b::Integer) where T <: RingElem
     E0 = global_data.E0
     Fp2 = parent(a24.X)
     xPd = xDBLe(xP, a24, ExponentFull - e)
@@ -60,7 +60,9 @@ function short_ideal_to_isogeny(I::LeftIdeal, a24::Proj1{T}, xP::Proj1{T}, xQ::P
         strategy = compute_strategy(div(e, 2)-1, 1, 1)
         a24d, images = two_e_iso(a24, ker, e, eval_points, strategy)
     end
-    a24d, images = Montgomery_normalize(a24d, images)
+    if is_normalized
+        a24d, images = Montgomery_normalize(a24d, images)
+    end
 
     # compute beta in I s.t. J := I*\bar{beta}/n(I) has norm 2^ExpTor - a^2 - b^2
     a24_0 = E0.a24_0
@@ -469,8 +471,7 @@ function ideal_to_isogeny_from_O0(I::LeftIdeal, e::Int, global_data::GlobalData)
         println("e = ", e)
         e_d = min(e, ExponentForIsogeny)
         I_d = larger_ideal(I, D*BigInt(2)^e_d)
-        #println(factor(ZZ(norm(I_d))))
-        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, global_data, Quaternion_0, 0, 0)
+        a24, xP, xQ, xPQ, M, beta, D_new = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, e_d, global_data, false, Quaternion_0, 0, 0)
         I = ideal_transform(I, beta, D*BigInt(2)^e_d)
         e -= e_d
         D = D_new
