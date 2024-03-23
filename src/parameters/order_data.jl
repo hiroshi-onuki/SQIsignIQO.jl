@@ -35,8 +35,8 @@ function compute_order_d(E0::E0Data, d::Int)
 
         I = Level1.LeftIdeal(alpha, N)
         alpha, found = KLPT(I, N)
+        !found && continue
         alpha = div(alpha, gcd(alpha))
-        @assert found
         J = Level1.ideal_transform(I, alpha, N)
 
         e = Int(log(2, div(Level1.norm(J), ExtraDegree)))
@@ -51,7 +51,7 @@ function compute_order_d(E0::E0Data, d::Int)
             ed = min(e, ExponentForIsogeny)
             n_I_d = D * extdeg * BigInt(2)^ed
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, is_first, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D, found = short_ideal_to_isogeny_for_precomputation(I_d, a24, xP, xQ, xPQ, M, D, ed, E0, is_first, Quaternion_0, 0, 0)
             !found && break
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
