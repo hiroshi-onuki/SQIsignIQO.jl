@@ -1,0 +1,9 @@
+const p = BigInt(2)^370 * 3 * 7 * 11 - 1
+const Log2p = Int(ceil(log(2, p)))
+const ExponentFull = 370
+const ExponentForIsogenyDim1 = 156
+const ExponentForTorsion = 214
+const ExponentForIsogenyDim2 = 212
+const ExponentForIsogenyDim1Precompute = 158
+const Cofactor = 3 * 7 * 11
+const ExtraDegree = 3 * 7 * 11

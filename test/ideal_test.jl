@@ -24,16 +24,22 @@ function check_short_element(param::Module)
     @assert param.norm(I) == BigInt(2)^e1 * ext_factor
 
     cor_func(argN) = param.sum_of_two_squares(BigInt(2)^e2 - argN)
-    x, a, b, found = param.two_e_good_element(I, norm(I), cor_func, norm(I) << e2)
+    x, a, b, found = param.two_e_good_element(I, param.norm(I), cor_func, param.norm(I) << e2)
     if found
         @assert param.norm(x) % param.norm(I) == 0
         @assert a^2 + b^2 == BigInt(2)^e2 - div(param.norm(x), param.norm(I))
+        println("Found")
     else
         println("Not found")
     end
 end
 
+println("Short ideal tests for Level 1.")
 for _ in 1:10
     check_short_element(KaniSQIsign.Level1)
 end
-println("Short ideal tests passed!")
+println("Short ideal tests for Level 3.")
+for _ in 1:10
+    check_short_element(KaniSQIsign.Level3)
+end
+println("Short ideal tests ended.")

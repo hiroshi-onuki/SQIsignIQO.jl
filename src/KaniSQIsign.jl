@@ -27,4 +27,9 @@ using Nemo, KaniSQIsign
 include("parameters/level1.jl")
 end # module Level1
 
+module Level3
+using Nemo, KaniSQIsign
+include("parameters/level3.jl")
+end # module Level3
+
 end # module KaniSQIsign

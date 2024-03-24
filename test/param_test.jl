@@ -118,3 +118,4 @@ function param_check(param::Module)
 end
 
 param_check(KaniSQIsign.Level1)
+param_check(KaniSQIsign.Level3)

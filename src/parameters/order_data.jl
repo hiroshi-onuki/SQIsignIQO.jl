@@ -16,7 +16,7 @@ end
 
 # compute the information of the elliptic curve with CM by Z[\sqrt{-d}], wherd d is a small prime 
 function compute_order_d(E0::E0Data, d::Int)
-    order2e = BigInt(2)^Level1.ExponentFull
+    order2e = BigInt(2)^ExponentFull
 
     found = false
     a24 = E0.a24_0
@@ -29,17 +29,18 @@ function compute_order_d(E0::E0Data, d::Int)
     D = 1
     while !found
         a, b, c, N = sqrt_in_quaternion(d)
-        alpha = Level1.order_elem_from_standard_basis(0, a, b, c)
+        alpha = order_elem_from_standard_basis(0, a, b, c)
         Ma = alpha[1] * [1 0; 0 1] + alpha[2] * E0.Matrices_2e[1] + alpha[3] * E0.Matrices_2e[2] + alpha[4] * E0.Matrices_2e[3]
         @assert alpha * alpha == QOrderElem(-d * N^2)
 
-        I = Level1.LeftIdeal(alpha, N)
+        I = LeftIdeal(alpha, N)
         alpha, found = KLPT(I, N)
         !found && continue
         alpha = div(alpha, gcd(alpha))
-        J = Level1.ideal_transform(I, alpha, N)
+        J = ideal_transform(I, alpha, N)
 
-        e = Int(log(2, div(Level1.norm(J), ExtraDegree)))
+        e = Int(round(log(2, div(norm(alpha), N*ExtraDegree))))
+        @assert norm(J) == BigInt(2)^e * ExtraDegree
         alpha = involution(alpha)
         a24 = E0.a24_0
         xP, xQ, xPQ = E0.xP2e, E0.xQ2e, E0.xPQ2e
