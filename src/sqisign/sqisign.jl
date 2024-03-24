@@ -60,13 +60,13 @@ function key_gen(global_data::GlobalData)
         J = ideal_transform(I_sec, alpha, D_sec)
         alpha = involution(alpha) # alpha in J
 
-        # find m s.t. m^2 * D_sec is 2^ExponentForTorsion-good
+        # find m s.t. m^2 * D_sec is 2^ExponentForIsogenyDim2-good
         m = -1
         a, b = 0, 0
         found = false
         while !found
             m += 2
-            a, b, found = sum_of_two_squares(BigInt(2)^ExponentForTorsion - m^2 * D_sec)
+            a, b, found = sum_of_two_squares(BigInt(2)^ExponentForIsogenyDim2 - m^2 * D_sec)
         end
         alpha = m * alpha
 
@@ -76,13 +76,13 @@ function key_gen(global_data::GlobalData)
         M = BigInt[1 0; 0 1]
         D = 1
         e = KLPT_keygen_length - d
-        while e > ExponentForIsogeny
-            n_I_d = D * BigInt(2)^ExponentForIsogeny
+        while e > ExponentForIsogenyDim1
+            n_I_d = D * BigInt(2)^ExponentForIsogenyDim1
             I_d = larger_ideal(J, n_I_d)
-            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogeny, global_data, false, Quaternion_0, 0, 0)
+            a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ExponentForIsogenyDim1, global_data, false, Quaternion_0, 0, 0)
             J = ideal_transform(J, beta, n_I_d)
             alpha = div(alpha * involution(beta), n_I_d)
-            e -= ExponentForIsogeny
+            e -= ExponentForIsogenyDim1
         end
         a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(J, a24, xP, xQ, xPQ, M, D, e, global_data, true, alpha, a, b)
         pk = Montgomery_coeff(a24)
@@ -104,8 +104,8 @@ function commitment(global_data::GlobalData)
     D = 1
     e = SQISIGN_commitment_length
     while e > 0
-        ed = min(e, ExponentForIsogeny)
-        is_normalized = e <= ExponentForIsogeny
+        ed = min(e, ExponentForIsogenyDim1)
+        is_normalized = e <= ExponentForIsogenyDim1
         n_I_d = D * BigInt(2)^ed
         I_d = larger_ideal(I, n_I_d)
         a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, is_normalized, Quaternion_0, 0, 0)
@@ -201,7 +201,7 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
         while e > 0
             # compute the kernel coefficients for signature once every two times
             if compute_coeff
-                ed2 = min(e, 2*ExponentForIsogeny)
+                ed2 = min(e, 2*ExponentForIsogenyDim1)
                 a, b = kernel_coefficients(I, M, 2, ed2, E0.Matrices_2e)
                 if a == 1
                     sign[idx] = 0x01
@@ -217,14 +217,14 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
             end
 
             # we do not need to compute the last 2 isogenies
-            if e > 2 * ExponentForIsogeny
-                ed = min(ExponentForIsogeny, e)
+            if e > 2 * ExponentForIsogenyDim1
+                ed = min(ExponentForIsogenyDim1, e)
                 n_I_d = D * BigInt(2)^ed
                 I_d = larger_ideal(I, n_I_d)
                 a24, xP, xQ, xPQ, M, beta, D = short_ideal_to_isogeny(I_d, a24, xP, xQ, xPQ, M, D, ed, global_data, compute_coeff, Quaternion_0, 0, 0)
                 I = ideal_transform(I, beta, n_I_d)
             end
-            e -= ExponentForIsogeny
+            e -= ExponentForIsogenyDim1
         end
 
         if is_one_P
@@ -259,7 +259,7 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
     a24 = A_to_a24(pk)
     e = KLPT_signing_klpt_length
     for (bit, a) in sign_coeffs
-        ed = min(2*ExponentForIsogeny, e)
+        ed = min(2*ExponentForIsogenyDim1, e)
         xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
         xP = xDBLe(xP, a24, ExponentFull - ed)
         xQ = xDBLe(xQ, a24, ExponentFull - ed)

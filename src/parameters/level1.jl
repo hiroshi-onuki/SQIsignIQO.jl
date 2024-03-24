@@ -15,11 +15,12 @@ include("../ideal_to_isogeny/ideal_to_isogeny.jl")
 
 include("../sqisign/sqisign.jl")
 
-const StrategyDim2 = compute_strategy(ExponentForTorsion - 4, 2, 1)
+const StrategyDim2 = compute_strategy(ExponentForIsogenyDim2 - 2, 2, 1)
+const StrategyDim2Precompute = compute_strategy(ExponentForIsogenyDim2 - 4, 2, 1)
 const StrategiesDim1 = Dict(
-    ExponentForIsogeny - 2 => compute_strategy(div(ExponentForIsogeny - 2,2) - 1, 1, 1),
-    ExponentForIsogeny => compute_strategy(div(ExponentForIsogeny,2) - 1, 1, 1),
-    2*ExponentForIsogeny => compute_strategy(div(2*ExponentForIsogeny,2) - 1, 1, 1),
+    ExponentForIsogenyDim1 - 2 => compute_strategy(div(ExponentForIsogenyDim1 - 2,2) - 1, 1, 1),
+    ExponentForIsogenyDim1 => compute_strategy(div(ExponentForIsogenyDim1,2) - 1, 1, 1),
+    2*ExponentForIsogenyDim1 => compute_strategy(div(2*ExponentForIsogenyDim1,2) - 1, 1, 1),
     ExponentForSignLastIsogeny => compute_strategy(div(ExponentForSignLastIsogeny, 2) - 1, 1, 1),
     ExponentForVerifyLastIsogeny => compute_strategy(div(ExponentForVerifyLastIsogeny, 2) - 1, 1, 1),
     SQISIGN_challenge_length => compute_strategy(div(SQISIGN_challenge_length, 2) - 1, 1, 1),
@@ -64,9 +65,9 @@ function make_precomputed_values()
     xQ2e = Proj1(Q2e.X, Q2e.Z)
     PQ2e = add(P2e, -Q2e, Proj1(A0))
     xPQ2e = Proj1(PQ2e.X, PQ2e.Z)
-    xP2e_short = xDBLe(xP2e, a24_0, ExponentForIsogeny)
-    xQ2e_short = xDBLe(xQ2e, a24_0, ExponentForIsogeny)
-    xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogeny)
+    xP2e_short = xDBLe(xP2e, a24_0, ExponentForIsogenyDim1)
+    xQ2e_short = xDBLe(xQ2e, a24_0, ExponentForIsogenyDim1)
+    xPQ2e_short = xDBLe(xPQ2e, a24_0, ExponentForIsogenyDim1)
 
     # precomputed values for discrete logarithm
     tp_table = make_pairing_table(A0, P2e, ExponentFull)

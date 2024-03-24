@@ -3,8 +3,8 @@ import KaniSQIsign
 
 function check_short_element(param::Module)
 
-    e1 = param.ExponentForIsogeny
-    e2 = param.ExponentForTorsion
+    e1 = param.ExponentForIsogenyDim1Precompute
+    e2 = param.ExponentForIsogenyDim2
     ext_factor = param.ExtraDegree
 
     N = 101 * ext_factor
