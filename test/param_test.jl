@@ -119,3 +119,4 @@ end
 
 param_check(KaniSQIsign.Level1)
 param_check(KaniSQIsign.Level3)
+param_check(KaniSQIsign.Level5)

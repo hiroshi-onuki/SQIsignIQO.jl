@@ -37,7 +37,7 @@ def make_constants(p, e, ed, degs, degs_d, file_name):
     # odd torsion in E(Fp2)
     for l, e in factor(degs):
         P, Q = tp.basis(E0, Fp2, False, l, e)
-        Ms = end.action_matrices([P, Q], l, zeta4, Fp4)
+        Ms = end.action_matrices([P, Q], l^e, zeta4, Fp4)
         xP = tp.Fp2ToFp2d(P.xy()[0], zeta4, Fp2_i)
         xQ = tp.Fp2ToFp2d(Q.xy()[0], zeta4, Fp2_i)
         xPQ = tp.Fp2ToFp2d((P - Q).xy()[0], zeta4, Fp2_i)
@@ -51,7 +51,7 @@ def make_constants(p, e, ed, degs, degs_d, file_name):
     # odd torsion in E^t(Fp2)
     for l, e in factor(degs_d):
         P, Q = tp.basis(E0, Fp2, true, l, e)
-        Ms = end.action_matrices([P, Q], l, zeta4, Fp4)
+        Ms = end.action_matrices([P, Q], l^e, zeta4, Fp4)
         xP = tp.Fp2ToFp2d(P.xy()[0], zeta4, Fp2_i)
         xQ = tp.Fp2ToFp2d(Q.xy()[0], zeta4, Fp2_i)
         xPQ = tp.Fp2ToFp2d((P - Q).xy()[0], zeta4, Fp2_i)
@@ -84,9 +84,18 @@ make_constants(p, e, ed, degs, degs_d, "level1torsion.txt")
 
 # level3
 set_random_seed(0)
-p = 2^370 * 3 * 7 * 11  - 1
+p = 2^370 * 3 * 7 * 11 - 1
 e = 370
 ed = 192
 degs = 3 * 7 * 11
 degs_d = 1
 make_constants(p, e, ed, degs, degs_d, "level3torsion.txt")
+
+# level5
+set_random_seed(0)
+p = 2^492 * 7^2 * 11 - 1
+e = 492
+ed = 256
+degs = 7^2 * 11
+degs_d = 3
+make_constants(p, e, ed, degs, degs_d, "level5torsion.txt")

@@ -2,7 +2,7 @@ using Nemo
 import KaniSQIsign
 
 function check_short_element(param::Module)
-
+    p = param.p
     e1 = param.ExponentForIsogenyDim1Precompute
     e2 = param.ExponentForIsogenyDim2
     ext_factor = param.ExtraDegree
@@ -11,7 +11,8 @@ function check_short_element(param::Module)
     e = Int(ceil(log(2, p))) + e1
 
     a = param.QOrderElem(1)
-    while param.norm(a) % (BigInt(2)^e1) != 0
+    found = false
+    while !found || param.norm(a) % (BigInt(2)^e1) != 0
         a, found = param.FullRepresentInteger(N*BigInt(2)^e)
         if found
             while param.gcd(a) != 1
@@ -21,6 +22,7 @@ function check_short_element(param::Module)
     end
 
     I = param.LeftIdeal(a, BigInt(2)^e1 * ext_factor)
+    println(factor(ZZ(param.norm(I))))
     @assert param.norm(I) == BigInt(2)^e1 * ext_factor
 
     cor_func(argN) = param.sum_of_two_squares(BigInt(2)^e2 - argN)
@@ -41,5 +43,9 @@ end
 println("Short ideal tests for Level 3.")
 for _ in 1:10
     check_short_element(KaniSQIsign.Level3)
+end
+println("Short ideal tests for Level 5.")
+for _ in 1:10
+    check_short_element(KaniSQIsign.Level5)
 end
 println("Short ideal tests ended.")

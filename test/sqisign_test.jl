@@ -21,3 +21,4 @@ end
 
 signing_test(KaniSQIsign.Level1, 10)
 signing_test(KaniSQIsign.Level3, 10)
+signing_test(KaniSQIsign.Level5, 10)
