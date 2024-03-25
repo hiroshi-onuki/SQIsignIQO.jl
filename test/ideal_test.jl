@@ -22,7 +22,6 @@ function check_short_element(param::Module)
     end
 
     I = param.LeftIdeal(a, BigInt(2)^e1 * ext_factor)
-    println(factor(ZZ(param.norm(I))))
     @assert param.norm(I) == BigInt(2)^e1 * ext_factor
 
     cor_func(argN) = param.sum_of_two_squares(BigInt(2)^e2 - argN)

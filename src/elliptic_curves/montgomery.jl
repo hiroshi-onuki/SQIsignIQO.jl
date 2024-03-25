@@ -248,6 +248,15 @@ function jInvariant_A(A::T) where T <: RingElem
     return jInvariant_a24(A_to_a24(A))
 end
 
+function two_iso(a24::Proj1{T}, P::Proj1{T}) where T <: RingElem
+    if P.X == 0
+        a24, _ = two_iso_zero(a24, Proj1{T}[])
+    else
+        a24 = two_iso_curve(P)
+    end
+    return a24
+end
+
 # 2-isogey. return (A + 2)/4, where Mont_A = E/<P> with ord(P) = 2.
 function two_iso_curve(P::Proj1)
     X = P.X^2;
@@ -418,7 +427,11 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}) whe
 end
 
 # 2^e-isogeny using strategy. A = (a + 2)/4.
-function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}, strategy::Vector{Int}) where T <: RingElem
+function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}, strategy::Vector{Int}, out_put_neighbor=0) where T <: RingElem
+    if out_put_neighbor == 1
+        K = xDBLe(P, a24, e-1)
+        a24_neighbor = two_iso(a24, K)
+    end
     S = [div(e, 2)]
     Ps = vcat(Qs, [P])
     i = 1
@@ -426,6 +439,9 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}, str
         h = pop!(S)
         K = pop!(Ps)
         if h == 1
+            if length(S) == 0 && out_put_neighbor == -1
+                a24_neighbor = two_iso(a24, xDBL(K, a24))
+            end
             a24, Ps = four_iso(a24, K, Ps)
             S = [h - 1 for h in S]
         else
@@ -437,7 +453,11 @@ function two_e_iso(a24::Proj1{T}, P::Proj1{T}, e::Int, Qs::Vector{Proj1{T}}, str
             i += 1
         end
     end
-    return a24, Ps
+    if out_put_neighbor == 0
+        return a24, Ps
+    else
+        return a24, Ps, a24_neighbor
+    end
 end
 
 # isogeny of odd degree d

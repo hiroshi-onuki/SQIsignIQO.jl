@@ -231,3 +231,11 @@ function involution_product(I::LeftIdeal, J::LeftIdeal)
     basis = get_basis([to_vector(b) for b in generator])
     return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
 end
+
+# return I * \bar(J), where I and J are equivalent
+function product_involution(I::LeftIdeal, J::LeftIdeal)
+    invJ = [involution(b) for b in [J.b1, J.b2, J.b3, J.b4]]
+    generator = [x * y for x in [I.b1, I.b2, I.b3, I.b4] for y in invJ]
+    basis = get_basis([to_vector(b) for b in generator])
+    return LeftIdeal([QOrderElem(b[1], b[2], b[3], b[4]) for b in basis])
+end

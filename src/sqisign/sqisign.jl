@@ -180,11 +180,14 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
         Icha = LeftIdeal(alpha, BigInt(2)^SQISIGN_challenge_length)
 
         # make a left ideal I of norm I_A * 2^KLPT_signing_klpt_length
-        I = intersection(Icom, Icha)
-        I, found = SigningKLPT(I_A, I, norm(I_A), norm(I))
+        Icc = intersection(Icom, Icha)
+        I, found = SigningKLPT(I_A, Icc, norm(I_A), norm(Icc))
         !found && continue
         @assert norm(I) == BigInt(2)^KLPT_signing_klpt_length
         I = intersection(I_A, I)
+        J = product_involution(I, Icc)
+        gcd(J) != 1 && continue
+        @assert norm(J) == norm(I) * norm(Icc)
         @assert gcd(I) == 1
         @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
 
@@ -257,8 +260,10 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
 
     # challenge ellitpic curve
     a24 = A_to_a24(pk)
+    a24_d = nothing
     e = KLPT_signing_klpt_length
-    for (bit, a) in sign_coeffs
+    for i in 1:SQISIGN_signing_length
+        bit, a = sign_coeffs[i]
         ed = min(2*ExponentForIsogenyDim1, e)
         xP, xQ, xPQ = torsion_basis(a24, ExponentFull)
         xP = xDBLe(xP, a24, ExponentFull - ed)
@@ -269,7 +274,11 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
         else
             ker = ladder3pt(a, xQ, xP, xPQ, a24)
         end
-        a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[], StrategiesDim1[ed])
+        if i < SQISIGN_signing_length
+            a24, _ = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[], StrategiesDim1[ed])
+        else
+            a24, _, a24_d = two_e_iso(a24, ker, ed, Proj1{FqFieldElem}[], StrategiesDim1[ed], -1)
+        end
         a24, _ = Montgomery_normalize(a24, Proj1{FqFieldElem}[])
         e -= ed
     end
@@ -283,13 +292,22 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
         ker = ladder3pt(s, xQ, xP, xPQ, a24)
         xR = xP
     end
-    a24com, im = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR], StrategiesDim1[SQISIGN_challenge_length])
+    a24com, im, a24_dd = two_e_iso(a24, ker, SQISIGN_challenge_length, [xR], StrategiesDim1[SQISIGN_challenge_length], 1)
     a24com, im = Montgomery_normalize(a24com, im)
     Acom = Montgomery_coeff(a24com)
     xP, xQ, xPQ = torsion_basis(a24com, ExponentFull)
     xP = xDBLe(xP, a24com, ExponentFull - SQISIGN_challenge_length)
     xQ = xDBLe(xQ, a24com, ExponentFull - SQISIGN_challenge_length)
     xPQ = xDBLe(xPQ, a24com, ExponentFull - SQISIGN_challenge_length)
+
+    # check cyclicity
+    mod_poly(X, Y) = X^3 + Y^3 - X^2*Y^2 + 1488*X*Y*(X + Y) - 162000*(X^2 + Y^2) + 40773375*X*Y + 8748000000*(X + Y) - 157464000000000
+    j = jInvariant_a24(a24)
+    j1 = jInvariant_a24(a24_d)
+    j2 = jInvariant_a24(a24_dd)
+    @assert mod_poly(j, j1) == 0
+    @assert mod_poly(j, j2) == 0
+    j1 == j2 && return false
 
     # recover challenge
     h = sha3_256(string(Acom) * m)
