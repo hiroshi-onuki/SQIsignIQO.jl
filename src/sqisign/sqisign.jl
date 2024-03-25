@@ -185,9 +185,6 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
         !found && continue
         @assert norm(I) == BigInt(2)^KLPT_signing_klpt_length
         I = intersection(I_A, I)
-        J = product_involution(I, Icc)
-        gcd(J) != 1 && continue
-        @assert norm(J) == norm(I) * norm(Icc)
         @assert gcd(I) == 1
         @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
 
@@ -301,12 +298,8 @@ function verify(pk::FqFieldElem, m::String, sign::Vector{UInt8})
     xPQ = xDBLe(xPQ, a24com, ExponentFull - SQISIGN_challenge_length)
 
     # check cyclicity
-    mod_poly(X, Y) = X^3 + Y^3 - X^2*Y^2 + 1488*X*Y*(X + Y) - 162000*(X^2 + Y^2) + 40773375*X*Y + 8748000000*(X + Y) - 157464000000000
-    j = jInvariant_a24(a24)
     j1 = jInvariant_a24(a24_d)
     j2 = jInvariant_a24(a24_dd)
-    @assert mod_poly(j, j1) == 0
-    @assert mod_poly(j, j2) == 0
     j1 == j2 && return false
 
     # recover challenge

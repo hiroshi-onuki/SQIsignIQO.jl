@@ -72,6 +72,7 @@ function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N
     LLLmat = Imatrix * H
     red_basis = [LLLmat[:, i] for i in 1:4]
 
+    beta = Quaternion_0
     while !found && counter < KLPT_equiv_num_iter
         counter += 1
         c1, c2, c3, c4 = [rand(-KLPT_equiv_bound_coeff:KLPT_equiv_bound_coeff) for _ in 1:4]
@@ -84,7 +85,7 @@ function RandomEquivalentPrimeIdeal_for_signing(Isec::LeftIdeal, I::LeftIdeal, N
             J = larger_ideal(J, nJ) # [Isec]^* L
         end
     end
-    return J, nJ, found
+    return J, nJ, beta, found
 end
 
 # Algorithm 11 in SQIsign documentation
@@ -212,7 +213,7 @@ end
 
 # Algorithm 17 in SQIsign documentation
 function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
-    L, NL, found = RandomEquivalentPrimeIdeal_for_signing(Isec, I, Nsec, N_I)
+    L, NL, beta, found = RandomEquivalentPrimeIdeal_for_signing(Isec, I, Nsec, N_I)
     @assert found
     k = Log2p - Int(floor(log(2, NL))) + KLPT_gamma_exponent_center_shift
     N_gamma = BigInt(2)^k
@@ -220,8 +221,7 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
 
     counter = 0
     found = false
-    gamma = Quaternion_0
-    mu = Quaternion_0
+    gamma_mu = Quaternion_0
     while !found && counter < KLPT_signing_num_gamma_trial
         counter += 1
 
@@ -245,7 +245,8 @@ function SigningKLPT(Isec::LeftIdeal, I::LeftIdeal, Nsec::BigInt, N_I::BigInt)
         D = crt([D0, D1], [NL, Nsec])
 
         mu, found = FullStrongApproximation(Nsec*NL, C, D, lam, 4*N_mu, KLPT_signing_number_strong_approx)
-        trace(gamma*mu) % 2 == 0 && (found = false)
+        gamma_mu = gamma * mu
+        (trace(gamma_mu) % 2 == 0 || gcd(gamma_mu*beta) % 2 == 0)&& (found = false)
     end
-    return ideal_transform(L, gamma*mu, NL), found
+    return ideal_transform(L, gamma_mu, NL), found
 end
