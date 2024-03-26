@@ -1,7 +1,7 @@
 using KaniSQIsign
 
 function signing_test(param::Module, num::Int)
-    _, _, global_data = param.make_precomputed_values()
+    global_data = param.make_precomputed_values()
     println("Signing test for $(param)")
     for _ in 1:num
         println("Generate keys")
@@ -20,5 +20,5 @@ function signing_test(param::Module, num::Int)
 end
 
 signing_test(KaniSQIsign.Level1, 10)
-#signing_test(KaniSQIsign.Level3, 10)
-#signing_test(KaniSQIsign.Level5, 10)
+signing_test(KaniSQIsign.Level3, 10)
+signing_test(KaniSQIsign.Level5, 10)

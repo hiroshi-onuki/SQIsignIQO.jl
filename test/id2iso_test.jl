@@ -4,7 +4,7 @@ using KaniSQIsign
 function test_id2iso(param::Module, n::Int)
     p = param.p
     e1 = param.ExponentForIsogenyDim1
-    _, _, global_data = param.make_precomputed_values()
+    global_data = param.make_precomputed_values()
 
     N = 337416411430778090000393699717 # large prime
     e = n*Int(ceil(log(2, p)))

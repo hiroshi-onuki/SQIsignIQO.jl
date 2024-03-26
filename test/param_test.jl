@@ -110,7 +110,7 @@ function check_matrices_actions(p::BigInt, e::Int, ed::Int, E0)
 end
 
 function param_check(param::Module)
-    _, _, global_data = param.make_precomputed_values()
+    global_data = param.make_precomputed_values()
     E0 = global_data.E0
 
     check_torsion_orders(param.ExponentFull, E0)

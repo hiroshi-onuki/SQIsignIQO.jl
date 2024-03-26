@@ -1,5 +1,6 @@
 include("level1/prime.jl")
 include("level1/klpt_constants.jl")
+include("level1/precomputed_order_data.jl")
 
 include("../quaternion/order.jl")
 include("../quaternion/cornacchia.jl")
@@ -27,11 +28,10 @@ const StrategiesDim1 = Dict(
     ExponentForCommitmentLastIsogeny => compute_strategy(div(ExponentForCommitmentLastIsogeny, 2) - 1, 1, 1)
 )
 
-# Fp2 and values in Fp2
-function make_precomputed_values()
+function make_E0_data()
     _, T = polynomial_ring(GF(p), "T")
     Fp2, Fp2_i = finite_field(T^2 + 1, "i")
-    
+
     A0 = Fp2(0)
 
     # constatns from precompute/level1torsion.sage
@@ -111,12 +111,18 @@ function make_precomputed_values()
         end
     end
 
-    E0 = E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
-    
-    orders_data = [compute_order_d(E0, d) for d in [2, 5, 7]]
+    return Fp2, E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
+end
+
+# Fp2 and values in Fp2
+function make_precomputed_values()
+    Fp2, E0 = make_E0_data()
+
+    precomputed_orders_data = [order_data_2, order_data_5, order_data_7]
+    orders_data = [compute_order(Fp2, E0, order_data) for order_data in precomputed_orders_data]
     @assert orders_data[1].j_inv == 8000
     @assert orders_data[2].j_inv^2 - 1264000*orders_data[2].j_inv - 681472000 == 0
     @assert orders_data[3].j_inv == -3375 || orders_data[3].j_inv == 16581375
 
-    return Fp2, Fp2_i, GlobalData(E0, orders_data)
+    return GlobalData(E0, orders_data)
 end

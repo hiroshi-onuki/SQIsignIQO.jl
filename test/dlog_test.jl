@@ -3,7 +3,7 @@ using KaniSQIsign
 import KaniSQIsign.Level1: ec_bi_dlog_E0
 
 p = KaniSQIsign.Level1.p
-_, _, global_data = KaniSQIsign.Level1.make_precomputed_values()
+global_data = KaniSQIsign.Level1.make_precomputed_values()
 E0 = global_data.E0
 
 A = E0.A0

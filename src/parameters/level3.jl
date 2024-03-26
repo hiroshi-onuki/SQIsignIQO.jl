@@ -1,5 +1,6 @@
 include("level3/prime.jl")
 include("level3/klpt_constants.jl")
+include("level3/precomputed_order_data.jl")
 
 include("../quaternion/order.jl")
 include("../quaternion/cornacchia.jl")
@@ -27,8 +28,7 @@ const StrategiesDim1 = Dict(
     ExponentForCommitmentLastIsogeny => compute_strategy(div(ExponentForCommitmentLastIsogeny, 2) - 1, 1, 1)
 )
 
-# Fp2 and values in Fp2
-function make_precomputed_values()
+function make_E0_data()
     _, T = polynomial_ring(GF(p), "T")
     Fp2, Fp2_i = finite_field(T^2 + 1, "i")
     
@@ -111,11 +111,18 @@ function make_precomputed_values()
         end
     end
 
-    E0 = E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
+    return Fp2, E0Data(A0, A0d, A0dd, a24_0, jInvariant_A(A0), P2e, Q2e, xP2e, xQ2e, xPQ2e, xP2e_short, xQ2e_short, xPQ2e_short, DegreesOddTorsionBases, ExponentsOddTorsionBases, OddTorsionBases, Matrices_2e, M44inv, Matrices_odd, isomorphism_to_A0, dlog_data_full, dlog_data_chall, tp_table)
+end
 
-    orders_data = [compute_order_d(E0, d) for d in [2, 7, 11]]
+# Fp2 and values in Fp2
+function make_precomputed_values()
+    Fp2, E0 = make_E0_data()
+
+    precomputed_orders_data = [order_data_2, order_data_6, order_data_7, order_data_11]
+    orders_data = [compute_order(Fp2, E0, order_data) for order_data in precomputed_orders_data]
     @assert orders_data[1].j_inv == 8000
-    @assert orders_data[2].j_inv == -3375 || orders_data[2].j_inv == 16581375
-    @assert orders_data[3].j_inv == -32768 || orders_data[3].j_inv^3 - 1122662608*orders_data[3].j_inv^2 + 270413882112*orders_data[3].j_inv - 653249011576832 == 0
-    return Fp2, Fp2_i, GlobalData(E0, orders_data)
+    @assert orders_data[2].j_inv^2 - 4834944*orders_data[2].j_inv + 14670139392 == 0
+    @assert orders_data[3].j_inv == -3375 || orders_data[3].j_inv == 16581375
+    @assert orders_data[4].j_inv == -32768 || orders_data[4].j_inv^3 - 1122662608*orders_data[4].j_inv^2 + 270413882112*orders_data[4].j_inv - 653249011576832 == 0
+    return GlobalData(E0, orders_data)
 end

@@ -2,10 +2,9 @@ using Nemo
 import Pkg
 Pkg.activate(@__DIR__)
 using KaniSQIsign
-using KaniSQIsign.Level1
 
 function benchmark_test(param::Module, num::Int)
-    _, _, global_data = param.make_precomputed_values()
+    global_data = param.make_precomputed_values()
 
     # for compilation
     pk, sk, found = param.key_gen(global_data)
@@ -39,3 +38,4 @@ end
 
 benchmark_test(KaniSQIsign.Level1, 100) 
 benchmark_test(KaniSQIsign.Level3, 100) 
+benchmark_test(KaniSQIsign.Level5, 100) 
