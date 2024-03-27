@@ -12,7 +12,7 @@ function check_short_element(param::Module)
 
     a = param.QOrderElem(1)
     found = false
-    while !found || param.norm(a) % (BigInt(2)^e1) != 0
+    while !found || param.norm(a) % (BigInt(2)^e1 * ext_factor) != 0
         a, found = param.FullRepresentInteger(N*BigInt(2)^e)
         if found
             while param.gcd(a) != 1
