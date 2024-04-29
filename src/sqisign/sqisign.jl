@@ -143,7 +143,6 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
         Qd = -Qd
     end
     s1, s2 = ec_bi_dlog_challenge(Ad, xK, Pd, Qd, E0)
-    @assert xK == linear_comb_2_e(s1, s2, xPd, xQd, xPQd, a24d, SQISIGN_challenge_length)
     is_one_P = s1 % 2 != 0
     if is_one_P
         s = (s2 * invmod(s1, BigInt(2)^SQISIGN_challenge_length)) % BigInt(2)^SQISIGN_challenge_length
@@ -152,14 +151,9 @@ function challenge(A::FqFieldElem, xP::Proj1{FqFieldElem}, xQ::Proj1{FqFieldElem
     end
 
     ker_d = is_one_P ? xQd : xPd
-    @assert !is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length - 1))
-    @assert is_infinity(xDBLe(ker_d, a24d, SQISIGN_challenge_length))
     a24dd, im = two_e_iso(a24d, xK, SQISIGN_challenge_length, [ker_d], StrategiesDim1[SQISIGN_challenge_length])
     a24dd, im = Montgomery_normalize(a24dd, im)
-    @assert !is_infinity(xDBLe(im[1], a24, SQISIGN_challenge_length - 1))
-    @assert a24dd == a24
     r = ec_dlog(A, ker, im[1], xQ, E0)
-    @assert ladder(r, im[1], a24) == ker
 
     return c, is_one_P, s, r
 end
@@ -183,10 +177,7 @@ function signing(pk::FqFieldElem, sk, m::String, global_data::GlobalData)
         Icc = intersection(Icom, Icha)
         I, found = SigningKLPT(I_A, Icc, norm(I_A), norm(Icc))
         !found && continue
-        @assert norm(I) == BigInt(2)^KLPT_signing_klpt_length
         I = intersection(I_A, I)
-        @assert gcd(I) == 1
-        @assert norm(I) == norm(I_A) * BigInt(2)^KLPT_signing_klpt_length
 
         # ideal to isogeny
         a24 = A_to_a24(pk)
