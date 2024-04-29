@@ -6,9 +6,9 @@ project_hash = "3f3f0543767cdf718ad5122c9bc683bd1303e820"
 
 [[deps.AbstractAlgebra]]
 deps = ["InteractiveUtils", "LinearAlgebra", "MacroTools", "Preferences", "Random", "RandomExtensions", "SparseArrays", "Test"]
-git-tree-sha1 = "a9f46b73ce3e3e6e0fdb0245b47db59dc99cb85d"
+git-tree-sha1 = "20b4984a6fa7e22346b4f420125342142d367913"
 uuid = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
-version = "0.40.3"
+version = "0.40.9"
 
 [[deps.Antic_jll]]
 deps = ["Artifacts", "FLINT_jll", "GMP_jll", "JLLWrappers", "Libdl", "MPFR_jll", "Pkg"]
@@ -136,9 +136,9 @@ version = "2023.1.10"
 
 [[deps.Nemo]]
 deps = ["AbstractAlgebra", "Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "Libdl", "LinearAlgebra", "Pkg", "Random", "RandomExtensions", "SHA"]
-git-tree-sha1 = "3789515efc803d7d37c3bad18a4b48d1b34196b7"
+git-tree-sha1 = "ffbd46986e805d4bf92593ccc474f82d4441a200"
 uuid = "2edaba10-b0f1-5616-af89-8c11ac63239a"
-version = "0.43.1"
+version = "0.43.3"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
