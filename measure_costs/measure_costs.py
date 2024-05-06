@@ -81,7 +81,7 @@ def IsogCodDim2():
 
 # the cost of doubling for gluing two curves
 def DblGluDim2():
-    return 8*M + 4*S
+    return 4*(4*M + 2*S)
 
 # the cost of the codomain of a gluing isogeny
 def IsonCodGluDim2():
