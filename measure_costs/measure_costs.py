@@ -127,8 +127,8 @@ def eval_2_2_isog_cost():
 
     # cost of gluing
     c += DblGluDim2() * (f - 1) # doubling for making the kernel generator
-    c += 2 * Ladder(2**(f-1) + 1)
-    c += 2 * Ladder(2**(f-1))
+    c += 2 * Ladder(2**f + 1)
+    c += 2 * Ladder(2**f)
     c += 4 * DblAddSub()
     c += IsonCodGluDim2()
     c += 6 * IsogPointGluDim2()
