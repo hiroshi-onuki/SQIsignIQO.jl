@@ -2,7 +2,7 @@
 
 A proof-of-concept implementation of
 SQIsign using IdealToIsogenyIQO
-proposed in [Ideal-to-isogeny algorithm using 2-dimensional isogenies and its application to SQIsign](https://eprint.iacr.org/2024/****)
+proposed in [Ideal-to-isogeny algorithm using 2-dimensional isogenies and its application to SQIsign](https://eprint.iacr.org/2024/778)
 using [Julia](https://julialang.org)
 and [Nemo](https://www.nemocas.org).
 
