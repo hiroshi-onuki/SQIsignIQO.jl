@@ -75,7 +75,7 @@ end
 # return alpha in I and a, b s.t. 2^e - norm(alpha)/norm(I) = a^2 + d*b^2
 # a, b is given by cor_func in the argument
 function two_e_good_element(I::LeftIdeal, nI::BigInt, cor_func::Function, bound::BigInt, max_tries::Integer=100)
-    q(x, y) = div(quadratic_form(QOrderElem(x), QOrderElem(y)), 2)
+    q(x, y) = quadratic_form(QOrderElem(x), QOrderElem(y))
 
     # LLL reduction
     Imatrix = ideal_to_matrix(I)
@@ -83,7 +83,7 @@ function two_e_good_element(I::LeftIdeal, nI::BigInt, cor_func::Function, bound:
     LLLmat = Imatrix * H
     red_basis = [LLLmat[:, i] for i in 1:4]
 
-    q = make_quadratic_form_coeffs(red_basis, q)
+    q = make_quadratic_form_coeffs(red_basis, (x, y) -> div(q(x, y), 2))
     S = zeros(Rational{Integer}, 4)
     U = zeros(Rational{Integer}, 4)
     L = zeros(Integer, 4)
